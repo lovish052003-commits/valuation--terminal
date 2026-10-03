@@ -1,0 +1,195 @@
+=== DATA SHEET ROWS 1 TO 55 ===
+Row  1 | A: COMPANY NAME                   | B Form: Sun Pharmaceutical Industries Ltd | B Val: Sun Pharmaceutical Industries Ltd | K Form: None                 | K Val: None           
+Row  2 | A: LATEST VERSION                 | B Form: 2.1                  | B Val: 2.1             | K Form: None                 | K Val: None           
+Row  3 | A: CURRENT VERSION                | B Form: 2.1                  | B Val: 2.1             | K Form: None                 | K Val: None           
+Row  4 | A: None                           | B Form: None                 | B Val: None            | K Form: None                 | K Val: None           
+Row  5 | A: META                           | B Form: None                 | B Val: None            | K Form: None                 | K Val: None           
+Row  6 | A: Number of shares               | B Form: =IF(B9>0, B9/B8, 0)  | B Val: 239.97278170930866 | K Form: None                 | K Val: None           
+Row  7 | A: Face Value                     | B Form: 1                    | B Val: 1               | K Form: None                 | K Val: None           
+Row  8 | A: Current Price                  | B Form: 1837                 | B Val: 1837            | K Form: None                 | K Val: None           
+Row  9 | A: Market Capitalization          | B Form: 440830               | B Val: 440830          | K Form: None                 | K Val: None           
+Row 10 | A: None                           | B Form: None                 | B Val: None            | K Form: None                 | K Val: None           
+Row 11 | A: None                           | B Form: None                 | B Val: None            | K Form: None                 | K Val: None           
+Row 12 | A: None                           | B Form: None                 | B Val: None            | K Form: None                 | K Val: None           
+Row 13 | A: None                           | B Form: None                 | B Val: None            | K Form: None                 | K Val: None           
+Row 14 | A: None                           | B Form: None                 | B Val: None            | K Form: None                 | K Val: None           
+Row 15 | A: PROFIT & LOSS                  | B Form: None                 | B Val: None            | K Form: None                 | K Val: None           
+Row 16 | A: Report Date                    | B Form: 2017-03-01 00:00:00  | B Val: 2017-03-01 00:00:00 | K Form: 2026-03-01 00:00:00  | K Val: 2026-03-01 00:00:00
+Row 17 | A: Sales                          | B Form: 31578                | B Val: 31578           | K Form: 58462                | K Val: 58462          
+Row 18 | A: Raw Material Cost              | B Form: 8131.34              | B Val: 8131.34         | K Form: 11546.25             | K Val: 11546.25       
+Row 19 | A: Change in Inventory            | B Form: 0                    | B Val: 0               | K Form: 0                    | K Val: 0              
+Row 20 | A: Power and Fuel                 | B Form: 0                    | B Val: 0               | K Form: 0                    | K Val: 0              
+Row 21 | A: Other Mfr. Exp                 | B Form: 2497.82              | B Val: 2497.82         | K Form: 3379.1               | K Val: 3379.1         
+Row 22 | A: Employee Cost                  | B Form: 4900.91              | B Val: 4900.91         | K Form: 11417.63             | K Val: 11417.63       
+Row 23 | A: Selling and admin              | B Form: 0                    | B Val: 0               | K Form: 0                    | K Val: 0              
+Row 24 | A: Other Expenses                 | B Form: 5946.14              | B Val: 5946.14         | K Form: 15621.05             | K Val: 15621.05       
+Row 25 | A: Other Income                   | B Form: 610                  | B Val: 610             | K Form: 1895                 | K Val: 1895           
+Row 26 | A: Depreciation                   | B Form: 1265                 | B Val: 1265            | K Form: 2938                 | K Val: 2938           
+Row 27 | A: Interest                       | B Form: 400                  | B Val: 400             | K Form: 339                  | K Val: 339            
+Row 28 | A: Profit before tax              | B Form: 9048                 | B Val: 9048            | K Form: 15119                | K Val: 15119          
+Row 29 | A: Tax                            | B Form: 9048                 | B Val: 9048            | K Form: 15119                | K Val: 15119          
+Row 30 | A: Net profit                     | B Form: 7846                 | B Val: 7846            | K Form: 11509                | K Val: 11509          
+Row 31 | A: Dividend Amount                | B Form: 941.52               | B Val: 941.52          | K Form: 3797.97              | K Val: 3797.97        
+Row 32 | A: EBITDA                         | B Form: 0                    | B Val: 0               | K Form: 0                    | K Val: 0              
+Row 33 | A: None                           | B Form: =B30+B29+B27+B26     | B Val: 18559           | K Form: =K30+K29+K27+K26     | K Val: 29905          
+Row 34 | A: None                           | B Form: None                 | B Val: None            | K Form: None                 | K Val: None           
+Row 35 | A: None                           | B Form: None                 | B Val: None            | K Form: None                 | K Val: None           
+Row 36 | A: None                           | B Form: None                 | B Val: None            | K Form: None                 | K Val: None           
+Row 37 | A: None                           | B Form: None                 | B Val: None            | K Form: None                 | K Val: None           
+Row 38 | A: None                           | B Form: None                 | B Val: None            | K Form: None                 | K Val: None           
+Row 39 | A: None                           | B Form: None                 | B Val: None            | K Form: None                 | K Val: None           
+Row 40 | A: Quarters                       | B Form: None                 | B Val: None            | K Form: None                 | K Val: None           
+Row 41 | A: Report Date                    | B Form: 2024-03-01 00:00:00  | B Val: 2024-03-01 00:00:00 | K Form: 2026-06-01 00:00:00  | K Val: 2026-06-01 00:00:00
+Row 42 | A: Sales                          | B Form: 11983                | B Val: 11983           | K Form: 15300                | K Val: 15300          
+Row 43 | A: Expenses                       | B Form: 8948                 | B Val: 8948            | K Form: 10882                | K Val: 10882          
+Row 44 | A: Other Income                   | B Form: 504                  | B Val: 504             | K Form: 520                  | K Val: 520            
+Row 45 | A: Depreciation                   | B Form: 650                  | B Val: 650             | K Form: 739                  | K Val: 739            
+Row 46 | A: Interest                       | B Form: 74                   | B Val: 74              | K Form: 100                  | K Val: 100            
+Row 47 | A: Profit before tax              | B Form: 2816                 | B Val: 2816            | K Form: 4099                 | K Val: 4099           
+Row 48 | A: Tax                            | B Form: 2816                 | B Val: 2816            | K Form: 4099                 | K Val: 4099           
+Row 49 | A: Net profit                     | B Form: 2659                 | B Val: 2659            | K Form: 2901                 | K Val: 2901           
+Row 50 | A: Operating Profit               | B Form: 3035                 | B Val: 3035            | K Form: 4418                 | K Val: 4418           
+Row 51 | A: None                           | B Form: None                 | B Val: None            | K Form: None                 | K Val: None           
+Row 52 | A: None                           | B Form: None                 | B Val: None            | K Form: None                 | K Val: None           
+Row 53 | A: None                           | B Form: None                 | B Val: None            | K Form: None                 | K Val: None           
+Row 54 | A: None                           | B Form: None                 | B Val: None            | K Form: None                 | K Val: None           
+Row 55 | A: BALANCE SHEET                  | B Form: None                 | B Val: None            | K Form: None                 | K Val: None           
+
+=== HISTORICAL FS ROWS 1 TO 45 FORMULAS & VALUES ===
+Row  2 | Label: ="Historical Financial Statement - "&'Data Sheet'!$B$1
+   Cols C..K Form: [None, None, None, None, None, None, None, None, None]
+   Cols C..K Val : [None, None, None, None, None, None, None, None, None]
+Row  3 | Label: Particulars                        
+   Cols C..K Form: ["='Data Sheet'!B56", "='Data Sheet'!C56", "='Data Sheet'!D56", "='Data Sheet'!E56", "='Data Sheet'!F56", "='Data Sheet'!G56", "='Data Sheet'!H56", "='Data Sheet'!I56", "='Data Sheet'!J56"]
+   Cols C..K Val : [datetime.datetime(2017, 3, 1, 0, 0), datetime.datetime(2018, 3, 1, 0, 0), datetime.datetime(2019, 3, 1, 0, 0), datetime.datetime(2020, 3, 1, 0, 0), datetime.datetime(2021, 3, 1, 0, 0), datetime.datetime(2022, 3, 1, 0, 0), datetime.datetime(2023, 3, 1, 0, 0), datetime.datetime(2024, 3, 1, 0, 0), datetime.datetime(2025, 3, 1, 0, 0)]
+Row  5 | Label: Income Statement                   
+   Cols C..K Form: [None, None, None, None, None, None, None, None, None]
+   Cols C..K Val : [None, None, None, None, None, None, None, None, None]
+Row  7 | Label: Sales                              
+   Cols C..K Form: ["='Data Sheet'!B17", "='Data Sheet'!C17", "='Data Sheet'!D17", "='Data Sheet'!E17", "='Data Sheet'!F17", "='Data Sheet'!G17", "='Data Sheet'!H17", "='Data Sheet'!I17", "='Data Sheet'!J17"]
+   Cols C..K Val : [31578, 26489, 29066, 32838, 33498, 38654, 43886, 48497, 52578]
+Row  8 | Label: Sales Growth                       
+   Cols C..K Form: ['-', '=D7/C7-1', '=E7/D7-1', '=F7/E7-1', '=G7/F7-1', '=H7/G7-1', '=I7/H7-1', '=J7/I7-1', '=K7/J7-1']
+   Cols C..K Val : ['-', -0.16115650136170756, 0.09728566574804631, 0.12977361866097836, 0.02009866617942624, 0.1539196369932534, 0.13535468515548188, 0.10506767534065542, 0.084149535022785]
+Row 10 | Label: Cost of Goods Sold                 
+   Cols C..K Form: ["=SUM('Data Sheet'!B18,'Data Sheet'!B20:B22)-'Data Sheet'!B19", "=SUM('Data Sheet'!C18,'Data Sheet'!C20:C22)-'Data Sheet'!C19", "=SUM('Data Sheet'!D18,'Data Sheet'!D20:D22)-'Data Sheet'!D19", "=SUM('Data Sheet'!E18,'Data Sheet'!E20:E22)-'Data Sheet'!E19", "=SUM('Data Sheet'!F18,'Data Sheet'!F20:F22)-'Data Sheet'!F19", "=SUM('Data Sheet'!G18,'Data Sheet'!G20:G22)-'Data Sheet'!G19", "=SUM('Data Sheet'!H18,'Data Sheet'!H20:H22)-'Data Sheet'!H19", "=SUM('Data Sheet'!I18,'Data Sheet'!I20:I22)-'Data Sheet'!I19", "=SUM('Data Sheet'!J18,'Data Sheet'!J20:J22)-'Data Sheet'!J19"]
+   Cols C..K Val : [15530.07, 15180.85, 16335.1, 17906.56, 17904.68, 20235.370000000003, 21723.57, 23040.93, 23733.71]
+Row 11 | Label: COGS % Sales                       
+   Cols C..K Form: ['=C10/C7', '=D10/D7', '=E10/E7', '=F10/F7', '=G10/G7', '=H10/H7', '=I10/I7', '=J10/J7', '=K10/K7']
+   Cols C..K Val : [0.4918003040091203, 0.57310015478123, 0.5620002752356705, 0.5452999573664657, 0.5344999701474715, 0.5235000258705439, 0.495, 0.47510010928511043, 0.45140001521548934]
+Row 13 | Label: Gross Profit                       
+   Cols C..K Form: ['=C7-C10', '=D7-D10', '=E7-E10', '=F7-F10', '=G7-G10', '=H7-H10', '=I7-I10', '=J7-J10', '=K7-K10']
+   Cols C..K Val : [16047.93, 11308.15, 12730.9, 14931.439999999999, 15593.32, 18418.629999999997, 22162.43, 25456.07, 28844.29]
+Row 14 | Label: Gross Profit % Sales               
+   Cols C..K Form: ['=C13/C7', '=D13/D7', '=E13/E7', '=F13/F7', '=G13/G7', '=H13/H7', '=I13/I7', '=J13/J7', '=K13/K7']
+   Cols C..K Val : [0.5081996959908798, 0.42689984521877006, 0.43799972476432947, 0.4547000426335343, 0.4655000298525285, 0.47649997412945616, 0.505, 0.5248998907148896, 0.5485999847845107]
+Row 16 | Label: Selling % General Expenses         
+   Cols C..K Form: ["='Data Sheet'!B23", "='Data Sheet'!C23", "='Data Sheet'!D23", "='Data Sheet'!E23", "='Data Sheet'!F23", "='Data Sheet'!G23", "='Data Sheet'!H23", "='Data Sheet'!I23", "='Data Sheet'!J23"]
+   Cols C..K Val : [0, 0, 0, 0, 0, 0, 0, 0, 0]
+Row 17 | Label: S&G % Sales                        
+   Cols C..K Form: ['=C16/C7', '=D16/D7', '=E16/E7', '=F16/F7', '=G16/G7', '=H16/H7', '=I16/I7', '=J16/J7', '=K16/K7']
+   Cols C..K Val : [0, 0, 0, 0, 0, 0, 0, 0, 0]
+Row 19 | Label: EBITDA                             
+   Cols C..K Form: ['=C13-C16', '=D13-D16', '=E13-E16', '=F13-F16', '=G13-G16', '=H13-H16', '=I13-I16', '=J13-J16', '=K13-K16']
+   Cols C..K Val : [16047.93, 11308.15, 12730.9, 14931.439999999999, 15593.32, 18418.629999999997, 22162.43, 25456.07, 28844.29]
+Row 20 | Label: EBITDA % Sales                     
+   Cols C..K Form: ['=C19/C7', '=D19/D7', '=E19/E7', '=F19/F7', '=G19/G7', '=H19/H7', '=I19/I7', '=J19/J7', '=K19/K7']
+   Cols C..K Val : [0.5081996959908798, 0.42689984521877006, 0.43799972476432947, 0.4547000426335343, 0.4655000298525285, 0.47649997412945616, 0.505, 0.5248998907148896, 0.5485999847845107]
+Row 22 | Label: Depreciation                       
+   Cols C..K Form: ["='Data Sheet'!B26", "='Data Sheet'!C26", "='Data Sheet'!D26", "='Data Sheet'!E26", "='Data Sheet'!F26", "='Data Sheet'!G26", "='Data Sheet'!H26", "='Data Sheet'!I26", "='Data Sheet'!J26"]
+   Cols C..K Val : [1265, 1500, 1753, 2053, 2080, 2144, 2529, 2557, 2575]
+Row 23 | Label: Depreciation % Sales               
+   Cols C..K Form: ['=C22/C7', '=D22/D7', '=E22/E7', '=F22/F7', '=G22/G7', '=H22/H7', '=I22/I7', '=J22/J7', '=K22/K7']
+   Cols C..K Val : [0.04005953511938692, 0.05662727924798973, 0.06031101630771348, 0.06251903282782142, 0.062093259299062634, 0.055466445904692914, 0.057626577951966455, 0.05272491081922593, 0.048974856403819086]
+Row 25 | Label: EBIT                               
+   Cols C..K Form: ['=C19-C22', '=D19-D22', '=E19-E22', '=F19-F22', '=G19-G22', '=H19-H22', '=I19-I22', '=J19-J22', '=K19-K22']
+   Cols C..K Val : [14782.93, 9808.15, 10977.9, 12878.439999999999, 13513.32, 16274.629999999997, 19633.43, 22899.07, 26269.29]
+Row 26 | Label: EBIT % Sales                       
+   Cols C..K Form: ['=C25/C7', '=D25/D7', '=E25/E7', '=F25/F7', '=G25/G7', '=H25/H7', '=I25/I7', '=J25/J7', '=K25/K7']
+   Cols C..K Val : [0.4681401608714928, 0.3702725659707803, 0.37768870845661595, 0.39218100980571285, 0.40340677055346585, 0.4210335282247632, 0.44737342204803354, 0.47217497989566365, 0.49962512838069156]
+Row 28 | Label: Interest                           
+   Cols C..K Form: ["='Data Sheet'!B27", "='Data Sheet'!C27", "='Data Sheet'!D27", "='Data Sheet'!E27", "='Data Sheet'!F27", "='Data Sheet'!G27", "='Data Sheet'!H27", "='Data Sheet'!I27", "='Data Sheet'!J27"]
+   Cols C..K Val : [400, 518, 555, 303, 141, 127, 172, 238, 231]
+Row 29 | Label: Interest % Sales                   
+   Cols C..K Form: ['=C28/C7', '=D28/D7', '=E28/E7', '=F28/F7', '=G28/G7', '=H28/H7', '=I28/I7', '=J28/J7', '=K28/K7']
+   Cols C..K Val : [0.012667046678067008, 0.01955528710030579, 0.019094474643913853, 0.009227114927827518, 0.004209206519792227, 0.0032855590624514927, 0.003919245317413298, 0.00490752005278677, 0.0043934725550610525]
+Row 31 | Label: Earning Before Tax                 
+   Cols C..K Form: ['=C25-C28', '=D25-D28', '=E25-E28', '=F25-F28', '=G25-G28', '=H25-H28', '=I25-I28', '=J25-J28', '=K25-K28']
+   Cols C..K Val : [14382.93, 9290.15, 10422.9, 12575.439999999999, 13372.32, 16147.629999999997, 19461.43, 22661.07, 26038.29]
+Row 32 | Label: EBT % Sales                        
+   Cols C..K Form: ['=C31/C7', '=D31/D7', '=E31/E7', '=F31/F7', '=G31/G7', '=H31/H7', '=I31/I7', '=J31/J7', '=K31/K7']
+   Cols C..K Val : [0.4554731141934258, 0.35071727887047455, 0.3585942338127021, 0.38295389487788534, 0.3991975640336736, 0.4177479691623117, 0.44345417673062026, 0.4672674598428769, 0.4952316558256305]
+Row 34 | Label: Tax Rate                           
+   Cols C..K Form: ["='Data Sheet'!B29", "='Data Sheet'!C29", "='Data Sheet'!D29", "='Data Sheet'!E29", "='Data Sheet'!F29", "='Data Sheet'!G29", "='Data Sheet'!H29", "='Data Sheet'!I29", "='Data Sheet'!J29"]
+   Cols C..K Val : [9048, 3479, 3810, 5010, 2799, 4481, 9408, 11088, 13752]
+Row 35 | Label: Effective Tax Rate                 
+   Cols C..K Form: ['=C34/C31', '=D34/D31', '=E34/E31', '=F34/F31', '=G34/G31', '=H34/H31', '=I34/I31', '=J34/J31', '=K34/K31']
+   Cols C..K Val : [0.6290790541287484, 0.3744826509798012, 0.3655412601099502, 0.39839560285763365, 0.2093129688789978, 0.2775020235167638, 0.48341771390899846, 0.489297283844055, 0.5281452814297712]
+Row 37 | Label: Net Profit                         
+   Cols C..K Form: ['=C31-C34', '=D31-D34', '=E31-E34', '=F31-F34', '=G31-G34', '=H31-H34', '=I31-I34', '=J31-J34', '=K31-K34']
+   Cols C..K Val : [5334.93, 5811.15, 6612.9, 7565.439999999999, 10573.32, 11666.629999999997, 10053.43, 11573.07, 12286.29]
+Row 38 | Label: Net Profit % Sales                 
+   Cols C..K Form: ['=C37/C7', '=D37/D7', '=E37/E7', '=F37/F7', '=G37/G7', '=H37/H7', '=I37/I7', '=J37/J7', '=K37/K7']
+   Cols C..K Val : [0.16894451833555008, 0.21937974253463702, 0.22751324571664486, 0.23038674706133133, 0.3156403367365216, 0.30182206239975157, 0.22908057239210683, 0.23863476091304617, 0.23367739358667125]
+Row 40 | Label: No. of Equity Shares               
+   Cols C..K Form: ["='Data Sheet'!B93", "='Data Sheet'!C93", "='Data Sheet'!D93", "='Data Sheet'!E93", "='Data Sheet'!F93", "='Data Sheet'!G93", "='Data Sheet'!H93", "='Data Sheet'!I93", "='Data Sheet'!J93"]
+   Cols C..K Val : [249.82, 249.82, 249.82, 249.82, 249.82, 249.82, 249.82, 249.82, 249.82]
+Row 42 | Label: Earning per Share                  
+   Cols C..K Form: ['=C37/C40', '=D37/D40', '=E37/E40', '=F37/F40', '=G37/G40', '=H37/H40', '=I37/I40', '=J37/J40', '=K37/K40']
+   Cols C..K Val : [21.355095668881596, 23.26134817068289, 26.47065887438956, 30.28356416619966, 42.32375310223361, 46.700144103754695, 40.242694740212954, 46.3256344568089, 49.1805700104075]
+Row 43 | Label: EPS Growth                         
+   Cols C..K Form: ['-', '=D42/C42-1', '=E42/D42-1', '=F42/E42-1', '=G42/F42-1', '=H42/G42-1', '=I42/H42-1', '=J42/I42-1', '=K42/J42-1']
+   Cols C..K Val : ['-', 0.08926452643239924, 0.13796752794197364, 0.14404270441107525, 0.39758163437949423, 0.10340271551414282, -0.13827472029197785, 0.15115637150703787, 0.061627554313592015]
+
+=== FORECASTING SHEET AUDIT ===
+Row  2 | Label: ='Data Sheet'!$B$1&" -"&'Data Sheet'!A17&" Forecasting"
+   Cols C..K Form: [None, None, None, None, '=\'Data Sheet\'!$B$1&" -"&\'Historical FS\'!B19&" Forecasting"', None, None, None, None]
+   Cols C..K Val : [None, None, None, None, 'Sun Pharmaceutical Industries Ltd -EBITDA Forecasting', None, None, None, None]
+Row  3 | Label: Year Weight                        
+   Cols C..K Form: ['Year', 'Sales', 'Sales Growth', None, 'Year Weight', 'Year', 'EBITDA', 'EBITDA Growth', None]
+   Cols C..K Val : ['Year', 'Sales', 'Sales Growth', None, 'Year Weight', 'Year', 'EBITDA', 'EBITDA Growth', None]
+Row  5 | Label: 1                                  
+   Cols C..K Form: [<openpyxl.worksheet.formula.ArrayFormula object at 0x000001E96FCEAF90>, <openpyxl.worksheet.formula.ArrayFormula object at 0x000001E96FCF6AD0>, '-', None, 1, <openpyxl.worksheet.formula.ArrayFormula object at 0x000001E96FF8BB10>, <openpyxl.worksheet.formula.ArrayFormula object at 0x000001E96FF7F950>, '-', None]
+   Cols C..K Val : [datetime.datetime(2017, 3, 1, 0, 0), 31578, '-', None, 1, datetime.datetime(2017, 3, 1, 0, 0), 16047.93, '-', None]
+Row  6 | Label: =B5+1                              
+   Cols C..K Form: [datetime.datetime(2018, 3, 1, 0, 0), 26489, '=D6/D5-1', None, '=G5+1', datetime.datetime(2018, 3, 1, 0, 0), 11308.15, '=I6/I5-1', None]
+   Cols C..K Val : [datetime.datetime(2018, 3, 1, 0, 0), 26489, -0.16115650136170756, None, 2, datetime.datetime(2018, 3, 1, 0, 0), 11308.15, -0.2953514876996597, None]
+Row  7 | Label: =B6+1                              
+   Cols C..K Form: [datetime.datetime(2019, 3, 1, 0, 0), 29066, '=D7/D6-1', None, '=G6+1', datetime.datetime(2019, 3, 1, 0, 0), 12730.9, '=I7/I6-1', None]
+   Cols C..K Val : [datetime.datetime(2019, 3, 1, 0, 0), 29066, 0.09728566574804631, None, 3, datetime.datetime(2019, 3, 1, 0, 0), 12730.9, 0.1258163360054474, None]
+Row  8 | Label: =B7+1                              
+   Cols C..K Form: [datetime.datetime(2020, 3, 1, 0, 0), 32838, '=D8/D7-1', None, '=G7+1', datetime.datetime(2020, 3, 1, 0, 0), 14931.439999999999, '=I8/I7-1', None]
+   Cols C..K Val : [datetime.datetime(2020, 3, 1, 0, 0), 32838, 0.12977361866097836, None, 4, datetime.datetime(2020, 3, 1, 0, 0), 14931.439999999999, 0.1728503090904805, None]
+Row  9 | Label: =B8+1                              
+   Cols C..K Form: [datetime.datetime(2021, 3, 1, 0, 0), 33498, '=D9/D8-1', None, '=G8+1', datetime.datetime(2021, 3, 1, 0, 0), 15593.32, '=I9/I8-1', None]
+   Cols C..K Val : [datetime.datetime(2021, 3, 1, 0, 0), 33498, 0.02009866617942624, None, 5, datetime.datetime(2021, 3, 1, 0, 0), 15593.32, 0.04432794157830733, None]
+Row 10 | Label: =B9+1                              
+   Cols C..K Form: [datetime.datetime(2022, 3, 1, 0, 0), 38654, '=D10/D9-1', None, '=G9+1', datetime.datetime(2022, 3, 1, 0, 0), 18418.629999999997, '=I10/I9-1', None]
+   Cols C..K Val : [datetime.datetime(2022, 3, 1, 0, 0), 38654, 0.1539196369932534, None, 6, datetime.datetime(2022, 3, 1, 0, 0), 18418.629999999997, 0.18118720067310856, None]
+Row 11 | Label: =B10+1                             
+   Cols C..K Form: [datetime.datetime(2023, 3, 1, 0, 0), 43886, '=D11/D10-1', None, '=G10+1', datetime.datetime(2023, 3, 1, 0, 0), 22162.43, '=I11/I10-1', None]
+   Cols C..K Val : [datetime.datetime(2023, 3, 1, 0, 0), 43886, 0.13535468515548188, None, 7, datetime.datetime(2023, 3, 1, 0, 0), 22162.43, 0.2032615889455407, None]
+Row 12 | Label: =B11+1                             
+   Cols C..K Form: [datetime.datetime(2024, 3, 1, 0, 0), 48497, '=D12/D11-1', None, '=G11+1', datetime.datetime(2024, 3, 1, 0, 0), 25456.07, '=I12/I11-1', None]
+   Cols C..K Val : [datetime.datetime(2024, 3, 1, 0, 0), 48497, 0.10506767534065542, None, 8, datetime.datetime(2024, 3, 1, 0, 0), 25456.07, 0.1486136673640932, None]
+Row 13 | Label: =B12+1                             
+   Cols C..K Form: [datetime.datetime(2025, 3, 1, 0, 0), 52578, '=D13/D12-1', None, '=G12+1', datetime.datetime(2025, 3, 1, 0, 0), 28844.29, '=I13/I12-1', None]
+   Cols C..K Val : [datetime.datetime(2025, 3, 1, 0, 0), 52578, 0.084149535022785, None, 9, datetime.datetime(2025, 3, 1, 0, 0), 28844.29, 0.13310067107766432, None]
+Row 14 | Label: =B13+1                             
+   Cols C..K Form: ['=C13+365', 58462, '=D14/D13-1', None, '=G13+1', '=H13+365', 32119.02, '=I14/I13-1', None]
+   Cols C..K Val : [datetime.datetime(2026, 3, 1, 0, 0), 58462, 0.11190992430294044, None, 10, datetime.datetime(2026, 3, 1, 0, 0), 32119.02, 0.11353130896964347, None]
+Row 15 | Label: =B14+1                             
+   Cols C..K Form: ['=C14+365', '=FORECAST(B15,$D$5:$D$14,$B$5:$B$14)', '=D15/D14-1', None, '=G14+1', '=H14+365', '=FORECAST(G15,$I$5:$I$14,$G$5:$G$14)', '=I15/I14-1', None]
+   Cols C..K Val : [datetime.datetime(2027, 3, 1, 0, 0), 58222.399999999994, -0.004098388696931465, None, 11, datetime.datetime(2027, 3, 1, 0, 0), 31612.448666666667, -0.015771693324806768, None]
+Row 16 | Label: =B15+1                             
+   Cols C..K Form: ['=C15+365', '=FORECAST(B16,$D$5:$D$14,$B$5:$B$14)', '=D16/D15-1', None, '=G15+1', '=H15+365', '=FORECAST(G16,$I$5:$I$14,$G$5:$G$14)', '=I16/I15-1', None]
+   Cols C..K Val : [datetime.datetime(2028, 2, 29, 0, 0), 61616.545454545456, 0.05829621339115976, None, 12, datetime.datetime(2028, 2, 29, 0, 0), 33767.21787878788, 0.06816204701008433, None]
+Row 17 | Label: =B16+1                             
+   Cols C..K Form: ['=C16+365', '=FORECAST(B17,$D$5:$D$14,$B$5:$B$14)', '=D17/D16-1', None, '=G16+1', '=H16+365', '=FORECAST(G17,$I$5:$I$14,$G$5:$G$14)', '=I17/I16-1', None]
+   Cols C..K Val : [datetime.datetime(2029, 2, 28, 0, 0), 65010.6909090909, 0.05508496832314802, None, 13, datetime.datetime(2029, 2, 28, 0, 0), 35921.9870909091, 0.06381245916841771, None]
+Row 18 | Label: =B17+1                             
+   Cols C..K Form: ['=C17+365', '=FORECAST(B18,$D$5:$D$14,$B$5:$B$14)', '=D18/D17-1', None, '=G17+1', '=H17+365', '=FORECAST(G18,$I$5:$I$14,$G$5:$G$14)', '=I18/I17-1', None]
+   Cols C..K Val : [datetime.datetime(2030, 2, 28, 0, 0), 68404.83636363636, 0.052209035269164206, None, 14, datetime.datetime(2030, 2, 28, 0, 0), 38076.7563030303, 0.05998468867181672, None]
+Row 19 | Label: =B18+1                             
+   Cols C..K Form: ['=C18+365', '=FORECAST(B19,$D$5:$D$14,$B$5:$B$14)', '=D19/D18-1', None, '=G18+1', '=H18+365', '=FORECAST(G19,$I$5:$I$14,$G$5:$G$14)', '=I19/I18-1', None]
+   Cols C..K Val : [datetime.datetime(2031, 2, 28, 0, 0), 71798.98181818181, 0.049618501190505926, None, 15, datetime.datetime(2031, 2, 28, 0, 0), 40231.525515151516, 0.056590146360490534, None]

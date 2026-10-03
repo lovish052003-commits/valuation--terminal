@@ -1,0 +1,370 @@
+=== SHEET NAMES ===
+['AI Valuation Summary', 'Profit & Loss', 'Quarters', 'Balance Sheet', 'Cash Flow', 'Customization', 'Common Size Statement', 'Data Sheet', 'Cash Flow Statement', 'Historical FS', 'Ratio Analysis', 'Forecasting', 'Rm', 'Beta-Regression', 'WACC', 'Intrinsic Valuation', 'DCF', 'Raw Data', 'Comp_Valuation', 'Dupont Analysis', "Altman's Z Score", 'Raw FS', 'List of Stocks']
+
+=== 1. HISTORICAL FS AUDIT ===
+Row  2 | Label: ="Historical Financial Statement - "&'Data Sheet'!$B$1
+   Formula C..G: [None, None, None, None, None]
+   Values  C..G: [None, None, None, None, None]
+Row  3 | Label: Particulars                             
+   Formula C..G: ["='Data Sheet'!B56", "='Data Sheet'!C56", "='Data Sheet'!D56", "='Data Sheet'!E56", "='Data Sheet'!F56"]
+   Values  C..G: [datetime.datetime(2017, 3, 1, 0, 0), datetime.datetime(2018, 3, 1, 0, 0), datetime.datetime(2019, 3, 1, 0, 0), datetime.datetime(2020, 3, 1, 0, 0), datetime.datetime(2021, 3, 1, 0, 0)]
+Row  5 | Label: Income Statement                        
+   Formula C..G: [None, None, None, None, None]
+   Values  C..G: [None, None, None, None, None]
+Row  7 | Label: Sales                                   
+   Formula C..G: ["='Data Sheet'!B17", "='Data Sheet'!C17", "='Data Sheet'!D17", "='Data Sheet'!E17", "='Data Sheet'!F17"]
+   Values  C..G: [31578, 26489, 29066, 32838, 33498]
+Row  8 | Label: Sales Growth                            
+   Formula C..G: ['-', '=D7/C7-1', '=E7/D7-1', '=F7/E7-1', '=G7/F7-1']
+   Values  C..G: ['-', -0.16115650136170756, 0.09728566574804631, 0.12977361866097836, 0.02009866617942624]
+Row 10 | Label: Cost of Goods Sold                      
+   Formula C..G: ["=SUM('Data Sheet'!B18,'Data Sheet'!B20:B22)-'Data Sheet'!B19", "=SUM('Data Sheet'!C18,'Data Sheet'!C20:C22)-'Data Sheet'!C19", "=SUM('Data Sheet'!D18,'Data Sheet'!D20:D22)-'Data Sheet'!D19", "=SUM('Data Sheet'!E18,'Data Sheet'!E20:E22)-'Data Sheet'!E19", "=SUM('Data Sheet'!F18,'Data Sheet'!F20:F22)-'Data Sheet'!F19"]
+   Values  C..G: [15530.07, 15180.85, 16335.1, 17906.56, 17904.68]
+Row 11 | Label: COGS % Sales                            
+   Formula C..G: ['=C10/C7', '=D10/D7', '=E10/E7', '=F10/F7', '=G10/G7']
+   Values  C..G: [0.4918003040091203, 0.57310015478123, 0.5620002752356705, 0.5452999573664657, 0.5344999701474715]
+Row 13 | Label: Gross Profit                            
+   Formula C..G: ['=C7-C10', '=D7-D10', '=E7-E10', '=F7-F10', '=G7-G10']
+   Values  C..G: [16047.93, 11308.15, 12730.9, 14931.439999999999, 15593.32]
+Row 14 | Label: Gross Profit % Sales                    
+   Formula C..G: ['=C13/C7', '=D13/D7', '=E13/E7', '=F13/F7', '=G13/G7']
+   Values  C..G: [0.5081996959908798, 0.42689984521877006, 0.43799972476432947, 0.4547000426335343, 0.4655000298525285]
+Row 16 | Label: Selling % General Expenses              
+   Formula C..G: ["='Data Sheet'!B23", "='Data Sheet'!C23", "='Data Sheet'!D23", "='Data Sheet'!E23", "='Data Sheet'!F23"]
+   Values  C..G: [0, 0, 0, 0, 0]
+Row 17 | Label: S&G % Sales                             
+   Formula C..G: ['=C16/C7', '=D16/D7', '=E16/E7', '=F16/F7', '=G16/G7']
+   Values  C..G: [0, 0, 0, 0, 0]
+Row 19 | Label: EBITDA                                  
+   Formula C..G: ['=C13-C16', '=D13-D16', '=E13-E16', '=F13-F16', '=G13-G16']
+   Values  C..G: [16047.93, 11308.15, 12730.9, 14931.439999999999, 15593.32]
+Row 20 | Label: EBITDA % Sales                          
+   Formula C..G: ['=C19/C7', '=D19/D7', '=E19/E7', '=F19/F7', '=G19/G7']
+   Values  C..G: [0.5081996959908798, 0.42689984521877006, 0.43799972476432947, 0.4547000426335343, 0.4655000298525285]
+Row 22 | Label: Depreciation                            
+   Formula C..G: ["='Data Sheet'!B26", "='Data Sheet'!C26", "='Data Sheet'!D26", "='Data Sheet'!E26", "='Data Sheet'!F26"]
+   Values  C..G: [1265, 1500, 1753, 2053, 2080]
+Row 23 | Label: Depreciation % Sales                    
+   Formula C..G: ['=C22/C7', '=D22/D7', '=E22/E7', '=F22/F7', '=G22/G7']
+   Values  C..G: [0.04005953511938692, 0.05662727924798973, 0.06031101630771348, 0.06251903282782142, 0.062093259299062634]
+Row 25 | Label: EBIT                                    
+   Formula C..G: ['=C19-C22', '=D19-D22', '=E19-E22', '=F19-F22', '=G19-G22']
+   Values  C..G: [14782.93, 9808.15, 10977.9, 12878.439999999999, 13513.32]
+Row 26 | Label: EBIT % Sales                            
+   Formula C..G: ['=C25/C7', '=D25/D7', '=E25/E7', '=F25/F7', '=G25/G7']
+   Values  C..G: [0.4681401608714928, 0.3702725659707803, 0.37768870845661595, 0.39218100980571285, 0.40340677055346585]
+Row 28 | Label: Interest                                
+   Formula C..G: ["='Data Sheet'!B27", "='Data Sheet'!C27", "='Data Sheet'!D27", "='Data Sheet'!E27", "='Data Sheet'!F27"]
+   Values  C..G: [400, 518, 555, 303, 141]
+Row 29 | Label: Interest % Sales                        
+   Formula C..G: ['=C28/C7', '=D28/D7', '=E28/E7', '=F28/F7', '=G28/G7']
+   Values  C..G: [0.012667046678067008, 0.01955528710030579, 0.019094474643913853, 0.009227114927827518, 0.004209206519792227]
+Row 31 | Label: Earning Before Tax                      
+   Formula C..G: ['=C25-C28', '=D25-D28', '=E25-E28', '=F25-F28', '=G25-G28']
+   Values  C..G: [14382.93, 9290.15, 10422.9, 12575.439999999999, 13372.32]
+Row 32 | Label: EBT % Sales                             
+   Formula C..G: ['=C31/C7', '=D31/D7', '=E31/E7', '=F31/F7', '=G31/G7']
+   Values  C..G: [0.4554731141934258, 0.35071727887047455, 0.3585942338127021, 0.38295389487788534, 0.3991975640336736]
+Row 34 | Label: Tax Rate                                
+   Formula C..G: ["='Data Sheet'!B29", "='Data Sheet'!C29", "='Data Sheet'!D29", "='Data Sheet'!E29", "='Data Sheet'!F29"]
+   Values  C..G: [9048, 3479, 3810, 5010, 2799]
+Row 35 | Label: Effective Tax Rate                      
+   Formula C..G: ['=C34/C31', '=D34/D31', '=E34/E31', '=F34/F31', '=G34/G31']
+   Values  C..G: [0.6290790541287484, 0.3744826509798012, 0.3655412601099502, 0.39839560285763365, 0.2093129688789978]
+Row 37 | Label: Net Profit                              
+   Formula C..G: ['=C31-C34', '=D31-D34', '=E31-E34', '=F31-F34', '=G31-G34']
+   Values  C..G: [5334.93, 5811.15, 6612.9, 7565.439999999999, 10573.32]
+Row 38 | Label: Net Profit % Sales                      
+   Formula C..G: ['=C37/C7', '=D37/D7', '=E37/E7', '=F37/F7', '=G37/G7']
+   Values  C..G: [0.16894451833555008, 0.21937974253463702, 0.22751324571664486, 0.23038674706133133, 0.3156403367365216]
+Row 40 | Label: No. of Equity Shares                    
+   Formula C..G: ["='Data Sheet'!B93", "='Data Sheet'!C93", "='Data Sheet'!D93", "='Data Sheet'!E93", "='Data Sheet'!F93"]
+   Values  C..G: [249.82, 249.82, 249.82, 249.82, 249.82]
+Row 42 | Label: Earning per Share                       
+   Formula C..G: ['=C37/C40', '=D37/D40', '=E37/E40', '=F37/F40', '=G37/G40']
+   Values  C..G: [21.355095668881596, 23.26134817068289, 26.47065887438956, 30.28356416619966, 42.32375310223361]
+Row 43 | Label: EPS Growth                              
+   Formula C..G: ['-', '=D42/C42-1', '=E42/D42-1', '=F42/E42-1', '=G42/F42-1']
+   Values  C..G: ['-', 0.08926452643239924, 0.13796752794197364, 0.14404270441107525, 0.39758163437949423]
+Row 45 | Label: Dividend per Share                      
+   Formula C..G: ["='Data Sheet'!B31/'Historical FS'!C40", "='Data Sheet'!C31/'Historical FS'!D40", "='Data Sheet'!D31/'Historical FS'!E40", "='Data Sheet'!E31/'Historical FS'!F40", "='Data Sheet'!F31/'Historical FS'!G40"]
+   Values  C..G: [3.768793531342567, 2.3403250340244974, 3.2103114242254422, 4.175006004323113, 5.638619806260508]
+Row 46 | Label: Dividend Payout Ratio                   
+   Formula C..G: ['=C45/C42', '=D45/D42', '=E45/E42', '=F45/F42', '=G45/G42']
+   Values  C..G: [0.17648216565165803, 0.10061003415847121, 0.12127810794054046, 0.13786375941121737, 0.13322589309696484]
+Row 48 | Label: Retained Earnings                       
+   Formula C..G: ['=(1-C46)', '=(1-D46)', '=(1-E46)', '=(1-F46)', '=(1-G46)']
+   Values  C..G: [0.823517834348342, 0.8993899658415287, 0.8787218920594595, 0.8621362405887827, 0.8667741069030351]
+Row 50 | Label: Balance Sheet                           
+   Formula C..G: [None, None, None, None, None]
+   Values  C..G: [None, None, None, None, None]
+Row 51 | Label: ='Data Sheet'!A57                       
+   Formula C..G: ["='Data Sheet'!B57", "='Data Sheet'!C57", "='Data Sheet'!D57", "='Data Sheet'!E57", "='Data Sheet'!F57"]
+   Values  C..G: [240, 240, 240, 240, 240]
+Row 52 | Label: ='Data Sheet'!A58                       
+   Formula C..G: ["='Data Sheet'!B58", "='Data Sheet'!C58", "='Data Sheet'!D58", "='Data Sheet'!E58", "='Data Sheet'!F58"]
+   Values  C..G: [36400, 38074, 41169, 45025, 46223]
+Row 53 | Label: ='Data Sheet'!A59                       
+   Formula C..G: ["='Data Sheet'!B59", "='Data Sheet'!C59", "='Data Sheet'!D59", "='Data Sheet'!E59", "='Data Sheet'!F59"]
+   Values  C..G: [9832, 10385, 10514, 8315, 3869]
+Row 54 | Label: ='Data Sheet'!A60                       
+   Formula C..G: ["='Data Sheet'!B60", "='Data Sheet'!C60", "='Data Sheet'!D60", "='Data Sheet'!E60", "='Data Sheet'!F60"]
+   Values  C..G: [14624, 15598, 12666, 14615, 17291]
+Row 55 | Label: Total Liabilities                       
+   Formula C..G: ['=SUM(C51:C54)', '=SUM(D51:D54)', '=SUM(E51:E54)', '=SUM(F51:F54)', '=SUM(G51:G54)']
+   Values  C..G: [61096, 64297, 64589, 68195, 67623]
+Row 57 | Label: Fixed Asset Net Block                   
+   Formula C..G: ["='Data Sheet'!B62", "='Data Sheet'!C62", "='Data Sheet'!D62", "='Data Sheet'!E62", "='Data Sheet'!F62"]
+   Values  C..G: [17675, 18853, 21837, 22847, 21553]
+Row 58 | Label: ='Data Sheet'!A63                       
+   Formula C..G: ["='Data Sheet'!B63", "='Data Sheet'!C63", "='Data Sheet'!D63", "='Data Sheet'!E63", "='Data Sheet'!F63"]
+   Values  C..G: [2801, 2465, 1411, 1220, 1567]
+Row 59 | Label: ='Data Sheet'!A64                       
+   Formula C..G: ["='Data Sheet'!B64", "='Data Sheet'!C64", "='Data Sheet'!D64", "='Data Sheet'!E64", "='Data Sheet'!F64"]
+   Values  C..G: [1192, 7143, 7903, 10143, 9612]
+Row 60 | Label: ='Data Sheet'!A65                       
+   Formula C..G: ["='Data Sheet'!B75", "='Data Sheet'!C75", "='Data Sheet'!D75", "='Data Sheet'!E75", "='Data Sheet'!F75"]
+   Values  C..G: [10250, 11212, 9393, 10200, 10386]
+Row 61 | Label: Total Non Current Assets                
+   Formula C..G: ['=SUM(C57:C60)', '=SUM(D57:D60)', '=SUM(E57:E60)', '=SUM(F57:F60)', '=SUM(G57:G60)']
+   Values  C..G: [31918, 39673, 40544, 44410, 43118]
+Row 63 | Label: ='Data Sheet'!A67                       
+   Formula C..G: ["='Data Sheet'!B67", "='Data Sheet'!C67", "='Data Sheet'!D67", "='Data Sheet'!E67", "='Data Sheet'!F67"]
+   Values  C..G: [7203, 7815, 8884, 9421, 9061]
+Row 64 | Label: ='Data Sheet'!A68                       
+   Formula C..G: ["='Data Sheet'!B68", "='Data Sheet'!C68", "='Data Sheet'!D68", "='Data Sheet'!E68", "='Data Sheet'!F68"]
+   Values  C..G: [6833, 6881, 7886, 7875, 8997]
+Row 65 | Label: ='Data Sheet'!A69                       
+   Formula C..G: ["='Data Sheet'!B69", "='Data Sheet'!C69", "='Data Sheet'!D69", "='Data Sheet'!E69", "='Data Sheet'!F69"]
+   Values  C..G: [15141, 9929, 7276, 6488, 6446]
+Row 66 | Label: Total Current Assets                    
+   Formula C..G: ['=SUM(C63:C65)', '=SUM(D63:D65)', '=SUM(E63:E65)', '=SUM(F63:F65)', '=SUM(G63:G65)']
+   Values  C..G: [29177, 24625, 24046, 23784, 24504]
+Row 68 | Label: Total Assets                            
+   Formula C..G: ['=C61+C66', '=D61+D66', '=E61+E66', '=F61+F66', '=G61+G66']
+   Values  C..G: [61095, 64298, 64590, 68194, 67622]
+Row 70 | Label: Check                                   
+   Formula C..G: ['=C68=C55', '=D68=D55', '=E68=E55', '=F68=F55', '=G68=G55']
+   Values  C..G: [False, False, False, False, False]
+Row 72 | Label: Cash Flow Statement                     
+   Formula C..G: [None, None, None, None, None]
+   Values  C..G: [None, None, None, None, None]
+Row 73 | Label: Operating Activity                      
+   Formula C..G: [None, None, None, None, None]
+   Values  C..G: [None, None, None, None, None]
+Row 74 | Label: ='Cash Flow Statement'!B7               
+   Formula C..G: ["='Cash Flow Statement'!E7", "='Cash Flow Statement'!F7", "='Cash Flow Statement'!G7", "='Cash Flow Statement'!H7", "='Cash Flow Statement'!I7"]
+   Values  C..G: [9549, 4861, 5779, 7002, 4609]
+Row 75 | Label: ='Cash Flow Statement'!B8               
+   Formula C..G: ["='Cash Flow Statement'!E8", "='Cash Flow Statement'!F8", "='Cash Flow Statement'!G8", "='Cash Flow Statement'!H8", "='Cash Flow Statement'!I8"]
+   Values  C..G: [-293, -773, -858, -374, 94]
+Row 76 | Label: ='Cash Flow Statement'!B9               
+   Formula C..G: ["='Cash Flow Statement'!E9", "='Cash Flow Statement'!F9", "='Cash Flow Statement'!G9", "='Cash Flow Statement'!H9", "='Cash Flow Statement'!I9"]
+   Values  C..G: [-345, -4, -709, 257, -1080]
+Row 77 | Label: ='Cash Flow Statement'!B10              
+   Formula C..G: ["='Cash Flow Statement'!E10", "='Cash Flow Statement'!F10", "='Cash Flow Statement'!G10", "='Cash Flow Statement'!H10", "='Cash Flow Statement'!I10"]
+   Values  C..G: [735, 383, -854, -210, 381]
+Row 78 | Label: ='Cash Flow Statement'!B11              
+   Formula C..G: ["='Cash Flow Statement'!E11", "='Cash Flow Statement'!F11", "='Cash Flow Statement'!G11", "='Cash Flow Statement'!H11", "='Cash Flow Statement'!I11"]
+   Values  C..G: [-409, -212, -2696, 899, 2564]
+Row 79 | Label: ='Cash Flow Statement'!B12              
+   Formula C..G: ["='Cash Flow Statement'!E12", "='Cash Flow Statement'!F12", "='Cash Flow Statement'!G12", "='Cash Flow Statement'!H12", "='Cash Flow Statement'!I12"]
+   Values  C..G: [-2057, -742, -886, -1346, -1003]
+
+=== 2. DATA SHEET & RAW FS AUDIT (TAX & OPERATING METRICS) ===
+Raw FS Row  3 | B: Particulars                    | M: 2025-03-01 00:00:00 | N: 2026-03-01 00:00:00 | AS: None | AT: None | AU: None | AV: None | AW: None
+Raw FS Row  5 | B: Equity Capital                 | M: 240 | N: 240 | AS: None | AT: None | AU: None | AV: None | AW: None
+Raw FS Row  6 | B: Reserves                       | M: 71978 | N: 83330 | AS: None | AT: None | AU: None | AV: None | AW: None
+Raw FS Row  7 | B: Borrowings -                   | M: 2362 | N: 4627 | AS: None | AT: None | AU: None | AV: None | AW: None
+Raw FS Row  8 | B: Long term Borrowings           | M: 3 | N: 31 | AS: None | AT: None | AU: None | AV: None | AW: None
+Raw FS Row  9 | B: Short term Borrowings          | M: 1867 | N: 4050 | AS: None | AT: None | AU: None | AV: None | AW: None
+Raw FS Row 10 | B: Lease Liabilities              | M: 493 | N: 546 | AS: None | AT: None | AU: None | AV: None | AW: None
+Raw FS Row 11 | B: Other Borrowings               | M: 0 | N: 0 | AS: None | AT: None | AU: None | AV: None | AW: None
+Raw FS Row 12 | B: Other Liabilities -            | M: 17328 | N: 20210 | AS: None | AT: None | AU: None | AV: None | AW: None
+Raw FS Row 13 | B: Non controlling int            | M: 268 | N: 310 | AS: None | AT: None | AU: None | AV: None | AW: None
+Raw FS Row 14 | B: Trade Payables                 | M: 6184 | N: 7334 | AS: None | AT: None | AU: None | AV: None | AW: None
+Raw FS Row 15 | B: Advance from Customers         | M: 25 | N: 137 | AS: None | AT: None | AU: None | AV: None | AW: None
+Raw FS Row 16 | B: Other liability items          | M: 10851 | N: 12429 | AS: None | AT: None | AU: None | AV: None | AW: None
+Raw FS Row 18 | B: Total Liabilities              | M: 91908 | N: 108407 | AS: None | AT: None | AU: None | AV: None | AW: None
+Raw FS Row 21 | B: Fixed Assets -                 | M: 22586 | N: 32822 | AS: None | AT: None | AU: None | AV: None | AW: None
+Raw FS Row 22 | B: Land                           | M: 1017 | N: 1190 | AS: None | AT: None | AU: None | AV: None | AW: None
+Raw FS Row 23 | B: Building                       | M: 7052 | N: 8074 | AS: None | AT: None | AU: None | AV: None | AW: None
+Raw FS Row 24 | B: Plant Machinery                | M: 14215 | N: 15882 | AS: None | AT: None | AU: None | AV: None | AW: None
+Raw FS Row 25 | B: Equipments                     | M: 368 | N: 418 | AS: None | AT: None | AU: None | AV: None | AW: None
+Raw FS Row 26 | B: Furniture n fittings           | M: 481 | N: 484 | AS: None | AT: None | AU: None | AV: None | AW: None
+Raw FS Row 27 | B: Railway sidings                | M: 2 | N: 2 | AS: None | AT: None | AU: None | AV: None | AW: None
+Raw FS Row 28 | B: Vehicles                       | M: 478 | N: 581 | AS: None | AT: None | AU: None | AV: None | AW: None
+Raw FS Row 29 | B: Intangible Assets              | M: 8939 | N: 9833 | AS: None | AT: None | AU: None | AV: None | AW: None
+Raw FS Row 30 | B: Other fixed assets             | M: 13399 | N: 23859 | AS: None | AT: None | AU: None | AV: None | AW: None
+Raw FS Row 31 | B: Gross Block                    | M: 45950 | N: 60321 | AS: None | AT: None | AU: None | AV: None | AW: None
+Raw FS Row 32 | B: Accumulated Depreciation       | M: 23363 | N: 27499 | AS: None | AT: None | AU: None | AV: None | AW: None
+Raw FS Row 33 | B: Net Block                      | M: 22586 | N: 32822 | AS: None | AT: None | AU: None | AV: None | AW: None
+Raw FS Row 35 | B: CWIP                           | M: 6644 | N: 3052 | AS: None | AT: None | AU: None | AV: None | AW: None
+Raw FS Row 36 | B: Investments                    | M: 18354 | N: 24723 | AS: None | AT: None | AU: None | AV: None | AW: None
+Raw FS Row 38 | B: Other Assets -                 | M: 44324 | N: 47811 | AS: None | AT: None | AU: None | AV: None | AW: None
+Raw FS Row 39 | B: Inventories                    | M: 10243 | N: 11493 | AS: None | AT: None | AU: None | AV: None | AW: None
+Raw FS Row 40 | B: Trade receivables +            | M: 13046 | N: 15510 | AS: None | AT: None | AU: None | AV: None | AW: None
+Raw FS Row 41 | B: Cash Equivalents               | M: 11332 | N: 11603 | AS: None | AT: None | AU: None | AV: None | AW: None
+Raw FS Row 42 | B: Loans n Advances               | M: 785 | N: 923 | AS: None | AT: None | AU: None | AV: None | AW: None
+Raw FS Row 43 | B: Other asset items              | M: 8918 | N: 8282 | AS: None | AT: None | AU: None | AV: None | AW: None
+Raw FS Row 44 | B: Total Assets                   | M: 91908 | N: 108407 | AS: None | AT: None | AU: None | AV: None | AW: None
+
+=== 3. DCF AUDIT ===
+DCF Row  6 | B: Calculation of PV of FCFF      | C: None                 | D Form: None                      | D Val: None            | I: =H6+365              | M: =L6+365             
+DCF Row  8 | B: EBIT                           | C: None                 | D Form: None                      | D Val: None            | I: =H8*(1+$D$18)        | M: =L8*(1+$D$18)       
+DCF Row  9 | B: Tax Rate                       | C: None                 | D Form: None                      | D Val: None            | I: =H9                  | M: =L9                 
+DCF Row 10 | B: EBIT(1-T)                      | C: None                 | D Form: None                      | D Val: None            | I: =I8*(1-I9)           | M: =M8*(1-M9)          
+DCF Row 11 | B: Less: Reinvestment Rate        | C: None                 | D Form: None                      | D Val: None            | I: =MIN(0.85, MAX(0.15, 'Intrinsic Valuation'!$L$55)) | M: =D21                
+DCF Row 12 | B: Free Cash Flow to Firm         | C: None                 | D Form: None                      | D Val: None            | I: =I10*(1-MIN(0.85, I11)) | M: =M10*(1-MIN(0.85, M11))
+DCF Row 13 | B: Mid Year Convention            | C: None                 | D Form: None                      | D Val: None            | I: 0.5                  | M: =L13+1              
+DCF Row 14 | B: Discounting Factor             | C: None                 | D Form: None                      | D Val: None            | I: =1/(1+$D$20)^I13     | M: =1/(1+$D$20)^M13    
+DCF Row 16 | B: PV of FCFF                     | C: None                 | D Form: None                      | D Val: None            | I: =I12*I14             | M: =M12*M14            
+DCF Row 18 | B: Expected Growth Rate           | C: None                 | D Form: 0.052                     | D Val: 0.052           | I: None                 | M: None                
+DCF Row 19 | B: Terminal Growth Rate           | C: None                 | D Form: 0.04                      | D Val: 0.04            | I: None                 | M: None                
+DCF Row 20 | B: WACC                           | C: None                 | D Form: =WACC!K46                 | D Val: 0.12041699623362523 | I: None                 | M: None                
+DCF Row 21 | B: Terminal Reinvestment Rate     | C: None                 | D Form: =D19/D20                  | D Val: 0.3321790216589907 | I: None                 | M: None                
+DCF Row 23 | B: Calculation of Terminal Value  | C: None                 | D Form: None                      | D Val: None            | I: None                 | M: None                
+DCF Row 25 | B: FCFF(n+1)                      | C: None                 | D Form: =M12*(1+D19)              | D Val: 9683.301155559195 | I: None                 | M: None                
+DCF Row 26 | B: WACC                           | C: None                 | D Form: =D20                      | D Val: 0.12041699623362523 | I: None                 | M: None                
+DCF Row 27 | B: Terminal Growth Rate           | C: None                 | D Form: =D19                      | D Val: 0.04            | I: None                 | M: None                
+DCF Row 29 | B: Terminal value                 | C: None                 | D Form: =D25/(D26-D27)            | D Val: 120413.61414976926 | I: None                 | M: None                
+DCF Row 31 | B: Calculation of Equity Value    | C: None                 | D Form: None                      | D Val: None            | I: None                 | M: None                
+DCF Row 33 | B: PV of FCFF                     | C: None                 | D Form: =SUM(I16:M16)             | D Val: 32684.322494195316 | I: None                 | M: None                
+DCF Row 34 | B: Terminal value                 | C: None                 | D Form: =D29*M14                  | D Val: 72188.3299258168 | I: None                 | M: None                
+DCF Row 35 | B: Value of Operating Assets      | C: None                 | D Form: =SUM(D33:D34)             | D Val: 104872.6524200121 | I: None                 | M: None                
+DCF Row 37 | B: Add: Cash                      | C: None                 | D Form: ='Data Sheet'!K69         | D Val: 11603           | I: None                 | M: None                
+DCF Row 38 | B: Less: Debt                     | C: None                 | D Form: ='Data Sheet'!K59         | D Val: 4627            | I: None                 | M: None                
+DCF Row 39 | B: Equity Value                   | C: None                 | D Form: =D35+D37-D38              | D Val: 111848.6524200121 | I: None                 | M: None                
+DCF Row 40 | B: No. of Shares                  | C: None                 | D Form: ='Data Sheet'!K70/10000000 | D Val: 240             | I: None                 | M: None                
+DCF Row 42 | B: Equity Value per Share         | C: None                 | D Form: =D39/D40                  | D Val: 466.03605175005043 | I: None                 | M: None                
+DCF Row 44 | B: Share Price                    | C: None                 | D Form: 1837                      | D Val: 1837            | I: None                 | M: None                
+DCF Row 45 | B: Discount /Premium              | C: None                 | D Form: =D44/D42                  | D Val: 3.941755134826436 | I: None                 | M: None                
+
+=== 4. WACC AUDIT ===
+WACC Row  6 | B: Weighted Average Cost of Capital | K Form: None                           | K Val: None
+WACC Row  8 | B: All figures are in INR unless stated otherwise | K Form: None                           | K Val: None
+WACC Row 10 | B: Peer Comps                     | K Form: None                           | K Val: None
+WACC Row 11 | B: None                           | K Form: Unlevered Beta                 | K Val: Unlevered Beta
+WACC Row 12 | B: Name of the Comp               | K Form: None                           | K Val: None
+WACC Row 14 | B: ='Raw Data'!O24                | K Form: =J14/(1+(1-G14)*H14)           | K Val: 0.8510638246941843
+WACC Row 15 | B: ='Raw Data'!O25                | K Form: =J15/(1+(1-G15)*H15)           | K Val: 0.6041020204545424
+WACC Row 16 | B: ='Raw Data'!O26                | K Form: =J16/(1+(1-G16)*H16)           | K Val: 0.851063829787234
+WACC Row 17 | B: ='Raw Data'!O27                | K Form: =J17/(1+(1-G17)*H17)           | K Val: 0.851063829787234
+WACC Row 18 | B: ='Raw Data'!O28                | K Form: =J18/(1+(1-G18)*H18)           | K Val: 0.8510638072843328
+WACC Row 20 | B: None                           | K Form: =AVERAGE(K14:K18)              | K Val: 0.8016714624015056
+WACC Row 21 | B: None                           | K Form: =MEDIAN(K14:K18)               | K Val: 0.8510638246941843
+WACC Row 24 | B: Cost of Debt                   | K Form: None                           | K Val: None
+WACC Row 26 | B: Pre-Tax Cost of Debt           | K Form: 0.07                           | K Val: 0.07
+WACC Row 27 | B: Tax Rate                       | K Form: 0.065                          | K Val: 0.065
+WACC Row 28 | B: Post-Tax Cost of Debt          | K Form: =K36                           | K Val: 0.9662973384897096
+WACC Row 29 | B: None                           | K Form: =K26+K27*K28                   | K Val: 0.13280932700183112
+WACC Row 31 | B: Capital Structure              | K Form: None                           | K Val: None
+WACC Row 33 | B: None                           | K Form: =K21                           | K Val: 0.8510638246941843
+WACC Row 34 | B: Total Debt                     | K Form: =E38                           | K Val: 0.1934276850285959
+WACC Row 35 | B: Market Capitalization          | K Form: =E27                           | K Val: 0.3
+WACC Row 36 | B: Total Capital                  | K Form: =K33*(1+(1-K35)*K34)           | K Val: 0.9662973384897096
+WACC Row 38 | B: Debt /Equity                   | K Form: None                           | K Val: None
+WACC Row 40 | B: None                           | K Form: =K29                           | K Val: 0.13280932700183112
+WACC Row 41 | B: None                           | K Form: =E35                           | K Val: 0.837922575908769
+WACC Row 43 | B: None                           | K Form: =E28                           | K Val: 0.05635
+WACC Row 44 | B: None                           | K Form: =E34                           | K Val: 0.1620774240912311
+WACC Row 46 | B: None                           | K Form: =(K40*K41)+(K43*K44)           | K Val: 0.12041699623362523
+
+=== 5. BETA-REGRESSION AUDIT (Around row 256) ===
+Beta Row 250 | Form: [None, "='Raw Data'!G246", "='Raw Data'!H246", '=C249/C250-1', None, "='Raw Data'!G246", "='Raw Data'!J246"]
+          | Val : [None, datetime.datetime(2025, 9, 29, 0, 0), 1589.3, 0.0031460391367268414, None, datetime.datetime(2025, 9, 29, 0, 0), 24634.9]
+Beta Row 251 | Form: [None, "='Raw Data'!G247", "='Raw Data'!H247", '=C250/C251-1', None, "='Raw Data'!G247", "='Raw Data'!J247"]
+          | Val : [None, datetime.datetime(2025, 9, 26, 0, 0), 1586.7, 0.0016386210373731114, None, datetime.datetime(2025, 9, 26, 0, 0), 24654.7]
+Beta Row 252 | Form: [None, "='Raw Data'!G248", "='Raw Data'!H248", '=C251/C252-1', None, "='Raw Data'!G248", "='Raw Data'!J248"]
+          | Val : [None, datetime.datetime(2025, 9, 25, 0, 0), 1627.4, -0.02500921715620008, None, datetime.datetime(2025, 9, 25, 0, 0), 24890.85]
+Beta Row 253 | Form: [None, "='Raw Data'!G249", "='Raw Data'!H249", '=C252/C253-1', None, "='Raw Data'!G249", "='Raw Data'!J249"]
+          | Val : [None, datetime.datetime(2025, 9, 24, 0, 0), 1627.1, 0.0001843771126546212, None, 45924, 25056.9]
+Beta Row 254 | Form: [None, "='Raw Data'!G250", "='Raw Data'!H250", '=C253/C254-1', None, "='Raw Data'!G250", "='Raw Data'!J250"]
+          | Val : [None, datetime.datetime(2025, 9, 23, 0, 0), 1631.2, -0.0025134870034331236, None, 45923, 25169.5]
+Beta Row 255 | Form: [None, "='Raw Data'!G251", "='Raw Data'!H251", '=C254/C255-1', None, "='Raw Data'!G251", "='Raw Data'!J251"]
+          | Val : [None, datetime.datetime(2025, 9, 22, 0, 0), 1644, -0.007785888077858849, None, 45922, 25202.35]
+Beta Row 256 | Form: [None, "='Raw Data'!G252", "='Raw Data'!H252", '=C255/C256-1', None, "='Raw Data'!G252", "='Raw Data'!J252"]
+          | Val : [None, datetime.time(0, 0), 0, '#DIV/0!', None, 0, 0]
+Beta Stats:
+Stats Row  1 | G: None (Val: None) | H: None (Val: None) | I: None (Val: None)
+Stats Row  2 | G: None (Val: None) | H: None (Val: None) | I: None (Val: None)
+Stats Row  3 | G: None (Val: None) | H: None (Val: None) | I: None (Val: None)
+Stats Row  4 | G: None (Val: None) | H: None (Val: None) | I: None (Val: None)
+Stats Row  5 | G: None (Val: None) | H: None (Val: None) | I: None (Val: None)
+Stats Row  6 | G: None (Val: None) | H: None (Val: None) | I: None (Val: None)
+Stats Row  7 | G: None (Val: None) | H: None (Val: None) | I: None (Val: None)
+Stats Row  8 | G: None (Val: None) | H: None (Val: None) | I: None (Val: None)
+Stats Row  9 | G: Closing Price  (Val: Closing Price ) | H: Daily Returns (Val: Daily Returns) | I: None (Val: None)
+Stats Row 10 | G: ='Raw Data'!J6 (Val: 23346.4) | H: - (Val: -) | I: None (Val: None)
+Stats Row 11 | G: ='Raw Data'!J7 (Val: 23270.6) | H: =G10/G11-1 (Val: 0.0032573289902282365) | I: None (Val: None)
+Stats Row 12 | G: ='Raw Data'!J8 (Val: 23217.6) | H: =G11/G12-1 (Val: 0.0022827510164702414) | I: None (Val: None)
+Stats Row 13 | G: ='Raw Data'!J9 (Val: 23118.6) | H: =G12/G13-1 (Val: 0.004282266227193743) | I: None (Val: None)
+Stats Row 14 | G: ='Raw Data'!J10 (Val: 23398.1) | H: =G13/G14-1 (Val: -0.011945414371252405) | I: None (Val: None)
+
+=== 6. COMP_VALUATION AUDIT ===
+Comp Row 10 | B:Company              | C:Ticker     | D:Share Price | F:Equity Value | G:Net Debt value | H:Enterprise Value | K:Revenue    | L:EBITDA     | M:Net Income | N:EV/Revenue | O:EV/Revenue | P:EV/EBITDA | Q:P/E     
+Comp Row 11 | B:None                 | C:None       | D:None     | F:None       | G:None       | H:None       | K:None       | L:None       | M:None       | N:None     | O:None     | P:None     | Q:None    
+Comp Row 12 | B:Divi's Lab.          | C:None       | D:9375     | F:248906.25  | G:49775.36   | H:298652.15  | K:12320      | L:1848       | M:3608       | N:24.241245941558443 | O:24.241245941558443 | P:161.6083062770563 | Q:68.98731984478935
+Comp Row 13 | B:Torrent Pharma.      | C:None       | D:4840     | F:184113.6   | G:36819.61   | H:220917.65000000002 | K:19684      | L:2952.6     | M:2264       | N:11.223209205446048 | O:11.223209205446048 | P:74.82139470297366 | Q:81.32226148409895
+Comp Row 14 | B:Zydus Lifesci.       | C:None       | D:1160     | F:115710     | G:23142.09   | H:138852.53  | K:32068      | L:4810.2     | M:3960.8     | N:4.3299404390669824 | O:4.3299404390669824 | P:28.866269593779887 | Q:29.213795192890323
+Comp Row 15 | B:Cipla                | C:None       | D:1394.5   | F:112661.65500000001 | G:22531.18   | H:135187.04  | K:28477.12   | L:4271.57    | M:3142.2     | N:4.747216010607815 | O:4.747216010607815 | P:31.648091919364546 | Q:35.85438705365668
+Comp Row 16 | B:Laurus Labs          | C:None       | D:1954     | F:105574.62  | G:21115.4    | H:126692.41  | K:8105.24    | L:1215.79    | M:1448.28    | N:15.630926413036505 | O:15.630926413036505 | P:104.20583324422803 | Q:72.89655315270528
+Comp Row 17 | B:Aurobindo Pharma     | C:None       | D:1734     | F:99774.36   | G:19954.100000000002 | H:119724.63  | K:36601.4    | L:5490.21    | M:4128.12    | N:3.2710396323637894 | O:3.2710396323637894 | P:21.806930882425263 | Q:24.169442748757305
+Comp Row 18 | B:Dr. Reddy's Labs     | C:None       | D:6800     | F:110024     | G:-4020      | H:105980     | K:93500      | L:14960      | M:8415       | N:1.133475935828877 | O:1.133475935828877 | P:7.084224598930481 | Q:13.074747474747475
+Comp Row 19 | B:Divi's Laboratories  | C:None       | D:5200     | F:134992     | G:-6750      | H:128250     | K:114750     | L:18360      | M:10327.5    | N:1.1176470588235294 | O:1.1176470588235294 | P:6.985294117647059 | Q:13.071120793996611
+Comp Row 20 | B:Pharma Peer 9        | C:None       | D:1000     | F:100000     | G:15000      | H:115000     | K:85000      | L:13600      | M:7650       | N:1.3529411764705883 | O:1.3529411764705883 | P:8.455882352941176 | Q:13.071895424836601
+Comp Row 21 | B:Pharma Peer 10       | C:None       | D:1000     | F:100000     | G:15000      | H:115000     | K:85000      | L:13600      | M:7650       | N:1.3529411764705883 | O:1.3529411764705883 | P:8.455882352941176 | Q:13.071895424836601
+Comp Row 22 | B:None                 | C:None       | D:None     | F:None       | G:None       | H:None       | K:None       | L:None       | M:None       | N:None     | O:None     | P:None     | Q:None    
+Comp Row 23 | B:High                 | C:None       | D:None     | F:None       | G:None       | H:None       | K:None       | L:None       | M:None       | N:None     | O:24.241245941558443 | P:161.6083062770563 | Q:81.32226148409895
+Comp Row 24 | B:25th Percentile      | C:None       | D:None     | F:None       | G:None       | H:None       | K:None       | L:None       | M:None       | N:None     | O:1.3529411764705883 | P:8.455882352941176 | Q:13.072608437314319
+Comp Row 25 | B:Median               | C:None       | D:None     | F:None       | G:None       | H:None       | K:None       | L:None       | M:None       | N:None     | O:3.800490035715386 | P:25.336600238102577 | Q:26.691618970823814
+Comp Row 26 | B:Average              | C:None       | D:None     | F:None       | G:None       | H:None       | K:None       | L:None       | M:None       | N:None     | O:6.840058298967318 | P:45.39381100422875 | Q:36.47334185953152
+Comp Row 27 | B:75th Percentile      | C:None       | D:None     | F:None       | G:None       | H:None       | K:None       | L:None       | M:None       | N:None     | O:9.60421090673649 | P:64.02806900707138 | Q:60.704086647006186
+Comp Row 28 | B:Low                  | C:None       | D:None     | F:None       | G:None       | H:None       | K:None       | L:None       | M:None       | N:None     | O:1.1176470588235294 | P:6.985294117647059 | Q:13.071120793996611
+Comp Row 29 | B:None                 | C:None       | D:None     | F:None       | G:None       | H:None       | K:None       | L:None       | M:None       | N:None     | O:None     | P:None     | Q:None    
+Comp Row 30 | B:Sun Pharmaceutical Industries Ltd Comparable Valuation | C:None       | D:None     | F:None       | G:None       | H:None       | K:None       | L:None       | M:None       | N:None     | O:EV/Revenue | P:EV/EBITDA | Q:P/E     
+Comp Row 31 | B:None                 | C:None       | D:None     | F:None       | G:None       | H:None       | K:None       | L:None       | M:None       | N:None     | O:None     | P:None     | Q:None    
+Comp Row 32 | B:Implied Enterprise Value | C:None       | D:None     | F:None       | G:None       | H:None       | K:None       | L:None       | M:None       | N:None     | O:84269.51824327736 | P:83887.76273581473 | Q:131595.81742918974
+Comp Row 33 | B:Net Debt Value       | C:None       | D:None     | F:None       | G:None       | H:None       | K:None       | L:None       | M:None       | N:None     | O:49775.36 | P:49775.36 | Q:49775.36
+Comp Row 34 | B:Implied Market Value | C:None       | D:None     | F:None       | G:None       | H:None       | K:None       | L:None       | M:None       | N:None     | O:34494.15824327736 | P:34112.40273581473 | Q:131595.81742918974
+Comp Row 35 | B:Share Outstanding    | C:None       | D:None     | F:None       | G:None       | H:None       | K:None       | L:None       | M:None       | N:None     | O:240      | P:240      | Q:240     
+Comp Row 36 | B:None                 | C:None       | D:None     | F:None       | G:None       | H:None       | K:None       | L:None       | M:None       | N:None     | O:None     | P:None     | Q:None    
+Comp Row 37 | B:Implied Value per Share | C:None       | D:None     | F:None       | G:None       | H:None       | K:None       | L:None       | M:None       | N:None     | O:143.72565934698898 | P:142.13501139922803 | Q:548.3159059549573
+Comp Row 38 | B:Source : Screener.in | C:None       | D:None     | F:None       | G:None       | H:None       | K:None       | L:None       | M:None       | N:None     | O:None     | P:None     | Q:None    
+Comp Row 39 | B:Verdict              | C:None       | D:None     | F:None       | G:None       | H:None       | K:None       | L:None       | M:None       | N:None     | O:Overvalued | P:Overvalued | Q:Overvalued
+
+=== 7. AI VALUATION SUMMARY AUDIT ===
+AI Row  4 | B Form: Intrinsic Value                | B Val: Intrinsic Value                | C Form: Margin of Safety               | C Val: Margin of Safety
+AI Row  5 | B Form: =DCF!D42                       | B Val: 466.03605175005043             | C Form: =(B5-A5)/A5                    | C Val: -0.7463059054164125
+AI Row  7 | B Form: KEY VALUATION PARAMETERS & LIVE MODEL INPUTS | B Val: KEY VALUATION PARAMETERS & LIVE MODEL INPUTS | C Form: None                           | C Val: None
+AI Row  8 | B Form: Discount Rate (WACC)           | B Val: Discount Rate (WACC)           | C Form: =WACC!K46                      | C Val: 0.12041699623362523
+AI Row  9 | B Form: Cost of Equity (Ke)            | B Val: Cost of Equity (Ke)            | C Form: =WACC!K29                      | C Val: 0.13280932700183112
+AI Row 10 | B Form: Risk-Free Rate (Rf)            | B Val: Risk-Free Rate (Rf)            | C Form: =WACC!K26                      | C Val: 0.07
+AI Row 11 | B Form: Equity Risk Premium (ERP)      | B Val: Equity Risk Premium (ERP)      | C Form: =WACC!K27                      | C Val: 0.065
+AI Row 12 | B Form: Levered Beta                   | B Val: Levered Beta                   | C Form: =WACC!K28                      | C Val: 0.9662973384897096
+AI Row 13 | B Form: Terminal Growth Rate           | B Val: Terminal Growth Rate           | C Form: =DCF!D19                       | C Val: 0.04
+AI Row 14 | B Form: Cost of Debt (Kd)              | B Val: Cost of Debt (Kd)              | C Form: =WACC!K39                      | C Val: 0
+AI Row 15 | B Form: Cash & Liquid Investments      | B Val: Cash & Liquid Investments      | C Form: ='Data Sheet'!K69              | C Val: 11603
+AI Row 16 | B Form: Total Debt & Borrowings        | B Val: Total Debt & Borrowings        | C Form: ='Data Sheet'!K59              | C Val: 4627
+AI Row 17 | B Form: Shares Outstanding             | B Val: Shares Outstanding             | C Form: ='Data Sheet'!K70/10000000     | C Val: 240
+AI Row 18 | B Form: Sector Median EV/Revenue       | B Val: Sector Median EV/Revenue       | C Form: =Comp_Valuation!O25            | C Val: 3.800490035715386
+AI Row 19 | B Form: Sector Median EV/EBITDA        | B Val: Sector Median EV/EBITDA        | C Form: =Comp_Valuation!P25            | C Val: 25.336600238102577
+AI Row 20 | B Form: Sector Median P/E              | B Val: Sector Median P/E              | C Form: =Comp_Valuation!Q25            | C Val: 26.691618970823814
+AI Row 21 | B Form: EBIT                           | B Val: EBIT                           | C Form: NOPAT                          | C Val: NOPAT
+AI Row 22 | B Form: =DCF!I8                        | B Val: 16261.816                      | C Form: =DCF!I10                       | C Val: 11383.2712
+AI Row 23 | B Form: =DCF!J8                        | B Val: 17107.430432                   | C Form: =DCF!J10                       | C Val: 11975.2013024
+AI Row 24 | B Form: =DCF!K8                        | B Val: 17997.016814464                | C Form: =DCF!K10                       | C Val: 12597.9117701248
+AI Row 25 | B Form: =DCF!L8                        | B Val: 18932.86168881613              | C Form: =DCF!L10                       | C Val: 13253.003182171291
+AI Row 26 | B Form: =DCF!M8                        | B Val: 19917.37049663457              | C Form: =DCF!M10                       | C Val: 13942.159347644198
+AI Row 28 | B Form: Enterprise to Equity Value Bridge | B Val: Enterprise to Equity Value Bridge | C Form: None                           | C Val: None
+AI Row 29 | B Form: PV of 5-Year FCFFs             | B Val: PV of 5-Year FCFFs             | C Form: =DCF!D33                       | C Val: 32684.322494195316
+AI Row 30 | B Form: Terminal Value                 | B Val: Terminal Value                 | C Form: =DCF!D29                       | C Val: 120413.61414976926
+AI Row 31 | B Form: PV of Terminal Value           | B Val: PV of Terminal Value           | C Form: =DCF!D34                       | C Val: 72188.3299258168
+AI Row 32 | B Form: Enterprise Value (Operating Assets) | B Val: Enterprise Value (Operating Assets) | C Form: =DCF!D35                       | C Val: 104872.6524200121
+AI Row 33 | B Form: Add: Estimated Cash & Liquid Assets | B Val: Add: Estimated Cash & Liquid Assets | C Form: =DCF!D37                       | C Val: 11603
+AI Row 34 | B Form: Less: Total Debt & Borrowings  | B Val: Less: Total Debt & Borrowings  | C Form: =DCF!D38                       | C Val: 4627
+AI Row 35 | B Form: Net Equity Value               | B Val: Net Equity Value               | C Form: =DCF!D39                       | C Val: 111848.6524200121
+AI Row 36 | B Form: Shares Outstanding             | B Val: Shares Outstanding             | C Form: =DCF!D40                       | C Val: 240
+AI Row 37 | B Form: Intrinsic Value per Share      | B Val: Intrinsic Value per Share      | C Form: =DCF!D42                       | C Val: 466.03605175005043
+AI Row 38 | B Form: Current Market Price           | B Val: Current Market Price           | C Form: =DCF!D44                       | C Val: 1837
+AI Row 39 | B Form: Margin of Safety / Discount    | B Val: Margin of Safety / Discount    | C Form: =(C37-C38)/C38                 | C Val: -0.7463059054164125

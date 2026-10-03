@@ -1,0 +1,127 @@
+=== DCF SHEET FULL GRID (Rows 5 to 46, Cols B to M) ===
+Row  5 | B: None                          
+   Formulas D..M: [None, None, None, None, None, None, None, None, None, None]
+   Values   D..M: [None, None, None, None, None, None, None, None, None, None]
+Row  6 | B: Calculation of PV of FCFF     
+   Formulas D..M: [None, None, None, None, "='Data Sheet'!K56", '=H6+365', '=I6+365', '=J6+365', '=K6+365', '=L6+365']
+   Values   D..M: [None, None, None, None, datetime.datetime(2026, 3, 1, 0, 0), datetime.datetime(2027, 3, 1, 0, 0), datetime.datetime(2028, 2, 29, 0, 0), datetime.datetime(2029, 2, 28, 0, 0), datetime.datetime(2030, 2, 28, 0, 0), datetime.datetime(2031, 2, 28, 0, 0)]
+Row  7 | B: None                          
+   Formulas D..M: [None, None, None, None, None, None, None, None, None, None]
+   Values   D..M: [None, None, None, None, None, None, None, None, None, None]
+Row  8 | B: EBIT                          
+   Formulas D..M: [None, None, None, None, "='Intrinsic Valuation'!L38", '=H8*(1+$D$18)', '=I8*(1+$D$18)', '=J8*(1+$D$18)', '=K8*(1+$D$18)', '=L8*(1+$D$18)']
+   Values   D..M: [None, None, None, None, 15458, 16261.816, 17107.430432, 17997.016814464, 18932.86168881613, 19917.37049663457]
+Row  9 | B: Tax Rate                      
+   Formulas D..M: [None, None, None, None, '=WACC!G14', '=H9', '=I9', '=J9', '=K9', '=L9']
+   Values   D..M: [None, None, None, None, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3]
+Row 10 | B: EBIT(1-T)                     
+   Formulas D..M: [None, None, None, None, '=H8*(1-H9)', '=I8*(1-I9)', '=J8*(1-J9)', '=K8*(1-K9)', '=L8*(1-L9)', '=M8*(1-M9)']
+   Values   D..M: [None, None, None, None, 10820.599999999999, 11383.2712, 11975.2013024, 12597.9117701248, 13253.003182171291, 13942.159347644198]
+Row 11 | B: Less: Reinvestment Rate       
+   Formulas D..M: [None, None, None, None, "='Intrinsic Valuation'!$L$55", "=MIN(0.85, MAX(0.15, 'Intrinsic Valuation'!$L$55))", '=$I$11+($M$11-$I$11)/4*1', '=$I$11+($M$11-$I$11)/4*2', '=$I$11+($M$11-$I$11)/4*3', '=D21']
+   Values   D..M: [None, None, None, None, 0.29656485889568934, 0.29656485889568934, 0.30546839958651467, 0.31437194027734006, 0.3232754809681654, 0.3321790216589907]
+Row 12 | B: Free Cash Flow to Firm        
+   Formulas D..M: [None, None, None, None, '=H10*(1-H11)', '=I10*(1-MIN(0.85, I11))', '=J10*(1-MIN(0.85, J11))', '=K10*(1-MIN(0.85, K11))', '=L10*(1-MIN(0.85, L11))', '=M10*(1-MIN(0.85, M11))']
+   Values   D..M: [None, None, None, None, 7611.590287833304, 8007.392982800636, 8317.155725829527, 8637.481803507926, 8968.63220418224, 9310.866495729995]
+Row 13 | B: Mid Year Convention           
+   Formulas D..M: [None, None, None, None, '-', 0.5, '=I13+1', '=J13+1', '=K13+1', '=L13+1']
+   Values   D..M: [None, None, None, None, '-', 0.5, 1.5, 2.5, 3.5, 4.5]
+Row 14 | B: Discounting Factor            
+   Formulas D..M: [None, None, None, None, None, '=1/(1+$D$20)^I13', '=1/(1+$D$20)^J13', '=1/(1+$D$20)^K13', '=1/(1+$D$20)^L13', '=1/(1+$D$20)^M13']
+   Values   D..M: [None, None, None, None, None, 0.9447353278750565, 0.8431997471038576, 0.7525767191486238, 0.6716934156465609, 0.5995030581511296]
+Row 15 | B: None                          
+   Formulas D..M: [None, None, None, None, None, None, None, None, None, None]
+   Values   D..M: [None, None, None, None, None, None, None, None, None, None]
+Row 16 | B: PV of FCFF                    
+   Formulas D..M: [None, None, None, None, None, '=I12*I14', '=J12*J14', '=K12*K14', '=L12*L14', '=M12*M14']
+   Values   D..M: [None, None, None, None, None, 7564.867035030586, 7013.023604642858, 6500.367717389933, 6024.171198904914, 5581.8929382270235]
+Row 17 | B: None                          
+   Formulas D..M: [None, None, None, None, None, None, None, None, None, None]
+   Values   D..M: [None, None, None, None, None, None, None, None, None, None]
+Row 18 | B: Expected Growth Rate          
+   Formulas D..M: [0.052, None, None, None, None, None, None, None, None, None]
+   Values   D..M: [0.052, None, None, None, None, None, None, None, None, None]
+Row 19 | B: Terminal Growth Rate          
+   Formulas D..M: [0.04, None, None, None, None, None, None, None, None, None]
+   Values   D..M: [0.04, None, None, None, None, None, None, None, None, None]
+Row 20 | B: WACC                          
+   Formulas D..M: ['=WACC!K46', None, None, None, None, None, None, None, None, None]
+   Values   D..M: [0.12041699623362523, None, None, None, None, None, None, None, None, None]
+Row 21 | B: Terminal Reinvestment Rate    
+   Formulas D..M: ['=D19/D20', None, None, None, None, None, None, None, None, None]
+   Values   D..M: [0.3321790216589907, None, None, None, None, None, None, None, None, None]
+Row 22 | B: None                          
+   Formulas D..M: [None, None, None, None, None, None, None, None, None, None]
+   Values   D..M: [None, None, None, None, None, None, None, None, None, None]
+Row 23 | B: Calculation of Terminal Value 
+   Formulas D..M: [None, None, None, None, None, None, None, None, None, None]
+   Values   D..M: [None, None, None, None, None, None, None, None, None, None]
+Row 24 | B: None                          
+   Formulas D..M: [None, None, None, None, None, None, None, None, None, None]
+   Values   D..M: [None, None, None, None, None, None, None, None, None, None]
+Row 25 | B: FCFF(n+1)                     
+   Formulas D..M: ['=M12*(1+D19)', None, None, None, None, None, None, None, None, None]
+   Values   D..M: [9683.301155559195, None, None, None, None, None, None, None, None, None]
+Row 26 | B: WACC                          
+   Formulas D..M: ['=D20', None, None, None, None, None, None, None, None, None]
+   Values   D..M: [0.12041699623362523, None, None, None, None, None, None, None, None, None]
+Row 27 | B: Terminal Growth Rate          
+   Formulas D..M: ['=D19', None, None, None, None, None, None, None, None, None]
+   Values   D..M: [0.04, None, None, None, None, None, None, None, None, None]
+Row 28 | B: None                          
+   Formulas D..M: [None, None, None, None, None, None, None, None, None, None]
+   Values   D..M: [None, None, None, None, None, None, None, None, None, None]
+Row 29 | B: Terminal value                
+   Formulas D..M: ['=D25/(D26-D27)', None, None, None, None, None, None, None, None, None]
+   Values   D..M: [120413.61414976926, None, None, None, None, None, None, None, None, None]
+Row 30 | B: None                          
+   Formulas D..M: [None, None, None, None, None, None, None, None, None, None]
+   Values   D..M: [None, None, None, None, None, None, None, None, None, None]
+Row 31 | B: Calculation of Equity Value   
+   Formulas D..M: [None, None, None, None, None, None, None, None, None, None]
+   Values   D..M: [None, None, None, None, None, None, None, None, None, None]
+Row 32 | B: None                          
+   Formulas D..M: [None, None, None, None, None, None, None, None, None, None]
+   Values   D..M: [None, None, None, None, None, None, None, None, None, None]
+Row 33 | B: PV of FCFF                    
+   Formulas D..M: ['=SUM(I16:M16)', None, None, None, None, None, None, None, None, None]
+   Values   D..M: [32684.322494195316, None, None, None, None, None, None, None, None, None]
+Row 34 | B: Terminal value                
+   Formulas D..M: ['=D29*M14', None, None, None, None, None, None, None, None, None]
+   Values   D..M: [72188.3299258168, None, None, None, None, None, None, None, None, None]
+Row 35 | B: Value of Operating Assets     
+   Formulas D..M: ['=SUM(D33:D34)', None, None, None, None, None, None, None, None, None]
+   Values   D..M: [104872.6524200121, None, None, None, None, None, None, None, None, None]
+Row 36 | B: None                          
+   Formulas D..M: [None, None, None, None, None, None, None, None, None, None]
+   Values   D..M: [None, None, None, None, None, None, None, None, None, None]
+Row 37 | B: Add: Cash                     
+   Formulas D..M: ["='Data Sheet'!K69", None, None, None, None, None, None, None, None, None]
+   Values   D..M: [11603, None, None, None, None, None, None, None, None, None]
+Row 38 | B: Less: Debt                    
+   Formulas D..M: ["='Data Sheet'!K59", None, None, None, None, None, None, None, None, None]
+   Values   D..M: [4627, None, None, None, None, None, None, None, None, None]
+Row 39 | B: Equity Value                  
+   Formulas D..M: ['=D35+D37-D38', None, None, None, None, None, None, None, None, None]
+   Values   D..M: [111848.6524200121, None, None, None, None, None, None, None, None, None]
+Row 40 | B: No. of Shares                 
+   Formulas D..M: ["='Data Sheet'!K70/10000000", None, None, None, None, None, None, None, None, None]
+   Values   D..M: [240, None, None, None, None, None, None, None, None, None]
+Row 41 | B: None                          
+   Formulas D..M: [None, None, None, None, None, None, None, None, None, None]
+   Values   D..M: [None, None, None, None, None, None, None, None, None, None]
+Row 42 | B: Equity Value per Share        
+   Formulas D..M: ['=D39/D40', None, None, None, None, None, None, None, None, None]
+   Values   D..M: [466.03605175005043, None, None, None, None, None, None, None, None, None]
+Row 43 | B: None                          
+   Formulas D..M: [None, None, None, None, None, None, None, None, None, None]
+   Values   D..M: [None, None, None, None, None, None, None, None, None, None]
+Row 44 | B: Share Price                   
+   Formulas D..M: [1837, None, None, None, None, None, None, None, None, None]
+   Values   D..M: [1837, None, None, None, None, None, None, None, None, None]
+Row 45 | B: Discount /Premium             
+   Formulas D..M: ['=D44/D42', None, None, None, None, None, None, None, None, None]
+   Values   D..M: [3.941755134826436, None, None, None, None, None, None, None, None, None]
+Row 46 | B: None                          
+   Formulas D..M: [None, None, None, None, None, None, None, None, None, None]
+   Values   D..M: [None, None, None, None, None, None, None, None, None, None]

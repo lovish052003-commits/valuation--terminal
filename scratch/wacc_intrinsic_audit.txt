@@ -1,0 +1,143 @@
+=== INTRINSIC VALUATION SHEET ===
+Row  6 | B: Calculation of ROIC                 | L Form: ='Raw FS'!N$3             | L Val: 2026-03-01 00:00:00
+Row  8 | B: Current Assets                      | L Form: None                      | L Val: None
+Row  9 | B: ='Raw FS'!B39                       | L Form: ='Raw FS'!N39             | L Val: 11493
+Row 10 | B: Trade Receivables                   | L Form: ='Raw FS'!N40             | L Val: 15510
+Row 11 | B: ='Raw FS'!B42                       | L Form: ='Raw FS'!N42             | L Val: 923
+Row 12 | B: ='Raw FS'!B43                       | L Form: ='Raw FS'!N43             | L Val: 8282
+Row 13 | B: Total Current Assets                | L Form: =SUM(L9:L12)              | L Val: 36208
+Row 15 | B: Current Liabilities                 | L Form: None                      | L Val: None
+Row 16 | B: ='Raw FS'!B14                       | L Form: ='Raw FS'!N14             | L Val: 7334
+Row 17 | B: ='Raw FS'!B15                       | L Form: ='Raw FS'!N15             | L Val: 137
+Row 18 | B: ='Raw FS'!B16                       | L Form: ='Raw FS'!N16             | L Val: 12429
+Row 19 | B: Total Current Liabilities           | L Form: =SUM(L16:L18)             | L Val: 19900
+Row 21 | B: Net Working Capital                 | L Form: =L13-L19                  | L Val: 16308
+Row 23 | B: Non Current Assets                  | L Form: None                      | L Val: None
+Row 24 | B: ='Raw FS'!B22                       | L Form: ='Raw FS'!N22             | L Val: 1190
+Row 25 | B: ='Raw FS'!B23                       | L Form: ='Raw FS'!N23             | L Val: 8074
+Row 26 | B: ='Raw FS'!B24                       | L Form: ='Raw FS'!N24             | L Val: 15882
+Row 27 | B: ='Raw FS'!B25                       | L Form: ='Raw FS'!N25             | L Val: 418
+Row 28 | B: ='Raw FS'!B26                       | L Form: ='Raw FS'!N26             | L Val: 484
+Row 29 | B: ='Raw FS'!B27                       | L Form: ='Raw FS'!N27             | L Val: 2
+Row 30 | B: ='Raw FS'!B28                       | L Form: ='Raw FS'!N28             | L Val: 581
+Row 31 | B: ='Raw FS'!B29                       | L Form: ='Raw FS'!N29             | L Val: 9833
+Row 32 | B: ='Raw FS'!B30                       | L Form: ='Raw FS'!N30             | L Val: 23859
+Row 33 | B: ='Raw FS'!B31                       | L Form: ='Raw FS'!N31             | L Val: 60321
+Row 34 | B: ='Raw FS'!B32                       | L Form: ='Raw FS'!N32             | L Val: 27499
+Row 35 | B: Net Non Current Assets              | L Form: ='Raw FS'!N33             | L Val: 32822
+Row 37 | B: Invested Capital                    | L Form: =L35+L21                  | L Val: 49130
+Row 38 | B: EBIT                                | L Form: ='Raw FS'!AD11+'Raw FS'!AD9 | L Val: 15458
+Row 40 | B: ROIC                                | L Form: =L38/L37                  | L Val: 0.3146346427844494
+Row 42 | B: Calculation of Reinvestment Rate    | L Form: ='Raw FS'!N$3             | L Val: 2026-03-01 00:00:00
+Row 44 | B: Net Capex                           | L Form: =-SUM('Raw FS'!AD27:AD28) | L Val: 3513
+Row 45 | B: Change in Work Cap                  | L Form: =L21-K21                  | L Val: 376
+Row 47 | B: EBIT                                | L Form: =L38                      | L Val: 15458
+Row 48 | B: Tax Rate                            | L Form: =K48                      | L Val: 0.3
+Row 49 | B: EBIT(1-T)                           | L Form: =L47*(1-L48)              | L Val: 10820.599999999999
+Row 51 | B: Reinvestment                        | L Form: =SUM(L44:L45)             | L Val: 3889
+Row 52 | B: Reinvestment Rate                   | L Form: =L51/L49                  | L Val: 0.35940705690996805
+Row 54 | B: None                                | L Form: =AVERAGE(I52:L52)         | L Val: 0.49535802872427853
+Row 55 | B: None                                | L Form: =MEDIAN(I52:L52)          | L Val: 0.29656485889568934
+Row 57 | B: Calculation of Growth Rate          | L Form: ='Raw FS'!N$3             | L Val: 2026-03-01 00:00:00
+Row 59 | B: ROIC                                | L Form: =L40                      | L Val: 0.3146346427844494
+Row 60 | B: Reinvestment Rate                   | L Form: =L52                      | L Val: 0.35940705690996805
+Row 62 | B: Intrinsic Growth                    | L Form: =L59*L60                  | L Val: 0.11308191096507808
+Row 64 | B: None                                | L Form: =AVERAGE(I62:L62)         | L Val: 0.13254303034810683
+
+=== WACC SHEET (Cols B to K) ===
+Row  6 Form: {'B': 'Weighted Average Cost of Capital', 'C': None, 'D': None, 'E': None, 'F': None, 'G': None, 'H': None, 'I': None, 'J': None, 'K': None}
+       Val : {'B': 'Weighted Average Cost of Capital', 'C': None, 'D': None, 'E': None, 'F': None, 'G': None, 'H': None, 'I': None, 'J': None, 'K': None}
+Row  8 Form: {'B': 'All figures are in INR unless stated otherwise', 'C': None, 'D': None, 'E': None, 'F': None, 'G': None, 'H': None, 'I': None, 'J': None, 'K': None}
+       Val : {'B': 'All figures are in INR unless stated otherwise', 'C': None, 'D': None, 'E': None, 'F': None, 'G': None, 'H': None, 'I': None, 'J': None, 'K': None}
+Row 10 Form: {'B': 'Peer Comps', 'C': None, 'D': None, 'E': None, 'F': None, 'G': None, 'H': None, 'I': None, 'J': None, 'K': None}
+       Val : {'B': 'Peer Comps', 'C': None, 'D': None, 'E': None, 'F': None, 'G': None, 'H': None, 'I': None, 'J': None, 'K': None}
+Row 11 Form: {'B': None, 'C': None, 'D': None, 'E': 'Total Debt', 'F': 'Total Equity', 'G': None, 'H': 'Debt /Equity', 'I': 'Debt /Capital', 'J': 'Levered Beta', 'K': 'Unlevered Beta'}
+       Val : {'B': None, 'C': None, 'D': None, 'E': 'Total Debt', 'F': 'Total Equity', 'G': None, 'H': 'Debt /Equity', 'I': 'Debt /Capital', 'J': 'Levered Beta', 'K': 'Unlevered Beta'}
+Row 12 Form: {'B': 'Name of the Comp', 'C': None, 'D': 'Country', 'E': None, 'F': None, 'G': 'Tax Rate', 'H': None, 'I': None, 'J': None, 'K': None}
+       Val : {'B': 'Name of the Comp', 'C': None, 'D': 'Country', 'E': None, 'F': None, 'G': 'Tax Rate', 'H': None, 'I': None, 'J': None, 'K': None}
+Row 14 Form: {'B': "='Raw Data'!O24", 'C': None, 'D': "='Raw Data'!Q24", 'E': "='Raw Data'!R24", 'F': "='Raw Data'!S24", 'G': "='Raw Data'!T24", 'H': '=E14/F14', 'I': '=E14/SUM(E14:F14)', 'J': 1, 'K': '=J14/(1+(1-G14)*H14)'}
+       Val : {'B': "Divi's Lab.", 'C': None, 'D': 'India', 'E': 62219.2, 'F': 248876.79, 'G': 0.3, 'H': 0.25000001004513117, 'I': 0.20000000642888388, 'J': 1, 'K': 0.8510638246941843}
+Row 15 Form: {'B': "='Raw Data'!O25", 'C': None, 'D': "='Raw Data'!Q25", 'E': "='Raw Data'!R25", 'F': "='Raw Data'!S25", 'G': "='Raw Data'!T25", 'H': '=E15/F15', 'I': '=E15/SUM(E15:F15)', 'J': "='Beta-Regression'!L15", 'K': '=J15/(1+(1-G15)*H15)'}
+       Val : {'B': 'Sun Pharmaceutical Industries Ltd', 'C': None, 'D': 'India', 'E': 4627, 'F': 440830, 'G': 0.3, 'H': 0.010496109611414832, 'I': 0.010387085622181266, 'J': 0.60854052517076, 'K': 0.6041020204545424}
+Row 16 Form: {'B': "='Raw Data'!O26", 'C': None, 'D': "='Raw Data'!Q26", 'E': "='Raw Data'!R26", 'F': "='Raw Data'!S26", 'G': "='Raw Data'!T26", 'H': '=E16/F16', 'I': '=E16/SUM(E16:F16)', 'J': 1, 'K': '=J16/(1+(1-G16)*H16)'}
+       Val : {'B': 'Torrent Pharma.', 'C': None, 'D': 'India', 'E': 46024.51, 'F': 184098.04, 'G': 0.3, 'H': 0.25, 'I': 0.19999999999999998, 'J': 1, 'K': 0.851063829787234}
+Row 17 Form: {'B': "='Raw Data'!O27", 'C': None, 'D': "='Raw Data'!Q27", 'E': "='Raw Data'!R27", 'F': "='Raw Data'!S27", 'G': "='Raw Data'!T27", 'H': '=E17/F17', 'I': '=E17/SUM(E17:F17)', 'J': 1, 'K': '=J17/(1+(1-G17)*H17)'}
+       Val : {'B': 'Zydus Lifesci.', 'C': None, 'D': 'India', 'E': 28927.61, 'F': 115710.44, 'G': 0.3, 'H': 0.25, 'I': 0.2, 'J': 1, 'K': 0.851063829787234}
+Row 18 Form: {'B': "='Raw Data'!O28", 'C': None, 'D': "='Raw Data'!Q28", 'E': "='Raw Data'!R28", 'F': "='Raw Data'!S28", 'G': "='Raw Data'!T28", 'H': '=E18/F18', 'I': '=E18/SUM(E18:F18)', 'J': 1, 'K': '=J18/(1+(1-G18)*H18)'}
+       Val : {'B': 'Cipla', 'C': None, 'D': 'India', 'E': 28163.97, 'F': 112655.86, 'G': 0.3, 'H': 0.2500000443829553, 'I': 0.20000002840509037, 'J': 1, 'K': 0.8510638072843328}
+Row 20 Form: {'B': None, 'C': None, 'D': None, 'E': None, 'F': 'Average', 'G': '=AVERAGE(G14:G18)', 'H': '=AVERAGE(H14:H18)', 'I': '=AVERAGE(I14:I18)', 'J': '=AVERAGE(J14:J18)', 'K': '=AVERAGE(K14:K18)'}
+       Val : {'B': None, 'C': None, 'D': None, 'E': None, 'F': 'Average', 'G': 0.3, 'H': 0.20209923280790026, 'I': 0.1620774240912311, 'J': 0.921708105034152, 'K': 0.8016714624015056}
+Row 21 Form: {'B': None, 'C': None, 'D': None, 'E': None, 'F': 'Median', 'G': '=MEDIAN(G14:G18)', 'H': '=MEDIAN(H14:H18)', 'I': '=MEDIAN(I14:I18)', 'J': '=MEDIAN(J14:J18)', 'K': '=MEDIAN(K14:K18)'}
+       Val : {'B': None, 'C': None, 'D': None, 'E': None, 'F': 'Median', 'G': 0.3, 'H': 0.25, 'I': 0.2, 'J': 1, 'K': 0.8510638246941843}
+Row 24 Form: {'B': 'Cost of Debt', 'C': None, 'D': None, 'E': None, 'F': None, 'G': 'Cost of Capital', 'H': None, 'I': None, 'J': None, 'K': None}
+       Val : {'B': 'Cost of Debt', 'C': None, 'D': None, 'E': None, 'F': None, 'G': 'Cost of Capital', 'H': None, 'I': None, 'J': None, 'K': None}
+Row 26 Form: {'B': 'Pre-Tax Cost of Debt', 'C': None, 'D': None, 'E': 0.0805, 'F': None, 'G': 'Risk Free Rate', 'H': None, 'I': None, 'J': None, 'K': 0.07}
+       Val : {'B': 'Pre-Tax Cost of Debt', 'C': None, 'D': None, 'E': 0.0805, 'F': None, 'G': 'Risk Free Rate', 'H': None, 'I': None, 'J': None, 'K': 0.07}
+Row 27 Form: {'B': 'Tax Rate', 'C': None, 'D': None, 'E': '=G15', 'F': None, 'G': 'Equity Risk Premium', 'H': None, 'I': None, 'J': None, 'K': 0.065}
+       Val : {'B': 'Tax Rate', 'C': None, 'D': None, 'E': 0.3, 'F': None, 'G': 'Equity Risk Premium', 'H': None, 'I': None, 'J': None, 'K': 0.065}
+Row 28 Form: {'B': 'Post-Tax Cost of Debt', 'C': None, 'D': None, 'E': '=E26*(1-E27)', 'F': None, 'G': 'Levered Beta', 'H': None, 'I': None, 'J': None, 'K': '=K36'}
+       Val : {'B': 'Post-Tax Cost of Debt', 'C': None, 'D': None, 'E': 0.05635, 'F': None, 'G': 'Levered Beta', 'H': None, 'I': None, 'J': None, 'K': 0.9662973384897096}
+Row 29 Form: {'B': None, 'C': None, 'D': None, 'E': None, 'F': None, 'G': 'Cost of Capital', 'H': None, 'I': None, 'J': None, 'K': '=K26+K27*K28'}
+       Val : {'B': None, 'C': None, 'D': None, 'E': None, 'F': None, 'G': 'Cost of Capital', 'H': None, 'I': None, 'J': None, 'K': 0.13280932700183112}
+Row 31 Form: {'B': 'Capital Structure', 'C': None, 'D': None, 'E': None, 'F': None, 'G': 'Levered Beta', 'H': None, 'I': None, 'J': None, 'K': None}
+       Val : {'B': 'Capital Structure', 'C': None, 'D': None, 'E': None, 'F': None, 'G': 'Levered Beta', 'H': None, 'I': None, 'J': None, 'K': None}
+Row 33 Form: {'B': None, 'C': None, 'D': 'Current', 'E': 'Target', 'F': None, 'G': 'Comps Median Unlevered Beta', 'H': None, 'I': None, 'J': None, 'K': '=K21'}
+       Val : {'B': None, 'C': None, 'D': 'Current', 'E': 'Target', 'F': None, 'G': 'Comps Median Unlevered Beta', 'H': None, 'I': None, 'J': None, 'K': 0.8510638246941843}
+Row 34 Form: {'B': 'Total Debt', 'C': '=E15', 'D': '=C34/C$36', 'E': '=I20', 'F': None, 'G': 'Target Debt/Equity', 'H': None, 'I': None, 'J': None, 'K': '=E38'}
+       Val : {'B': 'Total Debt', 'C': 4627, 'D': 0.010387085622181266, 'E': 0.1620774240912311, 'F': None, 'G': 'Target Debt/Equity', 'H': None, 'I': None, 'J': None, 'K': 0.1934276850285959}
+Row 35 Form: {'B': 'Market Capitalization', 'C': '=F15', 'D': '=C35/C$36', 'E': '=E36-E34', 'F': None, 'G': 'Tax Rate', 'H': None, 'I': None, 'J': None, 'K': '=E27'}
+       Val : {'B': 'Market Capitalization', 'C': 440830, 'D': 0.9896129143778187, 'E': 0.837922575908769, 'F': None, 'G': 'Tax Rate', 'H': None, 'I': None, 'J': None, 'K': 0.3}
+Row 36 Form: {'B': 'Total Capital', 'C': '=SUM(C34:C35)', 'D': '=C36/C$36', 'E': '=D36', 'F': None, 'G': 'Levered Beta', 'H': None, 'I': None, 'J': None, 'K': '=K33*(1+(1-K35)*K34)'}
+       Val : {'B': 'Total Capital', 'C': 445457, 'D': 1, 'E': 1, 'F': None, 'G': 'Levered Beta', 'H': None, 'I': None, 'J': None, 'K': 0.9662973384897096}
+Row 38 Form: {'B': 'Debt /Equity', 'C': None, 'D': '=D34/D35', 'E': '=E34/E35', 'F': None, 'G': 'WACC', 'H': None, 'I': None, 'J': None, 'K': None}
+       Val : {'B': 'Debt /Equity', 'C': None, 'D': 0.010496109611414832, 'E': 0.1934276850285959, 'F': None, 'G': 'WACC', 'H': None, 'I': None, 'J': None, 'K': None}
+Row 40 Form: {'B': None, 'C': None, 'D': None, 'E': None, 'F': None, 'G': 'Cost of Equity', 'H': None, 'I': None, 'J': None, 'K': '=K29'}
+       Val : {'B': None, 'C': None, 'D': None, 'E': None, 'F': None, 'G': 'Cost of Equity', 'H': None, 'I': None, 'J': None, 'K': 0.13280932700183112}
+Row 41 Form: {'B': None, 'C': None, 'D': None, 'E': None, 'F': None, 'G': 'Equity Weight', 'H': None, 'I': None, 'J': None, 'K': '=E35'}
+       Val : {'B': None, 'C': None, 'D': None, 'E': None, 'F': None, 'G': 'Equity Weight', 'H': None, 'I': None, 'J': None, 'K': 0.837922575908769}
+Row 43 Form: {'B': None, 'C': None, 'D': None, 'E': None, 'F': None, 'G': 'Cost of Debt', 'H': None, 'I': None, 'J': None, 'K': '=E28'}
+       Val : {'B': None, 'C': None, 'D': None, 'E': None, 'F': None, 'G': 'Cost of Debt', 'H': None, 'I': None, 'J': None, 'K': 0.05635}
+Row 44 Form: {'B': None, 'C': None, 'D': None, 'E': None, 'F': None, 'G': 'Debt Weight', 'H': None, 'I': None, 'J': None, 'K': '=E34'}
+       Val : {'B': None, 'C': None, 'D': None, 'E': None, 'F': None, 'G': 'Debt Weight', 'H': None, 'I': None, 'J': None, 'K': 0.1620774240912311}
+Row 46 Form: {'B': None, 'C': None, 'D': None, 'E': None, 'F': None, 'G': 'WACC', 'H': None, 'I': None, 'J': None, 'K': '=(K40*K41)+(K43*K44)'}
+       Val : {'B': None, 'C': None, 'D': None, 'E': None, 'F': None, 'G': 'WACC', 'H': None, 'I': None, 'J': None, 'K': 0.12041699623362523}
+
+=== BETA REGRESSION STATS & FORMULAS ===
+Stats Row  1 Form: {'G': None, 'H': None, 'I': None, 'J': None, 'K': None, 'L': None, 'M': None, 'N': None}
+            Val : {'G': None, 'H': None, 'I': None, 'J': None, 'K': None, 'L': None, 'M': None, 'N': None}
+Stats Row  2 Form: {'G': None, 'H': None, 'I': None, 'J': None, 'K': None, 'L': None, 'M': None, 'N': None}
+            Val : {'G': None, 'H': None, 'I': None, 'J': None, 'K': None, 'L': None, 'M': None, 'N': None}
+Stats Row  3 Form: {'G': None, 'H': None, 'I': None, 'J': None, 'K': None, 'L': None, 'M': None, 'N': None}
+            Val : {'G': None, 'H': None, 'I': None, 'J': None, 'K': None, 'L': None, 'M': None, 'N': None}
+Stats Row  4 Form: {'G': None, 'H': None, 'I': None, 'J': None, 'K': None, 'L': None, 'M': None, 'N': None}
+            Val : {'G': None, 'H': None, 'I': None, 'J': None, 'K': None, 'L': None, 'M': None, 'N': None}
+Stats Row  5 Form: {'G': None, 'H': None, 'I': None, 'J': None, 'K': None, 'L': None, 'M': None, 'N': None}
+            Val : {'G': None, 'H': None, 'I': None, 'J': None, 'K': None, 'L': None, 'M': None, 'N': None}
+Stats Row  6 Form: {'G': None, 'H': None, 'I': None, 'J': None, 'K': None, 'L': None, 'M': None, 'N': None}
+            Val : {'G': None, 'H': None, 'I': None, 'J': None, 'K': None, 'L': None, 'M': None, 'N': None}
+Stats Row  7 Form: {'G': None, 'H': None, 'I': None, 'J': 'Beta Drifting', 'K': None, 'L': None, 'M': None, 'N': None}
+            Val : {'G': None, 'H': None, 'I': None, 'J': 'Beta Drifting', 'K': None, 'L': None, 'M': None, 'N': None}
+Stats Row  8 Form: {'G': None, 'H': None, 'I': None, 'J': None, 'K': None, 'L': None, 'M': None, 'N': None}
+            Val : {'G': None, 'H': None, 'I': None, 'J': None, 'K': None, 'L': None, 'M': None, 'N': None}
+Stats Row  9 Form: {'G': 'Closing Price ', 'H': 'Daily Returns', 'I': None, 'J': 'Levered Raw Beta', 'K': None, 'L': '=O11', 'M': None, 'N': None}
+            Val : {'G': 'Closing Price ', 'H': 'Daily Returns', 'I': None, 'J': 'Levered Raw Beta', 'K': None, 'L': 0.4780540335610133, 'M': None, 'N': None}
+Stats Row 10 Form: {'G': "='Raw Data'!J6", 'H': '-', 'I': None, 'J': 'Raw Beta Weight', 'K': None, 'L': 0.75, 'M': None, 'N': None}
+            Val : {'G': 23346.4, 'H': '-', 'I': None, 'J': 'Raw Beta Weight', 'K': None, 'L': 0.75, 'M': None, 'N': None}
+Stats Row 11 Form: {'G': "='Raw Data'!J7", 'H': '=G10/G11-1', 'I': None, 'J': None, 'K': None, 'L': None, 'M': None, 'N': 'Beta 1'}
+            Val : {'G': 23270.6, 'H': 0.0032573289902282365, 'I': None, 'J': None, 'K': None, 'L': None, 'M': None, 'N': 'Beta 1'}
+Stats Row 12 Form: {'G': "='Raw Data'!J8", 'H': '=G11/G12-1', 'I': None, 'J': 'Market Beta', 'K': None, 'L': 1, 'M': None, 'N': 'Beta 2'}
+            Val : {'G': 23217.6, 'H': 0.0022827510164702414, 'I': None, 'J': 'Market Beta', 'K': None, 'L': 1, 'M': None, 'N': 'Beta 2'}
+Stats Row 13 Form: {'G': "='Raw Data'!J9", 'H': '=G12/G13-1', 'I': None, 'J': 'Market Beta Weight', 'K': None, 'L': 0.25, 'M': None, 'N': None}
+            Val : {'G': 23118.6, 'H': 0.004282266227193743, 'I': None, 'J': 'Market Beta Weight', 'K': None, 'L': 0.25, 'M': None, 'N': None}
+Stats Row 14 Form: {'G': "='Raw Data'!J10", 'H': '=G13/G14-1', 'I': None, 'J': None, 'K': None, 'L': None, 'M': None, 'N': None}
+            Val : {'G': 23398.1, 'H': -0.011945414371252405, 'I': None, 'J': None, 'K': None, 'L': None, 'M': None, 'N': None}
+Stats Row 15 Form: {'G': "='Raw Data'!J11", 'H': '=G14/G15-1', 'I': None, 'J': 'Adjusted Beta', 'K': None, 'L': '=(L9*L10)+(L12*L13)', 'M': None, 'N': None}
+            Val : {'G': 23477.8, 'H': -0.0033946962662601, 'I': None, 'J': 'Adjusted Beta', 'K': None, 'L': 0.60854052517076, 'M': None, 'N': None}
+Stats Row 16 Form: {'G': "='Raw Data'!J12", 'H': '=G15/G16-1', 'I': None, 'J': None, 'K': None, 'L': None, 'M': None, 'N': None}
+            Val : {'G': 23431.5, 'H': 0.0019759725156305308, 'I': None, 'J': None, 'K': None, 'L': None, 'M': None, 'N': None}
+Stats Row 17 Form: {'G': "='Raw Data'!J13", 'H': '=G16/G17-1', 'I': None, 'J': None, 'K': None, 'L': None, 'M': None, 'N': None}
+            Val : {'G': 23635.1, 'H': -0.008614306687934392, 'I': None, 'J': None, 'K': None, 'L': None, 'M': None, 'N': None}
+Stats Row 18 Form: {'G': "='Raw Data'!J14", 'H': '=G17/G18-1', 'I': None, 'J': None, 'K': None, 'L': None, 'M': None, 'N': None}
+            Val : {'G': 23779.15, 'H': -0.0060578279711429595, 'I': None, 'J': None, 'K': None, 'L': None, 'M': None, 'N': None}
+Stats Row 19 Form: {'G': "='Raw Data'!J15", 'H': '=G18/G19-1', 'I': None, 'J': None, 'K': None, 'L': None, 'M': None, 'N': None}
+            Val : {'G': 23897.7, 'H': -0.0049607284383015315, 'I': None, 'J': None, 'K': None, 'L': None, 'M': None, 'N': None}

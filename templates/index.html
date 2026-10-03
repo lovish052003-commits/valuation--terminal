@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ITC Model Valuation Platform | Screener.in & Multi-LLM AI</title>
+    <meta name="description" content="Institutional financial valuation platform implementing the ITC Model DCF, DuPont, and Altman Z-Score with live Screener.in data and NVIDIA NIM, OpenRouter, and OpenAI LLMs.">
+    <script>
+        (function() {
+            try {
+                var savedTheme = localStorage.getItem('terminal_theme') || 'light';
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            } catch (e) {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <!-- Top Navigation Bar -->
+    <header>
+        <div class="nav-container">
+            <a href="/" class="brand">
+                <div class="brand-icon">₹</div>
+                <div>
+                    <div class="brand-title">Valuation Terminal</div>
+                    <span class="brand-badge">ITC Model Engine</span>
+                </div>
+            </a>
+            
+            <div class="nav-actions">
+                <button class="theme-toggle-btn" id="btnThemeToggle" aria-label="Toggle Light and Dark Theme" title="Toggle Light and Antigravity Dark Theme">
+                    <span class="theme-icon" id="themeIcon">☀️</span>
+                    <span class="theme-text" id="themeText">Light</span>
+                    <div class="theme-toggle-pill">
+                        <div class="theme-toggle-dot"></div>
+                    </div>
+                </button>
+                <div class="api-status-badge" id="navApiStatus" title="Click API Settings to configure your API keys">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Checking API...</span>
+                </div>
+                <button class="btn-settings" id="btnOpenSettings">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    API Settings
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero Command Center -->
+        <section class="glass-panel command-center">
+            <div class="command-header">
+                <h1 class="command-title">Institutional Equity Valuation</h1>
+                <p class="command-desc">
+                    Valuate any Indian listed company according to your <strong>ITC Model</strong> (5-Year DCF, WACC, DuPont, and Altman's Z-Score) using live <strong>Screener.in</strong> data and multi-provider AI (NVIDIA NIM, OpenRouter, OpenAI, Gemini).
+                </p>
+            </div>
+
+            <!-- Search & Autocomplete Form -->
+            <form class="search-form" id="searchForm" onsubmit="return false;">
+                <div class="search-input-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="searchInput" class="search-input" placeholder="Search any company name or ticker (e.g. ITC, Tata Motors, Reliance, VBL)..." autocomplete="off" required>
+                    <button type="button" id="launchBtn" class="btn-launch">
+                        <span>Run Valuation</span>
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    </button>
+                </div>
+                <!-- Autocomplete Dropdown -->
+                <div id="autocompleteDropdown" class="autocomplete-dropdown"></div>
+            </form>
+
+            <!-- Quick Selection Chips -->
+            <div class="search-chips">
+                <span class="chip-label">Quick Analyze:</span>
+                <span class="chip" data-company="ITC Ltd">ITC Ltd</span>
+                <span class="chip" data-company="Tata Motors">Tata Motors</span>
+                <span class="chip" data-company="Nestle India">Nestle India</span>
+                <span class="chip" data-company="Force Motors">Force Motors</span>
+                <span class="chip" data-company="Jubilant Foodworks">Jubilant Foodworks</span>
+                <span class="chip" data-company="Hindustan Unilever">Hindustan Unilever</span>
+                <span class="chip" data-company="Infosys">Infosys</span>
+                <span class="chip" data-company="Reliance Industries">Reliance Inds</span>
+            </div>
+
+            <div class="search-options">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="skipAiCheckbox">
+                    <span>Skip AI Report (Run Quantitative DCF Only)</span>
+                </label>
+            </div>
+        </section>
+
+        <!-- Loading State -->
+        <div id="loadingOverlay" class="loading-overlay">
+            <div class="loader-spinner"></div>
+            <div class="loading-text">Analyzing Financial Model...</div>
+            <div class="loading-subtext">Fetching Screener.in financial statements & computing ITC DCF model...</div>
+            <button id="btnCancelLoading" type="button" class="btn-cancel-loading" style="margin-top: 1.25rem; background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.4); color: #f87171; padding: 0.5rem 1.25rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">✕ Cancel Analysis</button>
+        </div>
+
+        <!-- Valuation Error / Warning Banner -->
+        <div id="valErrorBanner" class="glass-panel" style="display: none; margin: 1.5rem auto; max-width: 900px; padding: 1.25rem 1.5rem; border: 1px solid rgba(239,68,68,0.3); background: rgba(239,68,68,0.06); border-radius: 12px;">
+            <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem;">
+                <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
+                    <span style="font-size: 1.4rem; line-height: 1;">⚠️</span>
+                    <div>
+                        <h4 id="valErrorTitle" style="color: #f87171; font-weight: 700; margin-bottom: 0.25rem;">Analysis Notice</h4>
+                        <p id="valErrorMessage" style="color: #e2e8f0; font-size: 0.9rem; line-height: 1.5; margin: 0;"></p>
+                    </div>
+                </div>
+                <button id="btnDismissError" style="background: transparent; border: none; color: #94a3b8; font-size: 1.25rem; cursor: pointer;">&times;</button>
+            </div>
+        </div>
+
+        <!-- Active Valuation Workspace -->
+        <div id="workspaceContainer" class="workspace-container">
+            
+            <!-- Company Header Card -->
+            <div class="glass-panel company-header-card">
+                <div class="company-title-area">
+                    <div>
+                        <h2>
+                            <span id="headerCompanyName">—</span>
+                            <span class="ac-ticker" id="headerTicker"></span>
+                        </h2>
+                        <div class="company-sector" id="headerSector">Select a company above</div>
+                    </div>
+                </div>
+                <div class="header-action-buttons">
+                    <a href="#" id="headerScreenerLink" target="_blank" class="btn-action">
+                        <span>View on Screener.in ↗</span>
+                    </a>
+                    <a href="#" id="btnDownloadExcel" class="btn-action btn-excel">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/></svg>
+                        <span>Download Excel Model (.xlsx)</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Hero Valuation KPI Grid -->
+            <div class="hero-valuation-grid">
+                <!-- Target Intrinsic Price -->
+                <div class="glass-panel kpi-card">
+                    <div class="kpi-label">Calculated Intrinsic Value (ITC Model)</div>
+                    <div class="kpi-val text-cyan" id="kpiIntrinsic">₹0.00</div>
+                    <div class="kpi-sub">Based on 5-Year DCF & Reinvestment fade</div>
+                </div>
+
+                <!-- Current Market Price -->
+                <div class="glass-panel kpi-card">
+                    <div class="kpi-label">Current Market Price (CMP)</div>
+                    <div class="kpi-val" id="kpiCmp">₹0.00</div>
+                    <div class="kpi-sub" id="kpiMcap">Market Cap: ₹0 Cr</div>
+                </div>
+
+                <!-- Margin of Safety / Upside -->
+                <div class="glass-panel kpi-card">
+                    <div class="kpi-label">Margin of Safety / Upside</div>
+                    <div class="kpi-val" id="kpiUpside">0.0%</div>
+                    <div class="kpi-sub" id="kpiShares">0 Cr Shares</div>
+                </div>
+
+                <!-- Recommendation Verdict Badge -->
+                <div class="glass-panel kpi-card verdict-card">
+                    <div class="kpi-label">Recommendation Verdict</div>
+                    <div>
+                        <span class="verdict-badge" id="verdictBadge">ANALYZING</span>
+                    </div>
+                    <div class="kpi-sub">WACC: <span id="kpiWacc">0.0%</span> • EV: <span id="kpiEv">₹0 Cr</span></div>
+                </div>
+            </div>
+
+            <!-- Interactive DCF Parameter Sliders Toolbar -->
+            <div class="glass-panel params-toolbar">
+                <div class="params-header">
+                    <div class="params-title">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                        <span>Live DCF Sensitivity Controls (Tweak & Recalculate Instantly)</span>
+                    </div>
+                    <div class="text-muted" style="font-size: 0.75rem;">Adjust parameters to test Bull/Bear scenarios</div>
+                </div>
+
+                <div class="params-grid">
+                    <!-- WACC Slider -->
+                    <div class="param-item">
+                        <div class="param-label-row">
+                            <span>WACC (Cost of Capital)</span>
+                            <span class="param-value-badge" id="badgeWacc">11.5%</span>
+                        </div>
+                        <input type="range" id="sliderWacc" class="range-slider" min="5.0" max="25.0" step="0.1" value="11.5">
+                    </div>
+
+                    <!-- 5-Yr Growth Slider -->
+                    <div class="param-item">
+                        <div class="param-label-row">
+                            <span>5-Yr EBIT Growth Rate</span>
+                            <span class="param-value-badge" id="badgeGrowth">8.0%</span>
+                        </div>
+                        <input type="range" id="sliderGrowth" class="range-slider" min="0.0" max="50.0" step="0.5" value="8.0">
+                    </div>
+
+                    <!-- Terminal Growth Slider -->
+                    <div class="param-item">
+                        <div class="param-label-row">
+                            <span>Terminal Growth (g)</span>
+                            <span class="param-value-badge" id="badgeTerminal">3.0%</span>
+                        </div>
+                        <input type="range" id="sliderTerminal" class="range-slider" min="1.0" max="10.0" step="0.25" value="3.0">
+                    </div>
+
+                    <!-- Tax Rate Slider -->
+                    <div class="param-item">
+                        <div class="param-label-row">
+                            <span>Effective Tax Rate</span>
+                            <span class="param-value-badge" id="badgeTax">30.0%</span>
+                        </div>
+                        <input type="range" id="sliderTax" class="range-slider" min="15.0" max="35.0" step="0.5" value="30.0">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabbed Navigation -->
+            <div class="tabs-nav">
+                <button class="tab-btn active" data-tab="tabPillars">🏛️ 4 Valuation Pillars</button>
+                <button class="tab-btn" data-tab="tabFundamental">🧠 Fundamental Analysis</button>
+                <button class="tab-btn" data-tab="tabDcf">📈 DCF Model & Sensitivity</button>
+                <button class="tab-btn" data-tab="tabReverseDcf">🔄 Reverse DCF</button>
+                <button class="tab-btn" data-tab="tabHealth">🛡️ Financial Health (DuPont & Altman Z)</button>
+                <button class="tab-btn" data-tab="tabComps">📊 Peer Comparables</button>
+                <button class="tab-btn" data-tab="tabRiskometer">🛡️ Riskometer</button>
+                <button class="tab-btn" data-tab="tabForensic">🔍 Forensic Check</button>
+                <button class="tab-btn" data-tab="tabAiReport">🤖 AI Research Memorandum</button>
+                <button class="tab-btn" data-tab="tabStatements">📑 Screener Statements</button>
+            </div>
+
+            <!-- TAB: 4 VALUATION PILLARS (EXECUTIVE DASHBOARD) -->
+            <div id="tabPillars" class="tab-panel active">
+                <div class="pillars-grid">
+                    
+                    <!-- PILLAR 1: FREE CASH FLOW GENERATION (THE ENGINE) -->
+                    <div class="glass-panel pillar-card p1">
+                        <span class="pillar-badge">Pillar 1 • The Engine</span>
+                        <h3 class="pillar-title">⚙️ Free Cash Flow Generation</h3>
+                        <p class="pillar-subtitle">Valuation is about true cash available to investors after operations and growth, not accounting net income.</p>
+                        
+                        <div class="pillar-metrics">
+                            <div class="pm-item">
+                                <div class="pm-label">Earnings Quality (CFO / PAT)</div>
+                                <div class="pm-val text-cyan" id="p1QualityRatio">0.0x</div>
+                                <div class="pm-sub" id="p1QualityBadge">Evaluating Cash Backing...</div>
+                            </div>
+                            <div class="pm-item">
+                                <div class="pm-label">Operating Margins</div>
+                                <div class="pm-val" id="p1EbitdaM">0.0%</div>
+                                <div class="pm-sub">EBIT Margin: <span id="p1EbitM">0.0%</span></div>
+                            </div>
+                            <div class="pm-item">
+                                <div class="pm-label">CapEx Reinvestment</div>
+                                <div class="pm-val" id="p1Capex">₹0 Cr</div>
+                                <div class="pm-sub">Maint: <span id="p1MaintCapex">₹0</span> • Growth: <span id="p1GrowthCapex">₹0</span></div>
+                            </div>
+                            <div class="pm-item">
+                                <div class="pm-label">Actual Free Cash Flow</div>
+                                <div class="pm-val text-cyan" id="p1Fcf">₹0 Cr</div>
+                                <div class="pm-sub">Operating Cash Flow: <span id="p1Cfo">₹0 Cr</span></div>
+                            </div>
+                        </div>
+
+                        <!-- Working Capital Efficiency -->
+                        <div class="pm-item" style="margin-top: 0.5rem;">
+                            <div class="pm-label">Working Capital Efficiency (Days)</div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-top: 0.4rem;">
+                                <span>Debtors: <strong id="p1Debtor" class="font-mono text-cyan">0 d</strong></span>
+                                <span>Inventory: <strong id="p1Inv" class="font-mono text-cyan">0 d</strong></span>
+                                <span>Payables: <strong id="p1Payable" class="font-mono text-cyan">0 d</strong></span>
+                                <span>Cash Cycle: <strong id="p1Ccc" class="font-mono text-emerald">0 d</strong></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PILLAR 2: GROWTH ASSUMPTIONS (THE TRAJECTORY) -->
+                    <div class="glass-panel pillar-card p2">
+                        <span class="pillar-badge">Pillar 2 • The Trajectory</span>
+                        <h3 class="pillar-title">🚀 Growth Assumptions</h3>
+                        <p class="pillar-subtitle">Explicit forecast of revenue expansion, pricing power, and sustainable perpetual terminal growth.</p>
+                        
+                        <div class="pillar-metrics">
+                            <div class="pm-item">
+                                <div class="pm-label">Historical Sales CAGR</div>
+                                <div class="pm-val" id="p2Sales5y">0.0%</div>
+                                <div class="pm-sub">3-Yr CAGR: <span id="p2Sales3y">0.0%</span></div>
+                            </div>
+                            <div class="pm-item">
+                                <div class="pm-label">Historical Profit CAGR (3Y)</div>
+                                <div class="pm-val" id="p2Pat3y">N/A</div>
+                                <div class="pm-sub">Bottom-line compounding</div>
+                            </div>
+                            <div class="pm-item">
+                                <div class="pm-label">Explicit 5-Yr Forecast Growth</div>
+                                <div class="pm-val text-cyan" id="p2ForecastG">0.0%</div>
+                                <div class="pm-sub">Adjustable via slider</div>
+                            </div>
+                            <div class="pm-item">
+                                <div class="pm-label">Perpetual Terminal Growth (g)</div>
+                                <div class="pm-val" id="p2TerminalG">3.0%</div>
+                                <div class="pm-sub">Pegged to long-term GDP (2-3%)</div>
+                            </div>
+                        </div>
+
+                        <div class="pm-item" style="margin-top: 0.5rem;">
+                            <div class="pm-label">Terminal Value Contribution to Enterprise Value</div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.35rem;">
+                                <div>PV of Terminal Value: <strong id="p2Tv" class="font-mono text-cyan">₹0 Cr</strong></div>
+                                <span class="badge" id="p2TvShare" style="background: rgba(59, 130, 246, 0.2); color: var(--accent-cyan); padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: 700;">0% of EV</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PILLAR 3: COST OF CAPITAL & RISK (THE DISCOUNT RATE) -->
+                    <div class="glass-panel pillar-card p3">
+                        <span class="pillar-badge">Pillar 3 • The Discount Rate</span>
+                        <h3 class="pillar-title">⚖️ Cost of Capital & Risk</h3>
+                        <p class="pillar-subtitle">Discount rate reflecting riskiness of business operations, market equity risk premium, and leverage.</p>
+                        
+                        <div class="pillar-metrics">
+                            <div class="pm-item">
+                                <div class="pm-label">WACC (Discount Rate)</div>
+                                <div class="pm-val text-cyan" id="p3Wacc">0.0%</div>
+                                <div class="pm-sub">Cost of Capital applied</div>
+                            </div>
+                            <div class="pm-item">
+                                <div class="pm-label">Cost of Equity (Ke)</div>
+                                <div class="pm-val" id="p3Ke">0.0%</div>
+                                <div class="pm-sub">Rf: 7.0% + Beta × 6.5% ERP</div>
+                            </div>
+                            <div class="pm-item">
+                                <div class="pm-label">Beta (Volatility Factor)</div>
+                                <div class="pm-val" id="p3Beta">0.00</div>
+                                <div class="pm-sub">Sector peer risk factor</div>
+                            </div>
+                            <div class="pm-item">
+                                <div class="pm-label">Cost of Debt (Kd Post-Tax)</div>
+                                <div class="pm-val" id="p3Kd">0.0%</div>
+                                <div class="pm-sub">Pre-tax Kd: <span id="p3PreKd">8.05%</span></div>
+                            </div>
+                        </div>
+
+                        <div class="pm-item" style="margin-top: 0.5rem;">
+                            <div class="pm-label">Capital Structure Weights & Leverage</div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-top: 0.4rem;">
+                                <span>Equity Weight: <strong id="p3We" class="font-mono text-cyan">0%</strong></span>
+                                <span>Debt Weight: <strong id="p3Wd" class="font-mono text-cyan">0%</strong></span>
+                                <span>Debt / Equity: <strong id="p3De" class="font-mono text-cyan">0.00x</strong></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PILLAR 4: RELATIVE MARKET MULTIPLES (THE SANITY CHECK) -->
+                    <div class="glass-panel pillar-card p4">
+                        <span class="pillar-badge">Pillar 4 • The Sanity Check</span>
+                        <h3 class="pillar-title">🎯 Relative Market Multiples</h3>
+                        <p class="pillar-subtitle">Cross-checking intrinsic DCF valuation against market peer pricing multiples and 52-week boundaries.</p>
+                        
+                        <div class="pillar-metrics">
+                            <div class="pm-item">
+                                <div class="pm-label">EV / EBITDA (Operating Value)</div>
+                                <div class="pm-val text-cyan" id="p4EvEbitda">0.0x</div>
+                                <div class="pm-sub">Peer Median: <span id="p4PeerEvEbitda">0.0x</span></div>
+                            </div>
+                            <div class="pm-item">
+                                <div class="pm-label">P / E Ratio (Equity Multiple)</div>
+                                <div class="pm-val" id="p4Pe">0.0x</div>
+                                <div class="pm-sub">Peer Median: <span id="p4PeerPe">0.0x</span></div>
+                            </div>
+                            <div class="pm-item">
+                                <div class="pm-label">Price to Book (P/B)</div>
+                                <div class="pm-val" id="p4Pb">0.0x</div>
+                                <div class="pm-sub">Balance sheet asset backing</div>
+                            </div>
+                            <div class="pm-item">
+                                <div class="pm-label">EV / Sales Multiple</div>
+                                <div class="pm-val" id="p4EvSales">0.0x</div>
+                                <div class="pm-sub">Top-line multiple</div>
+                            </div>
+                        </div>
+
+                        <!-- Football Field Valuation Range -->
+                        <div class="pm-item" style="margin-top: 0.5rem;">
+                            <div class="pm-label">Football Field Valuation Cross-Check (Implied Share Prices)</div>
+                            <div class="football-field">
+                                <div class="ff-row">
+                                    <span class="ff-label">DCF Target:</span>
+                                    <span class="font-mono text-cyan font-semibold">₹<span id="p4DcfPrice">0.00</span></span>
+                                </div>
+                                <div class="ff-row">
+                                    <span class="ff-label">Peer P/E Implied:</span>
+                                    <span class="font-mono text-secondary">₹<span id="p4PePrice">0.00</span></span>
+                                </div>
+                                <div class="ff-row">
+                                    <span class="ff-label">Peer EV/EBITDA:</span>
+                                    <span class="font-mono text-secondary">₹<span id="p4EvPrice">0.00</span></span>
+                                </div>
+                                <div class="ff-row">
+                                    <span class="ff-label">52-Wk Range:</span>
+                                    <span class="font-mono text-muted">₹<span id="p4Low52">0</span> - ₹<span id="p4High52">0</span> (CMP: ₹<span id="p4Cmp">0</span>)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- TAB: FUNDAMENTAL ANALYSIS (GROWW STYLE) -->
+            <div id="tabFundamental" class="tab-panel">
+                <!-- 1. Fundamentals Grid -->
+                <div class="glass-panel scorecard" style="margin-bottom: 1.5rem;">
+                    <h3 class="scorecard-title">Fundamentals</h3>
+                    <div class="groww-grid" id="faGrid">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <div class="scorecards-grid">
+                    <!-- 2. Shareholding Pattern -->
+                    <div class="glass-panel scorecard">
+                        <h3 class="scorecard-title">Shareholding Pattern</h3>
+                        <div id="faShareholding" class="shareholding-container">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- 3. Trend Analysis & Conclusion -->
+                    <div class="glass-panel scorecard">
+                        <h3 class="scorecard-title">Trend Analysis & Health Check</h3>
+                        <div class="trend-container" id="faTrends">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: DCF Model & Sensitivity Grid -->
+            <div id="tabDcf" class="tab-panel">
+                <!-- 5-Year DCF Cash Flow Schedule -->
+                <div class="glass-panel scorecard" style="margin-bottom: 1.5rem;">
+                    <h3 class="scorecard-title">5-Year FCFF Cash Flow Projection Schedule (Amounts in ₹ Cr)</h3>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Forecast Period</th>
+                                    <th class="num">Projected EBIT</th>
+                                    <th class="num">NOPAT (1-T)</th>
+                                    <th class="num">Reinvestment %</th>
+                                    <th class="num">FCFF</th>
+                                    <th class="num">Mid-Year DF</th>
+                                    <th class="num">PV of FCFF</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dcfTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Valuation Sensitivity Matrix -->
+                <div class="glass-panel scorecard">
+                    <h3 class="scorecard-title">Intrinsic Share Price Sensitivity Matrix (WACC vs Terminal Growth Rate)</h3>
+                    <p class="text-muted" style="font-size: 0.8rem; margin-bottom: 1rem;">The highlighted center cell represents the baseline scenario. Values indicate implied share price in ₹.</p>
+                    <div class="table-responsive">
+                        <table class="heatmap-table">
+                            <thead id="sensTableHead"></thead>
+                            <tbody id="sensTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: REVERSE DCF (EXPECTATIONS INVESTING) -->
+            <div id="tabReverseDcf" class="tab-panel">
+                <div class="reverse-container">
+                    
+                    <!-- SECTION 1: EXPECTATIONS VERDICT (TOP BANNER) -->
+                    <div class="reverse-banner glass-panel" id="reverseVerdictBanner">
+                        <div class="reverse-banner-left">
+                            <div class="reverse-icon-box" id="reverseIconBox">
+                                <span class="reverse-main-icon" id="reverseMainIcon">🎯</span>
+                            </div>
+                            <div class="reverse-banner-content">
+                                <div class="reverse-badges-row">
+                                    <span class="reverse-tag">EXPECTATIONS INVESTING</span>
+                                    <span class="reverse-status-pill badge-reverse-fair" id="reverseStatusBadge">FAIRLY PRICED</span>
+                                </div>
+                                <h2 class="reverse-verdict-title" id="reverseVerdictSentence">
+                                    To justify the current share price of <span class="text-cyan font-mono font-bold" id="revVerdictCmp">₹0</span>, the market is pricing in a <span class="text-amber font-mono font-bold" id="revVerdictImpliedG">0.0%</span> annual Free Cash Flow CAGR over the next 5 years.
+                                </h2>
+                                <p class="reverse-verdict-desc" id="reverseVerdictDesc">
+                                    The market is pricing in cash flow growth broadly consistent with recent historical operational compounding.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Right: Benchmark Comparison Bars -->
+                        <div class="reverse-banner-right">
+                            <div class="reverse-bench-title">
+                                <span>FCF Growth Benchmark</span>
+                                <span class="text-cyan" style="font-size: 0.68rem;">5-Yr Compounding</span>
+                            </div>
+
+                            <!-- Implied CAGR -->
+                            <div class="rev-bar-group">
+                                <div class="rev-bar-label">
+                                    <span><span class="dot-indicator" style="background: var(--accent-cyan);"></span> Priced-in (Implied)</span>
+                                    <strong class="text-cyan font-mono" id="revBarImpliedVal">0.0%</strong>
+                                </div>
+                                <div class="rev-bar-track">
+                                    <div class="rev-bar-fill" id="revBarImpliedFill" style="width: 50%; background: var(--accent-cyan);"></div>
+                                </div>
+                            </div>
+
+                            <!-- Historical CAGR -->
+                            <div class="rev-bar-group">
+                                <div class="rev-bar-label">
+                                    <span><span class="dot-indicator" style="background: var(--accent-emerald);"></span> Company Historical</span>
+                                    <strong class="text-emerald font-mono" id="revBarHistVal">0.0%</strong>
+                                </div>
+                                <div class="rev-bar-track">
+                                    <div class="rev-bar-fill" id="revBarHistFill" style="width: 40%; background: var(--accent-emerald);"></div>
+                                </div>
+                            </div>
+
+                            <!-- Sector CAGR -->
+                            <div class="rev-bar-group">
+                                <div class="rev-bar-label">
+                                    <span><span class="dot-indicator" style="background: #a855f7;"></span> Sector Peer Median</span>
+                                    <strong style="color: #a855f7;" class="font-mono" id="revBarSectorVal">0.0%</strong>
+                                </div>
+                                <div class="rev-bar-track">
+                                    <div class="rev-bar-fill" id="revBarSectorFill" style="width: 45%; background: #a855f7;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECTION 2: THE REVERSE ENGINE PARAMETERS (CENTER) -->
+                    <div class="reverse-params-grid">
+                        
+                        <!-- Parameter 1: WACC -->
+                        <div class="glass-panel reverse-param-card">
+                            <div class="rev-param-top">
+                                <span class="rev-param-label">HURDLE RATE</span>
+                                <span class="rev-param-icon">⚖️</span>
+                            </div>
+                            <h3 class="rev-param-name">Cost of Capital (WACC)</h3>
+                            <p class="rev-param-desc">Discount rate reflecting market risk, pre/post-tax debt, and equity hurdle rate applied.</p>
+                            <div class="rev-param-bottom">
+                                <span class="rev-param-val text-cyan" id="revParamWacc">0.00%</span>
+                                <span class="rev-param-sub">Held Constant</span>
+                            </div>
+                        </div>
+
+                        <!-- Parameter 2: Terminal Rate -->
+                        <div class="glass-panel reverse-param-card">
+                            <div class="rev-param-top">
+                                <span class="rev-param-label">LONG-TERM HORIZON</span>
+                                <span class="rev-param-icon">🎯</span>
+                            </div>
+                            <h3 class="rev-param-name">Terminal Horizon</h3>
+                            <p class="rev-param-desc">Perpetual growth (pegged to GDP) and implied exit cash multiple beyond Year 5.</p>
+                            <div class="rev-param-bottom">
+                                <div>
+                                    <span class="rev-param-val" style="color: #a855f7;" id="revParamTg">0.0%</span>
+                                    <span class="text-muted" style="font-size: 0.75rem;">Terminal g</span>
+                                </div>
+                                <div style="text-align: right;">
+                                    <strong class="font-mono" style="color: var(--text-primary); font-size: 0.95rem;" id="revParamMultiple">0.0x</strong>
+                                    <div class="text-muted" style="font-size: 0.68rem;">Implied Multiple</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Parameter 3: Implied Growth (Solved) -->
+                        <div class="glass-panel reverse-param-card highlight-card">
+                            <div class="rev-param-top">
+                                <span class="rev-param-label text-cyan">SOLVED EXPECTATION</span>
+                                <span class="rev-param-icon">🔄</span>
+                            </div>
+                            <h3 class="rev-param-name">Implied 5-Yr FCF CAGR</h3>
+                            <p class="rev-param-desc">Required annual compounding rate for DCF intrinsic value to match CMP of <span id="revParamCmpSub">₹0</span>.</p>
+                            <div class="rev-param-bottom">
+                                <span class="rev-param-val text-amber" id="revParamImpliedG">0.0%</span>
+                                <div style="text-align: right;">
+                                    <strong class="font-mono text-emerald" id="revParamVsHist">+0.0%</strong>
+                                    <div class="text-muted" style="font-size: 0.68rem;">vs. Historical</div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- SECTION 3: SENSITIVITY & MARGIN OF SAFETY MATRIX (BOTTOM) -->
+                    <div class="glass-panel scorecard">
+                        <div class="reverse-matrix-header">
+                            <div>
+                                <h3 class="scorecard-title" style="margin-bottom: 0.2rem;">📊 Reverse Valuation Heatmap Matrix</h3>
+                                <p class="text-muted" style="font-size: 0.75rem; margin: 0;">Simulates implied share prices across varying 5-year FCF Growth (X-Axis) and WACC Discount Rates (Y-Axis).</p>
+                            </div>
+                            <div class="rev-matrix-legend">
+                                <span class="legend-badge legend-green">Price &gt; CMP (Undervalued)</span>
+                                <span class="legend-badge legend-cyan">Current Price (CMP)</span>
+                                <span class="legend-badge legend-red">Price &lt; CMP (Overvalued)</span>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive" style="margin-top: 1rem;">
+                            <table class="reverse-matrix-table" id="reverseMatrixTable">
+                                <thead id="revMatrixThead"></thead>
+                                <tbody id="revMatrixTbody"></tbody>
+                            </table>
+                        </div>
+
+                        <div class="rev-matrix-footer">
+                            <span>Base FCF terminal valuation model: Terminal g = <strong id="revMatrixTgFoot">3.0%</strong></span>
+                            <span>Center cell highlights implied pricing benchmark at CMP</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- TAB 2: Financial Health (DuPont & Altman Z) -->
+            <div id="tabHealth" class="tab-panel">
+                <div class="scorecards-grid">
+                    <!-- DuPont Analysis -->
+                    <div class="glass-panel scorecard">
+                        <h3 class="scorecard-title">DuPont ROE Decomposition</h3>
+                        
+                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase; font-weight: 600;">3-Stage DuPont ROE</div>
+                        <div class="formula-flow">
+                            <div class="formula-step">
+                                <div class="formula-step-val" id="dpNpm">0%</div>
+                                <div class="formula-step-name">Net Margin</div>
+                            </div>
+                            <span class="formula-operator">×</span>
+                            <div class="formula-step">
+                                <div class="formula-step-val" id="dpAto">0x</div>
+                                <div class="formula-step-name">Asset T/O</div>
+                            </div>
+                            <span class="formula-operator">×</span>
+                            <div class="formula-step">
+                                <div class="formula-step-val" id="dpLev">0x</div>
+                                <div class="formula-step-name">Equity Multiplier</div>
+                            </div>
+                            <span class="formula-operator">=</span>
+                            <div class="formula-step">
+                                <div class="formula-step-val text-cyan" id="dpRoe3">0%</div>
+                                <div class="formula-step-name">Calculated ROE</div>
+                            </div>
+                        </div>
+
+                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase; font-weight: 600; margin-top: 1.5rem;">5-Stage DuPont ROE</div>
+                        <div class="formula-flow">
+                            <div class="formula-step">
+                                <div class="formula-step-val" id="dpTaxB">0x</div>
+                                <div class="formula-step-name">Tax Burden</div>
+                            </div>
+                            <span class="formula-operator">×</span>
+                            <div class="formula-step">
+                                <div class="formula-step-val" id="dpIntB">0x</div>
+                                <div class="formula-step-name">Int. Burden</div>
+                            </div>
+                            <span class="formula-operator">×</span>
+                            <div class="formula-step">
+                                <div class="formula-step-val" id="dpOpM">0%</div>
+                                <div class="formula-step-name">Op Margin</div>
+                            </div>
+                            <span class="formula-operator">=</span>
+                            <div class="formula-step">
+                                <div class="formula-step-val text-cyan" id="dpRoe5">0%</div>
+                                <div class="formula-step-name">5-Stage ROE</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Altman Z-Score -->
+                    <div class="glass-panel scorecard">
+                        <h3 class="scorecard-title">Altman's Z-Score (Solvency & Bankruptcy Risk)</h3>
+                        <div class="altman-gauge">
+                            <div class="altman-score-large" id="altmanScore">0.00</div>
+                            <div style="margin-top: 0.25rem;">
+                                <span class="badge" id="altmanZoneBadge">SAFE ZONE</span>
+                            </div>
+                            <div class="altman-meter-bar"></div>
+                            <div class="altman-meter-labels">
+                                <span>Distress (&lt; 1.81)</span>
+                                <span>Grey Zone (1.81 - 2.99)</span>
+                                <span>Safe Zone (&gt; 2.99)</span>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 1.25rem; font-size: 0.8rem; color: var(--text-secondary);">
+                            <strong>Component Breakdown:</strong>
+                            <ul style="margin-top: 0.4rem; padding-left: 1.2rem; line-height: 1.6;">
+                                <li>Working Capital / Total Assets: <span id="azX1" class="font-mono text-cyan">0.0</span></li>
+                                <li>Retained Earnings / Total Assets: <span id="azX2" class="font-mono text-cyan">0.0</span></li>
+                                <li>EBIT / Total Assets: <span id="azX3" class="font-mono text-cyan">0.0</span></li>
+                                <li>Market Cap / Total Liabilities: <span id="azX4" class="font-mono text-cyan">0.0</span></li>
+                                <li>Sales / Total Assets: <span id="azX5" class="font-mono text-cyan">0.0</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: Peer Comparables -->
+            <div id="tabComps" class="tab-panel">
+                <div class="glass-panel scorecard">
+                    <h3 class="scorecard-title">Sector Peer Comparables Table (From Screener.in)</h3>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead id="peersTableHead"></thead>
+                            <tbody id="peersTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: RISKOMETER -->
+            <div id="tabRiskometer" class="tab-panel">
+                <div class="riskometer-container">
+                    <!-- Top Section: Gauge & Verdict -->
+                    <div class="riskometer-top">
+                        <div class="riskometer-gauge-box glass-panel">
+                            <h3 class="scorecard-title" style="text-align: center; margin-bottom: 2rem;">Composite Risk Score</h3>
+                            <div class="risk-gauge">
+                                <div class="risk-gauge-arc"></div>
+                                <div class="risk-gauge-needle" id="riskNeedle"></div>
+                                <div class="risk-gauge-center">
+                                    <div class="risk-gauge-score" id="riskScoreVal">0</div>
+                                    <div class="risk-gauge-status" id="riskScoreStatus">CALCULATING...</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="riskometer-verdict-box glass-panel">
+                            <h3 class="scorecard-title">Executive Risk Verdict</h3>
+                            <p class="risk-verdict-text" id="riskVerdictText">Evaluating risk profile...</p>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Section: 4-Pillar Grid -->
+                    <div class="riskometer-pillars">
+                        <!-- Pillar 1: Solvency -->
+                        <div class="risk-pillar-card glass-panel">
+                            <div class="risk-pillar-header">
+                                <h4 class="risk-pillar-title">Solvency & Default Risk</h4>
+                                <span class="risk-weight">Weight: 35%</span>
+                            </div>
+                            <div class="risk-metrics-list">
+                                <div class="risk-metric-row">
+                                    <span>Altman Z-Score</span>
+                                    <strong id="r_altmanZ">0.00</strong>
+                                </div>
+                                <div class="risk-metric-row">
+                                    <span>Debt to Equity</span>
+                                    <strong id="r_debtEq">0.0x</strong>
+                                </div>
+                            </div>
+                            <div class="risk-bar-container">
+                                <div class="risk-bar-fill" id="rBar_solvency" style="width: 0%; background: var(--accent-emerald);"></div>
+                            </div>
+                            <div class="risk-badge" id="rBadge_solvency">Evaluating...</div>
+                        </div>
+
+                        <!-- Pillar 2: Cash Flow -->
+                        <div class="risk-pillar-card glass-panel">
+                            <div class="risk-pillar-header">
+                                <h4 class="risk-pillar-title">Cash Flow Quality</h4>
+                                <span class="risk-weight">Weight: 25%</span>
+                            </div>
+                            <div class="risk-metrics-list">
+                                <div class="risk-metric-row">
+                                    <span>CFO / PAT</span>
+                                    <strong id="r_cfoPat">0.0x</strong>
+                                </div>
+                                <div class="risk-metric-row">
+                                    <span>Interest Coverage</span>
+                                    <strong id="r_icr">0.0x</strong>
+                                </div>
+                            </div>
+                            <div class="risk-bar-container">
+                                <div class="risk-bar-fill" id="rBar_cashflow" style="width: 0%; background: var(--accent-emerald);"></div>
+                            </div>
+                            <div class="risk-badge" id="rBadge_cashflow">Evaluating...</div>
+                        </div>
+
+                        <!-- Pillar 3: Volatility -->
+                        <div class="risk-pillar-card glass-panel">
+                            <div class="risk-pillar-header">
+                                <h4 class="risk-pillar-title">Market Volatility</h4>
+                                <span class="risk-weight">Weight: 20%</span>
+                            </div>
+                            <div class="risk-metrics-list">
+                                <div class="risk-metric-row">
+                                    <span>Levered Beta</span>
+                                    <strong id="r_beta">0.00</strong>
+                                </div>
+                                <div class="risk-metric-row">
+                                    <span>52W Drawdown</span>
+                                    <strong id="r_drawdown">N/A</strong>
+                                </div>
+                            </div>
+                            <div class="risk-bar-container">
+                                <div class="risk-bar-fill" id="rBar_volatility" style="width: 0%; background: var(--accent-emerald);"></div>
+                            </div>
+                            <div class="risk-badge" id="rBadge_volatility">Evaluating...</div>
+                        </div>
+
+                        <!-- Pillar 4: Valuation -->
+                        <div class="risk-pillar-card glass-panel">
+                            <div class="risk-pillar-header">
+                                <h4 class="risk-pillar-title">Margin of Safety</h4>
+                                <span class="risk-weight">Weight: 20%</span>
+                            </div>
+                            <div class="risk-metrics-list">
+                                <div class="risk-metric-row">
+                                    <span>Current Price</span>
+                                    <strong id="r_cmp">₹0</strong>
+                                </div>
+                                <div class="risk-metric-row">
+                                    <span>DCF Value</span>
+                                    <strong id="r_dcf">₹0</strong>
+                                </div>
+                            </div>
+                            <div class="risk-bar-container">
+                                <div class="risk-bar-fill" id="rBar_valuation" style="width: 0%; background: var(--accent-emerald);"></div>
+                            </div>
+                            <div class="risk-badge" id="rBadge_valuation">Evaluating...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: FORENSIC CHECK (BENEISH M-SCORE & DIVERGENCE) -->
+            <div id="tabForensic" class="tab-panel">
+                <div class="forensic-container">
+                    
+                    <!-- SECTION 1: MASTER FORENSIC VERDICT (TOP BANNER) -->
+                    <div class="forensic-banner glass-panel" id="forensicVerdictBanner">
+                        <div class="forensic-banner-left">
+                            <div class="forensic-icon-box" id="forensicIconBox">
+                                <span class="forensic-main-icon" id="forensicMainIcon">🛡️</span>
+                            </div>
+                            <div class="forensic-banner-content">
+                                <div class="forensic-badges-row">
+                                    <span class="forensic-tag">FORENSIC HEALTH AUDIT</span>
+                                    <span class="forensic-status-pill badge-forensic-safe" id="forensicStatusBadge">SAFE STATUS</span>
+                                </div>
+                                <h2 class="forensic-verdict-title" id="forensicVerdictTitle">
+                                    SAFE - Low Probability of Earnings Manipulation
+                                </h2>
+                                <p class="forensic-verdict-desc" id="forensicVerdictDesc">
+                                    Financial statements reflect conservative accounting principles and high earnings quality.
+                                </p>
+                                <div class="forensic-thresholds-hint">
+                                    <span>Critical Barrier: <strong class="text-crimson">&gt; -1.78 (Flag)</strong></span>
+                                    <span>•</span>
+                                    <span>Safe Barrier: <strong class="text-emerald">&lt; -2.22 (Clean)</strong></span>
+                                    <span>•</span>
+                                    <span>Breached Variables: <strong id="forensicBreachedCount" class="text-emerald">0 of 8</strong></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="forensic-banner-right">
+                            <div class="forensic-mscore-box">
+                                <div class="forensic-mscore-label">BENEISH M-SCORE</div>
+                                <div class="forensic-mscore-val" id="forensicMScoreVal">-2.45</div>
+                                <div class="forensic-mscore-sub" id="forensicMScoreSub">
+                                    <span class="text-emerald">↓ Low Manipulation Risk</span>
+                                </div>
+                            </div>
+                            <div class="forensic-sparkline-box">
+                                <div class="forensic-sparkline-title">5-Yr Trajectory</div>
+                                <div id="forensicSparklineSvg" class="forensic-sparkline-wrap">
+                                    <!-- Populated by JS as inline SVG sparkline -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECTION 2: THE 8-VARIABLE FORENSIC GRID -->
+                    <div class="forensic-grid-header">
+                        <div class="forensic-sec-title">
+                            <span>⚖️</span>
+                            <h3>The 8-Variable Beneish Forensic Grid</h3>
+                        </div>
+                        <div class="forensic-formula-hint">
+                            Formula: <span>M = -4.84 + 0.920·DSRI + 0.528·GMI + 0.404·AQI + 0.892·SGI + 0.115·DEPI - 0.172·SGAI + 4.679·TATA - 0.327·LVGI</span>
+                        </div>
+                    </div>
+
+                    <div class="forensic-grid" id="forensicVarsGrid">
+                        <!-- Populated dynamically by JS -->
+                    </div>
+
+                    <!-- SECTION 3: CASH FLOW DIVERGENCE & AUDITOR FLAGS -->
+                    <div class="forensic-bottom-grid">
+                        
+                        <!-- Left: Cash Flow Divergence (PAT vs CFO) -->
+                        <div class="glass-panel forensic-bottom-card">
+                            <div class="forensic-card-header">
+                                <div>
+                                    <h3 class="scorecard-title" style="margin-bottom: 0.2rem;">📈 Cash Flow Divergence (PAT vs CFO)</h3>
+                                    <p class="forensic-card-subtitle">Compares reported Net Profit (accrual accounting) vs Operating Cash Flow (real cash).</p>
+                                </div>
+                                <div class="divergence-legend">
+                                    <span class="legend-item"><span class="legend-dot" style="background:#06b6d4;"></span> CFO (Cash)</span>
+                                    <span class="legend-item"><span class="legend-dot" style="background:#f59e0b;"></span> PAT (Profit)</span>
+                                </div>
+                            </div>
+
+                            <!-- Divergence Alert Banner -->
+                            <div id="divergenceAlertBanner" class="divergence-alert" style="display: none;">
+                                <span class="divergence-alert-icon">⚠️</span>
+                                <div class="divergence-alert-text">
+                                    <strong>DIVERGENCE DETECTED:</strong> Profits lack cash backing. Net income is rising or positive while operating cash flow is falling or stagnating.
+                                </div>
+                            </div>
+
+                            <!-- Bar + Line Chart Container -->
+                            <div class="divergence-chart-wrap" id="divergenceChartContainer">
+                                <!-- Populated dynamically by JS -->
+                            </div>
+                        </div>
+
+                        <!-- Right: Auditor & Governance Checks -->
+                        <div class="glass-panel forensic-bottom-card">
+                            <div class="forensic-card-header">
+                                <div>
+                                    <h3 class="scorecard-title" style="margin-bottom: 0.2rem;">🔍 Auditor & Governance Checklist</h3>
+                                    <p class="forensic-card-subtitle">Qualitative corporate governance integrity filters and auditor sanity checks.</p>
+                                </div>
+                            </div>
+
+                            <div class="governance-list" id="governanceChecklist">
+                                <!-- Populated by JS -->
+                            </div>
+
+                            <div class="governance-note">
+                                <strong>Forensic Note:</strong> Any simultaneous occurrence of high RPT, auditor turnover, and M-Score &gt; -1.78 warrants an immediate discount to intrinsic valuation multiples.
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- TAB 4: AI Research Memorandum -->
+            <div id="tabAiReport" class="tab-panel">
+                <div class="glass-panel scorecard">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 class="scorecard-title" style="margin-bottom: 0;">Institutional Equity Research Memorandum</h3>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <span id="aiReportMeta" class="text-muted" style="font-size: 0.8rem;"></span>
+                            <button class="btn-action" id="btnCopyReport">📋 Copy Markdown</button>
+                            <button class="btn-action" id="btnPrintReport">🖨️ Print / PDF</button>
+                        </div>
+                    </div>
+                    <div id="aiReportContent" class="report-viewer">
+                        <p class="text-muted">Loading research report...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 5: Raw Screener Financial Statements -->
+            <div id="tabStatements" class="tab-panel">
+                <div id="rawStatementsContainer"></div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Modal: API Settings Configuration -->
+    <div class="modal-backdrop" id="settingsModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 class="modal-title">AI & API Configuration</h3>
+                <button class="btn-close" id="btnCloseModal">&times;</button>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="modalProvider">Select AI Provider</label>
+                <select id="modalProvider" class="form-select">
+                    <option value="nvidia">NVIDIA NIM (integrate.api.nvidia.com)</option>
+                    <option value="openrouter">OpenRouter (openrouter.ai)</option>
+                    <option value="openai">OpenAI (api.openai.com)</option>
+                    <option value="gemini">Google Gemini</option>
+                    <option value="custom">Custom OpenAI-Compatible Endpoint</option>
+                </select>
+                <div class="form-hint">Supports your NVIDIA, OpenRouter, OpenAI, or custom LLM API keys.</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="modalApiKey">API Key</label>
+                <input type="password" id="modalApiKey" class="form-input" placeholder="Paste your API key here...">
+                <div class="form-hint">Your API key is securely preserved in your local browser storage.</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="modalModel">Model Name (Optional)</label>
+                <input type="text" id="modalModel" class="form-input" placeholder="e.g. meta/llama-3.3-70b-instruct or deepseek/deepseek-r1">
+                <div class="form-hint">Leave blank to use the recommended high-performance default model.</div>
+            </div>
+
+            <div class="form-group" id="customUrlGroup" style="display: none;">
+                <label class="form-label" for="modalCustomBaseUrl">Custom Base URL</label>
+                <input type="text" id="modalCustomBaseUrl" class="form-input" placeholder="e.g. https://api.groq.com/openai/v1 or http://localhost:11434/v1">
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-secondary" id="btnCancelModal">Cancel</button>
+                <button class="btn-primary" id="btnSaveSettings">Save & Apply</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Disambiguation Company Selection -->
+    <div class="modal-backdrop" id="ambiguityModal" style="display: none;">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 class="modal-title">Select Listed Company</h3>
+                <button class="btn-close" id="btnCloseAmbiguityModal">&times;</button>
+            </div>
+            <p style="font-size: 0.88rem; color: #94a3b8; margin-bottom: 1rem;">
+                Multiple listed companies match your search. Please select the exact company to valuate:
+            </p>
+            <div id="ambiguityCandidateList" style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 350px; overflow-y: auto;">
+                <!-- Candidates populated dynamically -->
+            </div>
+            <div class="modal-footer" style="margin-top: 1rem;">
+                <button class="btn-secondary" id="btnCancelAmbiguityModal">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}?v=7.0"></script>
+</body>
+</html>
