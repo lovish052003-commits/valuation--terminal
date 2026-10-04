@@ -4166,7 +4166,7 @@ def export_via_excel_com(dest_path, screener_data, valuation_result, report_mark
                 ws_dcf.Range('B22').Value = "Terminal ROIC (Stable)"
                 ws_dcf.Range('D22').Formula = "='Intrinsic Valuation'!L40"
                 ws_dcf.Range('D21').Formula = "=D19/D22"
-                ws_dcf.Range('D18').Formula = "='Intrinsic Valuation'!L65"
+                ws_dcf.Range('D18').Formula = "='Intrinsic Valuation'!L62"
 
                 # Row 6 Forecast Dates: Use EDATE to prevent 365-day drift
                 ws_dcf.Range('H6').Formula = "='Data Sheet'!K56"
@@ -4193,7 +4193,7 @@ def export_via_excel_com(dest_path, screener_data, valuation_result, report_mark
                     c_curr = cols_seq[idx]
                     c_prev = cols_seq[idx - 1]
                     ws_iv.Range(f'{c_curr}51').Formula = f"={c_curr}37-{c_prev}37"
-                    ws_iv.Range(f'{c_curr}52').Formula = f"={c_curr}51/{c_curr}39"
+                    ws_iv.Range(f'{c_curr}52').Formula = f"={c_curr}51/{c_curr}49"
                     ws_iv.Range(f'{c_curr}62').Formula = f"={c_curr}52*{c_curr}40"
                 ws_iv.Range('L55').Formula = "=MEDIAN(H52:L52)"
                 ws_iv.Range('L65').Formula = "=MEDIAN(H62:L62)"
@@ -5846,7 +5846,7 @@ def patch_valuation_workbook(file_path: str, screener_data: dict, valuation_resu
         dcf_ws['B22'] = "Terminal ROIC (Stable)"
         dcf_ws['D22'] = "='Intrinsic Valuation'!L40"
         dcf_ws['D21'] = "=D19/D22" # g / Terminal_ROIC (~22.6%)
-        dcf_ws['D18'] = "='Intrinsic Valuation'!L65"
+        dcf_ws['D18'] = "='Intrinsic Valuation'!L62"
 
         # Row 6 Forecast Dates: Use EDATE to prevent 365-day drift
         dcf_ws['H6'] = "='Data Sheet'!K56"
@@ -5889,7 +5889,7 @@ def patch_valuation_workbook(file_path: str, screener_data: dict, valuation_resu
             c_curr = cols_seq[idx]
             c_prev = cols_seq[idx - 1]
             ws_iv[f'{c_curr}51'] = f"={c_curr}37-{c_prev}37"
-            ws_iv[f'{c_curr}52'] = f"={c_curr}51/{c_curr}39"
+            ws_iv[f'{c_curr}52'] = f"={c_curr}51/{c_curr}49"
             ws_iv[f'{c_curr}62'] = f"={c_curr}52*{c_curr}40"
         ws_iv['L55'] = "=MEDIAN(H52:L52)"
         ws_iv['L65'] = "=MEDIAN(H62:L62)"
@@ -6146,7 +6146,7 @@ def export_valuation_model(screener_data, valuation_result, report_markdown=""):
                     ws_dcf['B22'] = "Terminal ROIC (Stable)"
                     ws_dcf['D22'] = "=MAX(0.18, MIN(0.25, 'Intrinsic Valuation'!L40))"
                     ws_dcf['D21'] = "=D19/D22"
-                    ws_dcf['D18'] = "='Intrinsic Valuation'!L65"
+                    ws_dcf['D18'] = "='Intrinsic Valuation'!L62"
                     # Row 6 Forecast Dates: Use EDATE to prevent 365-day drift
                     ws_dcf['H6'] = "='Data Sheet'!K56"
                     for c_l in ['I', 'J', 'K', 'L', 'M']:
