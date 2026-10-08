@@ -4453,15 +4453,15 @@ def export_via_excel_com(dest_path, screener_data, valuation_result, report_mark
                     ws_iv.Range(f'{iv_c}40').Formula = f"={iv_c}38*(1-'Raw Data'!$T$24)/{iv_c}37"
                     ws_iv.Range(f'{iv_c}44').Formula = f"=-SUM('Raw FS'!{raw_c}27:{raw_c}28)-'Raw FS'!{raw_c}10"
                     ws_iv.Range(f'{iv_c}48').Formula = "='Raw Data'!T24"
-                cols_seq = ['G', 'H', 'I', 'J', 'K', 'L']
+                cols_seq = ['H', 'I', 'J', 'K', 'L']
                 for idx in range(1, len(cols_seq)):
                     c_curr = cols_seq[idx]
                     c_prev = cols_seq[idx - 1]
                     ws_iv.Range(f'{c_curr}51').Formula = f"={c_curr}37-{c_prev}37"
                     ws_iv.Range(f'{c_curr}52').Formula = f"={c_curr}51/{c_curr}49"
                     ws_iv.Range(f'{c_curr}62').Formula = f"={c_curr}52*{c_curr}40"
-                ws_iv.Range('L55').Formula = "=MEDIAN(H52:L52)"
-                ws_iv.Range('L65').Formula = "=MEDIAN(H62:L62)"
+                ws_iv.Range('L55').Formula = "=MEDIAN(I52:L52)"
+                ws_iv.Range('L65').Formula = "=MEDIAN(I62:L62)"
             except Exception as e_iv:
                 print(f"[Excel Exporter] Notice: Intrinsic Valuation update: {e_iv}")
 
@@ -6209,15 +6209,15 @@ def patch_valuation_workbook(file_path: str, screener_data: dict, valuation_resu
             ws_iv[f'{iv_c}40'] = f"={iv_c}38*(1-'Raw Data'!$T$24)/{iv_c}37"
             ws_iv[f'{iv_c}44'] = f"=-SUM('Raw FS'!{raw_c}27:{raw_c}28)-'Raw FS'!{raw_c}10"
             ws_iv[f'{iv_c}48'] = "='Raw Data'!T24"
-        cols_seq = ['G', 'H', 'I', 'J', 'K', 'L']
+        cols_seq = ['H', 'I', 'J', 'K', 'L']
         for idx in range(1, len(cols_seq)):
             c_curr = cols_seq[idx]
             c_prev = cols_seq[idx - 1]
             ws_iv[f'{c_curr}51'] = f"={c_curr}37-{c_prev}37"
             ws_iv[f'{c_curr}52'] = f"={c_curr}51/{c_curr}49"
             ws_iv[f'{c_curr}62'] = f"={c_curr}52*{c_curr}40"
-        ws_iv['L55'] = "=MEDIAN(H52:L52)"
-        ws_iv['L65'] = "=MEDIAN(H62:L62)"
+        ws_iv['L55'] = "=MEDIAN(I52:L52)"
+        ws_iv['L65'] = "=MEDIAN(I62:L62)"
 
     # =========================================================================
     # FIX 3: PEER COMPS, RAW FS & DUPONT/ALTMAN RECONCILIATION

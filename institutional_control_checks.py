@@ -445,7 +445,7 @@ def build_checks_sheet(wb, screener_data=None):
 
         (21, "A4. Reinvestment History Spike",
          "Largest historical reinvestment rate (blank-year / acquisition spikes distort median)",
-         "=MAX('Intrinsic Valuation'!H52:L52)",
+         "=MAX('Intrinsic Valuation'!I52:L52)",
          "<= 100%",
          '=IF(D21<=1,"PASS","REVIEW")'),
     ]
@@ -713,8 +713,8 @@ def apply_institutional_wiring(wb, screener_data=None, valuation_result=None):
     # 10. Wire Intrinsic Valuation Organic Cross-Check (Rows 55, 65, 67 to 71)
     if 'Intrinsic Valuation' in wb.sheetnames:
         ws_iv = wb['Intrinsic Valuation']
-        safe_set_cell(ws_iv, 'J55', "5 Col Median (H:L)", font=FONT_BOLD)
-        safe_set_cell(ws_iv, 'J65', "5 Col Median (H:L)", font=FONT_BOLD)
+        safe_set_cell(ws_iv, 'J55', "4 Col Median (I:L)", font=FONT_BOLD)
+        safe_set_cell(ws_iv, 'J65', "4 Col Median (I:L)", font=FONT_BOLD)
         safe_set_cell(ws_iv, 'B67', "ORGANIC REINVESTMENT CROSS-CHECK (info only - not wired to DCF)")
         safe_set_cell(ws_iv, 'B68', "Organic Reinvestment (Net Capex + Change in WC)")
         for col_l in ['I', 'J', 'K', 'L']:
@@ -724,7 +724,7 @@ def apply_institutional_wiring(wb, screener_data=None, valuation_result=None):
             safe_set_cell(ws_iv, f'{col_l}69', f"={col_l}68/{col_l}49", font=FONT_BOLD, number_format=FMT_PCT)
         safe_set_cell(ws_iv, 'B70', "Organic 4-Year Median")
         safe_set_cell(ws_iv, 'L70', "=MEDIAN(I69:L69)", font=FONT_BOLD, number_format=FMT_PCT)
-        safe_set_cell(ws_iv, 'B71', "Currently used in DCF (L55 - includes FY22 blank-year and FY25 acquisition values)")
+        safe_set_cell(ws_iv, 'B71', "Currently used in DCF (L55 - median of I:L; acquisition-year spikes can distort it)")
         safe_set_cell(ws_iv, 'L71', "=L55", font=FONT_BOLD, number_format=FMT_PCT)
 
     return wb
