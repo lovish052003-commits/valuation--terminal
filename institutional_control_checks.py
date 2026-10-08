@@ -448,6 +448,12 @@ def build_checks_sheet(wb, screener_data=None):
          "=MAX('Intrinsic Valuation'!I52:L52)",
          "<= 100%",
          '=IF(D21<=1,"PASS","REVIEW")'),
+
+        (22, "A5. DCF Applicability",
+         "DCF value is positive and the FCFF framework suits the company (not negative-EBIT / financial)",
+         '=IF(OR(NOT(ISNUMBER(DCF!D43)),DCF!D43<=0,LEFT(DCF!B2,6)="NOTICE",LEFT(DCF!B2,9)="FINANCIAL"),1,0)',
+         "0 = applicable",
+         '=IF(D22=0,"PASS","REVIEW")'),
     ]
 
     for row_idx, title, desc, form_val, thresh, status_form in advisory_checks:
@@ -466,6 +472,7 @@ def build_checks_sheet(wb, screener_data=None):
         for c_i in range(2, 7):
             ws.cell(row_idx, c_i).border = BORDER_THIN
 
+    ws['D22'].number_format = "0"
     return ws
 
 
@@ -513,9 +520,9 @@ def apply_institutional_wiring(wb, screener_data=None, valuation_result=None):
         safe_set_cell(ws_sum, 'B5', "=DCF!D43")
         safe_set_cell(ws_sum, 'C5', '=IFERROR((B5-A5)/A5,"n/a")')
         safe_set_cell(ws_sum, 'D5', '=IFERROR((B5-A5)/B5,"n/a")')
-        safe_set_cell(ws_sum, 'E5', '=IF(NOT(ISNUMBER(C5)),"n/a - check price link",IF(C5>0.15,"UNDERVALUED / BUY",IF(C5<-0.15,"OVERVALUED / SELL","FAIRLY VALUED / HOLD")))')
+        safe_set_cell(ws_sum, 'E5', '=IF(NOT(ISNUMBER(C5)),"n/a - check price link",IF(OR(NOT(ISNUMBER(B5)),B5<=0,LEFT(DCF!B2,6)="NOTICE",LEFT(DCF!B2,9)="FINANCIAL"),"NOT APPLICABLE - FCFF DCF unsuitable (use relative valuation)",IF(C5>0.15,"UNDERVALUED / BUY",IF(C5<-0.15,"OVERVALUED / SELL","FAIRLY VALUED / HOLD"))))')
         safe_set_cell(ws_sum, 'I4', "Verdict Confidence")
-        safe_set_cell(ws_sum, 'I5', '=IF(NOT(ISNUMBER(C5)),"n/a",IF(ABS(C5)>0.5,"REVIEW: DCF >50% from price","OK"))')
+        safe_set_cell(ws_sum, 'I5', '=IF(NOT(ISNUMBER(C5)),"n/a",IF(OR(NOT(ISNUMBER(B5)),B5<=0,LEFT(DCF!B2,6)="NOTICE",LEFT(DCF!B2,9)="FINANCIAL"),"REVIEW: DCF not applicable to this company",IF(ABS(C5)>0.5,"REVIEW: DCF >50% from price","OK")))')
         safe_set_cell(ws_sum, 'D10', "% (Control input; India 10Y G-Sec proxy)")
         safe_set_cell(ws_sum, 'D12', "Peer-median relevered beta")
         safe_set_cell(ws_sum, 'C38', "=DCF!D45")
