@@ -231,6 +231,38 @@ def fix_minority_interest(excel_filename: str) -> str:
             print(f"         Synchronized 'Discount / Premium' at Row {r}: =D{r-1}/D{r-3}")
             break
 
+    ws_dcf['D18'] = "='Intrinsic Valuation'!L64"
+
+    # Synchronize Altman's Z Score sheet if present
+    if "Altman's Z Score" in wb.sheetnames:
+        ws_alt = wb["Altman's Z Score"]
+        ws_alt['B78'] = "Total Liabilities"
+        ws_alt['E78'] = "='Data Sheet'!G61-'Data Sheet'!G57-'Data Sheet'!G58"
+        ws_alt['F78'] = "='Data Sheet'!H61-'Data Sheet'!H57-'Data Sheet'!H58"
+        ws_alt['G78'] = "='Data Sheet'!I61-'Data Sheet'!I57-'Data Sheet'!I58"
+        ws_alt['H78'] = "='Data Sheet'!J61-'Data Sheet'!J57-'Data Sheet'!J58"
+        ws_alt['I78'] = "='Data Sheet'!K61-'Data Sheet'!K57-'Data Sheet'!K58"
+        ws_alt['I59'] = "='Intrinsic Valuation'!L13+'Data Sheet'!K69-'Intrinsic Valuation'!L19"
+        print(f"         Synchronized Altman's Z Score: Row 78 Total Liabilities & I59 Working Capital")
+
+    # Synchronize AI Valuation Summary sheet if present
+    if 'AI Valuation Summary' in wb.sheetnames:
+        ws_ai = wb['AI Valuation Summary']
+        ws_ai['A5'] = "=DCF!D45"
+        ws_ai['B5'] = "=DCF!D43"
+        ws_ai['C5'] = '=IFERROR((B5-A5)/A5,"n/a")'
+        ws_ai['D5'] = '=IFERROR((B5-A5)/B5,"n/a")'
+        ws_ai['C18'] = "=DCF!D41"
+        ws_ai['B35'] = "Equity Value (after minority interest)"
+        ws_ai['C35'] = "=DCF!D40"
+        ws_ai['C36'] = "=DCF!D41"
+        ws_ai['C37'] = "=DCF!D43"
+        ws_ai['C38'] = "=DCF!D45"
+        ws_ai['C39'] = '=IFERROR((C37-C38)/C38,"n/a")'
+        ws_ai['C40'] = '=IFERROR((C37-C38)/C37,"n/a")'
+        ws_ai['C46'] = "=DCF!D43"
+        print(f"         Synchronized 'AI Valuation Summary' universal connections (A5/C38->D45, B5/C37/C46->D43, C18/C36->D41, C35->D40)")
+
     # -------------------------------------------------------------------------
     # STEP 7: Save as [Original_Filename]_Final.xlsx
     # -------------------------------------------------------------------------

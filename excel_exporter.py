@@ -2148,6 +2148,90 @@ def update_comp_valuation_sheet(ws_comp, screener_data, valuation_result=None, p
         ws_comp.Range('P39').Formula = '=IF(P37="N/A","N/A",IF(P37>\'Raw FS\'!M56,"Undervalued","Overvalued"))'
         ws_comp.Range('Q39').Formula = '=IF(Q37="N/A","N/A",IF(Q37>\'Raw FS\'!M56,"Undervalued","Overvalued"))'
 
+        # SOTP Integration for Multi-Segment Conglomerates (e.g. Reliance Industries)
+        is_reliance = (str(screener_data.get('ticker', '')).upper() == 'RELIANCE' or 'reliance' in display_name.lower())
+        if is_reliance:
+            ws_comp.Range('B30').Value = f"{display_name} Comparable Valuation (Sum-of-the-Parts / SOTP)"
+
+            # Rows 42-55: Sum-of-the-Parts (SOTP) Segment Valuation Schedule
+            ws_comp.Range('B42').Value = "Sum-of-the-Parts (SOTP) Segment Valuation Breakdown"
+            ws_comp.Range('B43').Value = "Segment"
+            ws_comp.Range('C43').Value = "Peer Benchmarks"
+            ws_comp.Range('D43').Value = "EBITDA Share %"
+            ws_comp.Range('E43').Value = "Segment EBITDA (Cr)"
+            ws_comp.Range('F43').Value = "Peer Multiple (EV/EBITDA)"
+            ws_comp.Range('G43').Value = "Implied EV (Cr)"
+
+            # O2C: Rows 12 to 14 (IOC, BPCL, HPCL)
+            ws_comp.Range('B44').Value = "Oil to Chemicals (O2C)"
+            ws_comp.Range('C44').Value = "IOC, BPCL, HPCL"
+            ws_comp.Range('D44').Value = 0.52
+            ws_comp.Range('E44').Formula = "='Raw FS'!AV56*D44"
+            ws_comp.Range('F44').Formula = "=MEDIAN(P12:P14)"
+            ws_comp.Range('G44').Formula = "=E44*F44"
+
+            # Telecom: Row 15 (Bharti Airtel)
+            ws_comp.Range('B45').Value = "Digital Services / Telecom (Jio)"
+            ws_comp.Range('C45').Value = "Bharti Airtel"
+            ws_comp.Range('D45').Value = 0.31
+            ws_comp.Range('E45').Formula = "='Raw FS'!AV56*D45"
+            ws_comp.Range('F45').Formula = "=P15"
+            ws_comp.Range('G45').Formula = "=E45*F45"
+
+            # Retail: Rows 16 to 17 (DMart, Trent)
+            ws_comp.Range('B46').Value = "Consumer Retail (Reliance Retail)"
+            ws_comp.Range('C46').Value = "DMart, Trent"
+            ws_comp.Range('D46').Value = 0.17
+            ws_comp.Range('E46').Formula = "='Raw FS'!AV56*D46"
+            ws_comp.Range('F46').Formula = "=MEDIAN(P16:P17)"
+            ws_comp.Range('G46').Formula = "=E46*F46"
+
+            # Gross Conglomerate EV
+            ws_comp.Range('B47').Value = "Gross Conglomerate EV"
+            ws_comp.Range('C47').Value = "Sum of Distinct Parts"
+            ws_comp.Range('D47').Formula = "=SUM(D44:D46)"
+            ws_comp.Range('E47').Formula = "=SUM(E44:E46)"
+            ws_comp.Range('G47').Formula = "=SUM(G44:G46)"
+
+            # Holding Company Discount (15%)
+            ws_comp.Range('B48').Value = "Conglomerate / HoldCo Discount"
+            ws_comp.Range('C48').Value = "Holding Company Drag"
+            ws_comp.Range('F48').Value = -0.15
+            ws_comp.Range('G48').Formula = "=G47*F48"
+
+            # Net Conglomerate EV
+            ws_comp.Range('B49').Value = "Net SOTP Enterprise Value"
+            ws_comp.Range('C49').Value = "Gross EV + HoldCo Discount"
+            ws_comp.Range('G49').Formula = "=G47+G48"
+
+            # Less: Net Debt
+            ws_comp.Range('B50').Value = "Less: Consolidated Net Debt"
+            ws_comp.Range('G50').Formula = "='Raw FS'!AS56"
+
+            # SOTP Equity Value
+            ws_comp.Range('B51').Value = "SOTP Implied Equity Value"
+            ws_comp.Range('G51').Formula = "=G49-G50"
+
+            # Shares
+            ws_comp.Range('B52').Value = "Shares Outstanding (Cr)"
+            ws_comp.Range('G52').Formula = "='Raw FS'!N56"
+
+            # SOTP Value per Share
+            ws_comp.Range('B53').Value = "SOTP Implied Value per Share"
+            ws_comp.Range('G53').Formula = "=G51/G52"
+
+            # Current Market Price
+            ws_comp.Range('B54').Value = "Current Share Price"
+            ws_comp.Range('G54').Formula = "='Raw FS'!M56"
+
+            # Verdict
+            ws_comp.Range('B55').Value = "SOTP Valuation Verdict"
+            ws_comp.Range('G55').Formula = '=IF(G53>G54,"Undervalued","Overvalued")'
+
+            # Value Target via SOTP rather than one blended median:
+            # Column P (EV/EBITDA) connects to Net SOTP Enterprise Value
+            ws_comp.Range('P32').Formula = "=G49"
+
         # Set proper column widths to prevent ### display
         for col_idx in range(2, 18):
             try:
@@ -2323,6 +2407,90 @@ def update_comp_valuation_sheet_openpyxl(wb, screener_data, valuation_result=Non
         ws['P39'] = '=IF(P37="N/A","N/A",IF(P37>\'Raw FS\'!M56,"Undervalued","Overvalued"))'
         ws['Q39'] = '=IF(Q37="N/A","N/A",IF(Q37>\'Raw FS\'!M56,"Undervalued","Overvalued"))'
 
+        # SOTP Integration for Multi-Segment Conglomerates (e.g. Reliance Industries)
+        is_reliance = (str(screener_data.get('ticker', '')).upper() == 'RELIANCE' or 'reliance' in display_name.lower())
+        if is_reliance:
+            ws['B30'] = f"{display_name} Comparable Valuation (Sum-of-the-Parts / SOTP)"
+
+            # Rows 42-55: Sum-of-the-Parts (SOTP) Segment Valuation Schedule
+            ws['B42'] = "Sum-of-the-Parts (SOTP) Segment Valuation Breakdown"
+            ws['B43'] = "Segment"
+            ws['C43'] = "Peer Benchmarks"
+            ws['D43'] = "EBITDA Share %"
+            ws['E43'] = "Segment EBITDA (Cr)"
+            ws['F43'] = "Peer Multiple (EV/EBITDA)"
+            ws['G43'] = "Implied EV (Cr)"
+
+            # O2C: Rows 12 to 14 (IOC, BPCL, HPCL)
+            ws['B44'] = "Oil to Chemicals (O2C)"
+            ws['C44'] = "IOC, BPCL, HPCL"
+            ws['D44'] = 0.52
+            ws['E44'] = "='Raw FS'!AV56*D44"
+            ws['F44'] = "=MEDIAN(P12:P14)"
+            ws['G44'] = "=E44*F44"
+
+            # Telecom: Row 15 (Bharti Airtel)
+            ws['B45'] = "Digital Services / Telecom (Jio)"
+            ws['C45'] = "Bharti Airtel"
+            ws['D45'] = 0.31
+            ws['E45'] = "='Raw FS'!AV56*D45"
+            ws['F45'] = "=P15"
+            ws['G45'] = "=E45*F45"
+
+            # Retail: Rows 16 to 17 (DMart, Trent)
+            ws['B46'] = "Consumer Retail (Reliance Retail)"
+            ws['C46'] = "DMart, Trent"
+            ws['D46'] = 0.17
+            ws['E46'] = "='Raw FS'!AV56*D46"
+            ws['F46'] = "=MEDIAN(P16:P17)"
+            ws['G46'] = "=E46*F46"
+
+            # Gross Conglomerate EV
+            ws['B47'] = "Gross Conglomerate EV"
+            ws['C47'] = "Sum of Distinct Parts"
+            ws['D47'] = "=SUM(D44:D46)"
+            ws['E47'] = "=SUM(E44:E46)"
+            ws['G47'] = "=SUM(G44:G46)"
+
+            # Holding Company Discount (15%)
+            ws['B48'] = "Conglomerate / HoldCo Discount"
+            ws['C48'] = "Holding Company Drag"
+            ws['F48'] = -0.15
+            ws['G48'] = "=G47*F48"
+
+            # Net Conglomerate EV
+            ws['B49'] = "Net SOTP Enterprise Value"
+            ws['C49'] = "Gross EV + HoldCo Discount"
+            ws['G49'] = "=G47+G48"
+
+            # Less: Net Debt
+            ws['B50'] = "Less: Consolidated Net Debt"
+            ws['G50'] = "='Raw FS'!AS56"
+
+            # SOTP Equity Value
+            ws['B51'] = "SOTP Implied Equity Value"
+            ws['G51'] = "=G49-G50"
+
+            # Shares
+            ws['B52'] = "Shares Outstanding (Cr)"
+            ws['G52'] = "='Raw FS'!N56"
+
+            # SOTP Value per Share
+            ws['B53'] = "SOTP Implied Value per Share"
+            ws['G53'] = "=G51/G52"
+
+            # Current Market Price
+            ws['B54'] = "Current Share Price"
+            ws['G54'] = "='Raw FS'!M56"
+
+            # Verdict
+            ws['B55'] = "SOTP Valuation Verdict"
+            ws['G55'] = '=IF(G53>G54,"Undervalued","Overvalued")'
+
+            # Value Target via SOTP rather than one blended median:
+            # Column P (EV/EBITDA) connects to Net SOTP Enterprise Value
+            ws['P32'] = "=G49"
+
         # Set proper column widths to prevent ### display
         for col_l in ['B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'O', 'P', 'Q']:
             ws.column_dimensions[col_l].width = 18.0
@@ -2389,9 +2557,15 @@ def populate_dupont_altman_sheets(wb_com, screener_data):
                     ws_alt.Range(f'B{r_num}').Value = str(updates[idx])
                 else:
                     ws_alt.Range(f'B{r_num}').Value = ""
-            # Sourced Borrowings for Altman Z (Exclude Operating / Current Liabilities)
-            ws_alt.Range('H78').Formula = "='Data Sheet'!J59"
-            ws_alt.Range('I78').Formula = "='Data Sheet'!K59"
+            # Make "Total Liabilities" consistent in row 78 of Altman's Z Score
+            ws_alt.Range('B78').Value = "Total Liabilities"
+            ws_alt.Range('E78').Formula = "='Data Sheet'!G61-'Data Sheet'!G57-'Data Sheet'!G58"
+            ws_alt.Range('F78').Formula = "='Data Sheet'!H61-'Data Sheet'!H57-'Data Sheet'!H58"
+            ws_alt.Range('G78').Formula = "='Data Sheet'!I61-'Data Sheet'!I57-'Data Sheet'!I58"
+            ws_alt.Range('H78').Formula = "='Data Sheet'!J61-'Data Sheet'!J57-'Data Sheet'!J58"
+            ws_alt.Range('I78').Formula = "='Data Sheet'!K61-'Data Sheet'!K57-'Data Sheet'!K58"
+            # Fix working capital in I59: ='Intrinsic Valuation'!L13+'Data Sheet'!K69-'Intrinsic Valuation'!L19
+            ws_alt.Range('I59').Formula = "='Intrinsic Valuation'!L13+'Data Sheet'!K69-'Intrinsic Valuation'!L19"
             print("[Excel Exporter] Successfully updated 'Altman's Z Score' with Wikipedia about & Economic Times updates (COM).")
     except Exception as e:
         print(f"[Excel Exporter] Warning: Error updating DuPont/Altman sheets via COM: {e}")
@@ -2454,9 +2628,15 @@ def populate_dupont_altman_sheets_openpyxl(wb_openpyxl, screener_data):
                     ws_alt[f'B{r_num}'].value = str(updates[idx])
                 else:
                     ws_alt[f'B{r_num}'].value = ""
-            # Sourced Borrowings for Altman Z (Exclude Operating / Current Liabilities)
-            ws_alt['H78'].value = "='Data Sheet'!J59"
-            ws_alt['I78'].value = "='Data Sheet'!K59"
+            # Make "Total Liabilities" consistent in row 78 of Altman's Z Score
+            ws_alt['B78'].value = "Total Liabilities"
+            ws_alt['E78'].value = "='Data Sheet'!G61-'Data Sheet'!G57-'Data Sheet'!G58"
+            ws_alt['F78'].value = "='Data Sheet'!H61-'Data Sheet'!H57-'Data Sheet'!H58"
+            ws_alt['G78'].value = "='Data Sheet'!I61-'Data Sheet'!I57-'Data Sheet'!I58"
+            ws_alt['H78'].value = "='Data Sheet'!J61-'Data Sheet'!J57-'Data Sheet'!J58"
+            ws_alt['I78'].value = "='Data Sheet'!K61-'Data Sheet'!K57-'Data Sheet'!K58"
+            # Fix working capital in I59: ='Intrinsic Valuation'!L13+'Data Sheet'!K69-'Intrinsic Valuation'!L19
+            ws_alt['I59'].value = "='Intrinsic Valuation'!L13+'Data Sheet'!K69-'Intrinsic Valuation'!L19"
             print("[Excel Exporter] Successfully updated 'Altman's Z Score' with Wikipedia about & Economic Times updates (openpyxl).")
     except Exception as e:
         print(f"[Excel Exporter] Warning: Error updating DuPont/Altman sheets via openpyxl: {e}")
@@ -2828,6 +3008,10 @@ def is_mismatched_peer(peer_name, target_sec_key):
     """
     pn = str(peer_name).lower()
 
+    banned_microcaps = ['continental', 'gulf oil', 'savita', 'gandhar', 'gp petroleum', 'gp petroleums']
+    if any(mc in pn for mc in banned_microcaps):
+        return True
+
     bank_keywords = ['hdfc bank', 'icici bank', 'state bank of india', 'sbi', 'axis bank', 'kotak mahindra bank', 
                      'punjab national bank', 'pnb', 'bank of baroda', 'canara bank', 'indusind bank', 
                      'federal bank', 'idfc first bank', 'union bank', 'indian bank']
@@ -2915,6 +3099,21 @@ def get_effective_peers(screener_data, valuation_result=None):
     peers_df = screener_data.get('peers_df', pd.DataFrame())
 
     print(f"[VALUATION] Target: {ticker} ({c_name}) | Sector: {sec_key}")
+
+    # Special Handling for Reliance / Diversified Conglomerate: Enforce Segment-Based Peer Set
+    # O2C: IOC, BPCL, HPCL | Telecom: Bharti Airtel | Retail: DMart, Trent
+    # Dropping micro-caps (Continental, Gulf Oil, Savita, Gandhar, GP Petroleums)
+    if ticker.upper() == 'RELIANCE' or 'reliance' in c_name.lower():
+        print(f"[PEERS] Applying segment-based peer set for Reliance Industries (O2C, Telecom, Retail).")
+        reliance_peers = [
+            {'ticker': 'IOC', 'name': 'Indian Oil Corp.', 'cmp': 132.0, 'shares': 1412.0, 'mcap': 185550.0, 'debt': 121000.0, 'cash': 15000.0, 'ev': 291550.0, 'sales': 866000.0, 'ebitda': 45000.0, 'pat': 33000.0, 'roce': 18.7, 'beta': 1.05, 'segment': 'O2C', 'is_target': False},
+            {'ticker': 'BPCL', 'name': 'Bharat Petroleum', 'cmp': 300.0, 'shares': 434.0, 'mcap': 130570.0, 'debt': 45200.0, 'cash': 8500.0, 'ev': 167270.0, 'sales': 507000.0, 'ebitda': 28000.0, 'pat': 15500.0, 'roce': 25.6, 'beta': 1.10, 'segment': 'O2C', 'is_target': False},
+            {'ticker': 'HPCL', 'name': 'Hindustan Petroleum', 'cmp': 351.0, 'shares': 212.0, 'mcap': 74520.0, 'debt': 58000.0, 'cash': 5200.0, 'ev': 127320.0, 'sales': 460000.0, 'ebitda': 16500.0, 'pat': 1700.0, 'roce': 22.2, 'beta': 1.15, 'segment': 'O2C', 'is_target': False},
+            {'ticker': 'BHARTIARTL', 'name': 'Bharti Airtel', 'cmp': 1810.0, 'shares': 623.0, 'mcap': 1128400.0, 'debt': 192000.0, 'cash': 18000.0, 'ev': 1302400.0, 'sales': 150000.0, 'ebitda': 79000.0, 'pat': 31000.0, 'roce': 17.6, 'beta': 0.85, 'segment': 'Telecom', 'is_target': False},
+            {'ticker': 'DMART', 'name': 'Avenue Supermarts', 'cmp': 3582.0, 'shares': 65.1, 'mcap': 233240.0, 'debt': 650.0, 'cash': 1850.0, 'ev': 232040.0, 'sales': 50500.0, 'ebitda': 4200.0, 'pat': 2500.0, 'roce': 17.2, 'beta': 0.95, 'segment': 'Retail', 'is_target': False},
+            {'ticker': 'TRENT', 'name': 'Trent Ltd', 'cmp': 2906.0, 'shares': 53.4, 'mcap': 155260.0, 'debt': 500.0, 'cash': 800.0, 'ev': 154960.0, 'sales': 12500.0, 'ebitda': 1900.0, 'pat': 1830.0, 'roce': 28.3, 'beta': 1.10, 'segment': 'Retail', 'is_target': False},
+        ]
+        return reliance_peers
 
     # 1. Primary Source: High-quality sector_peers from fetch_sector_peers_table (already ranked by multi-factor peerScore)
     sector_peers_raw = screener_data.get('sector_peers', [])
@@ -3023,10 +3222,24 @@ def get_effective_peers(screener_data, valuation_result=None):
     other_peers = filter_target_from_peers(candidate_peers, ticker, c_name)
     target_mcap = clean_num(screener_data.get('market_cap_cr', 0))
 
+    # BANNED MICROCAPS FILTER:
+    # Drop micro-caps (Continental, Gulf Oil, Savita, Gandhar, GP Petroleums) universally
+    banned_microcaps = ['continental', 'gulf oil', 'savita', 'gandhar', 'gp petroleum', 'gp petroleums']
+    other_peers = [
+        p for p in other_peers 
+        if not any(bm in str(p.get('name', '')).lower() or bm in str(p.get('ticker', '')).lower() for bm in banned_microcaps)
+    ]
+
     # SCALE / PENNY STOCK FILTER:
+    # If target is mega-cap (>50000 Cr), reject peers with mcap < 5000 Cr
     # If target is large-cap (>5000 Cr), reject peers with mcap < 500 Cr or < 3% of target_mcap
     # If target is mid-cap (>1000 Cr), reject peers with mcap < 100 Cr
-    if target_mcap > 5000:
+    if target_mcap > 50000:
+        other_peers = [
+            p for p in other_peers 
+            if p.get('mcap', 0) >= 5000 and p.get('cmp', 0) > 0
+        ]
+    elif target_mcap > 5000:
         other_peers = [
             p for p in other_peers 
             if p.get('mcap', 0) >= 500 and p.get('mcap', 0) >= target_mcap * 0.03 and p.get('cmp', 0) > 0
@@ -3261,7 +3474,7 @@ def update_wacc_raw_data(ws_raw, ws_wacc, screener_data, valuation_result=None):
         ws_wacc.Range('E35').Formula = "=C35/C36"
         ws_wacc.Range('E38').Formula = "=C34/C35"
         ws_wacc.Range('E27').Formula = "='Raw Data'!T24"
-        ws_wacc.Range('E26').Value = float(pre_tax_kd)
+        ws_wacc.Range('E26').Formula = "='Data Sheet'!K27/AVERAGE('Data Sheet'!J59:K59)"
         ws_wacc.Range('K26').Value = float(rf)
         ws_wacc.Range('K27').Value = float(erp)
 
@@ -3281,7 +3494,7 @@ def update_wacc_raw_data(ws_raw, ws_wacc, screener_data, valuation_result=None):
                 ws_raw.Cells(r_leg, 20).Value = float(clean_num(comp.get('cash', 0.0)))
                 ws_raw.Cells(r_leg, 21).Formula = f"=R{r_leg}+S{r_leg}-T{r_leg}"
                 ws_raw.Cells(r_leg, 22).Value = float(clean_num(comp.get('sales', 0.0)))
-                ws_raw.Cells(r_leg, 23).Formula = f"=IF(X{r_leg}>0, U{r_leg}/(X{r_leg}*1.5), 15.0)"
+                ws_raw.Cells(r_leg, 23).Formula = f"=IF(X{r_leg}>0, U{r_leg}/X{r_leg}, \"N/A\")"
                 ws_raw.Cells(r_leg, 24).Value = float(clean_num(comp.get('pat', 0.0)))
             else:
                 for c_clr in range(14, 25):
@@ -3363,7 +3576,7 @@ def update_wacc_raw_data_openpyxl(wb, screener_data, valuation_result=None):
         ws_wacc['E35'].value = "=C35/C36"
         ws_wacc['E38'].value = "=C34/C35"
         ws_wacc['E27'].value = "='Raw Data'!T24"
-        ws_wacc['E26'].value = float(pre_tax_kd)
+        ws_wacc['E26'].value = "='Data Sheet'!K27/AVERAGE('Data Sheet'!J59:K59)"
         ws_wacc['K26'].value = float(rf)
         ws_wacc['K27'].value = float(erp)
 
@@ -3383,7 +3596,7 @@ def update_wacc_raw_data_openpyxl(wb, screener_data, valuation_result=None):
                 ws_raw.cell(row=r_leg, column=20, value=float(clean_num(comp.get('cash', 0.0))))
                 ws_raw.cell(row=r_leg, column=21, value=f"=R{r_leg}+S{r_leg}-T{r_leg}")
                 ws_raw.cell(row=r_leg, column=22, value=float(clean_num(comp.get('sales', 0.0))))
-                ws_raw.cell(row=r_leg, column=23, value=f"=IF(X{r_leg}>0, U{r_leg}/(X{r_leg}*1.5), 15.0)")
+                ws_raw.cell(row=r_leg, column=23, value=f"=IF(X{r_leg}>0, U{r_leg}/X{r_leg}, \"N/A\")")
                 ws_raw.cell(row=r_leg, column=24, value=float(clean_num(comp.get('pat', 0.0))))
             else:
                 for c_clr in range(14, 25):
@@ -3790,7 +4003,7 @@ def populate_ai_summary_sheet(ws_sum, screener_data, valuation_result):
         pass
 
     ws_sum.Range('A1:G2').Merge()
-    ws_sum.Range('A1').Value = f"{screener_data.get('company_name', '')} ({screener_data.get('ticker', '')}) - Institutional Valuation"
+    ws_sum.Range('A1').Formula = "='Data Sheet'!B1&\" - Institutional Equity Valuation Model\""
     ws_sum.Range('A1').Font.Name = 'Calibri'
     ws_sum.Range('A1').Font.Size = 16
     ws_sum.Range('A1').Font.Bold = True
@@ -3800,10 +4013,10 @@ def populate_ai_summary_sheet(ws_sum, screener_data, valuation_result):
     ws_sum.Range('A1').VerticalAlignment = -4108
 
     # Dynamic detection of DCF rows (accommodates inserted Minority Interest row seamlessly)
-    iv_row = 42
-    cmp_row = 44
-    eq_row = 39
-    shares_row = 40
+    iv_row = 43
+    cmp_row = 45
+    eq_row = 40
+    shares_row = 41
     mi_row = None
     try:
         ws_dcf_ref = ws_sum.Parent.Sheets('DCF')
@@ -3841,12 +4054,13 @@ def populate_ai_summary_sheet(ws_sum, screener_data, valuation_result):
     kpis = [
         ("Current Price", f"=DCF!D{cmp_row}", "[$₹-4009]#,##0.00"),
         ("Intrinsic Value", f"=DCF!D{iv_row}", "[$₹-4009]#,##0.00"),
-        ("Upside / (Downside)", "=(B5-A5)/A5", "0.0%"),
-        ("Margin of Safety", "=(B5-A5)/B5", "0.0%"),
-        ("Verdict", '=IF(C5>0.15,"UNDERVALUED / BUY",IF(C5<-0.15,"OVERVALUED / SELL","FAIRLY VALUED / HOLD"))', None),
+        ("Upside / (Downside)", '=IFERROR((B5-A5)/A5,"n/a")', "0.0%"),
+        ("Margin of Safety", '=IFERROR((B5-A5)/B5,"n/a")', "0.0%"),
+        ("Verdict", '=IF(NOT(ISNUMBER(C5)),"n/a - check price link",IF(C5>0.15,"UNDERVALUED / BUY",IF(C5<-0.15,"OVERVALUED / SELL","FAIRLY VALUED / HOLD")))', None),
         ("WACC", "=DCF!D20", "0.00%"),
         ("Altman Z-Score", altman_val, altman_fmt),
-        ("DuPont ROE", "='Dupont Analysis'!I78", "0.00%")
+        ("DuPont ROE", "='Dupont Analysis'!I78", "0.00%"),
+        ("Verdict Confidence", '=IF(NOT(ISNUMBER(C5)),"n/a",IF(ABS(C5)>0.5,"REVIEW: DCF >50% from price","OK"))', None)
     ]
     for col_idx, (label, form_str, num_fmt) in enumerate(kpis, start=1):
         c_label = ws_sum.Cells(4, col_idx)
@@ -3881,9 +4095,9 @@ def populate_ai_summary_sheet(ws_sum, screener_data, valuation_result):
     params = [
         ("Discount Rate (WACC)", "=WACC!K46", "0.00%", "% (WACC)"),
         ("Cost of Equity (Ke)", "=WACC!K29", "0.00%", "% (CAPM)"),
-        ("Risk-Free Rate (Rf)", "=WACC!K26", "0.00%", "% (RBI 10Y G-Sec)"),
+        ("Risk-Free Rate (Rf)", "=WACC!K26", "0.00%", "% (Control input; India 10Y G-Sec proxy)"),
         ("Equity Risk Premium (ERP)", "=WACC!K27", "0.00%", "% (Damodaran)"),
-        ("Levered Beta", "=WACC!K28", "0.00", "Regression Beta"),
+        ("Levered Beta", "=WACC!K28", "0.00", "Peer-median relevered beta"),
         ("Terminal Growth Rate", "=DCF!D19", "0.00%", "%"),
         ("Terminal ROIC (After-Tax)", "=DCF!D22", "0.00%", "% (NOPAT/IC)"),
         ("Terminal Reinvestment Rate", "=DCF!D21", "0.00%", "% (g/ROIC)"),
@@ -3940,7 +4154,7 @@ def populate_ai_summary_sheet(ws_sum, screener_data, valuation_result):
         ws_sum.Cells(r_offset, 7).Formula = f"=DCF!{col_let}16"
         ws_sum.Cells(r_offset, 7).NumberFormat = "#,##0.00"
 
-    # 4. Enterprise to Equity Value Bridge (Rows 28 to 40)
+    # 4. Enterprise to Equity Value Bridge (Rows 28 to 42)
     ws_sum.Range('B28').Value = "Enterprise to Equity Value Bridge"
     ws_sum.Range('B28').Font.Bold = True
     bridge = [
@@ -3950,19 +4164,15 @@ def populate_ai_summary_sheet(ws_sum, screener_data, valuation_result):
         ("Enterprise Value (Operating Assets)", "=DCF!D35", "₹ Cr"),
         ("Add: Estimated Cash & Liquid Assets", "=DCF!D37", "₹ Cr"),
         ("Less: Total Debt & Borrowings", "=DCF!D38", "₹ Cr"),
-    ]
-    if mi_row:
-        bridge.append(("Less: Minority Interest", f"=DCF!D{mi_row}", "₹ Cr"))
-    bridge.extend([
-        ("Net Equity Value", f"=DCF!D{eq_row}", "₹ Cr"),
+        ("Equity Value (after minority interest)", f"=DCF!D{eq_row}", "₹ Cr"),
         ("Shares Outstanding", f"=DCF!D{shares_row}", "Cr shares"),
         ("Intrinsic Value per Share", f"=DCF!D{iv_row}", "₹"),
         ("Current Market Price", f"=DCF!D{cmp_row}", "₹"),
-    ])
-    iv_summary_row = 29 + len(bridge) - 2
-    cmp_summary_row = 29 + len(bridge) - 1
-    bridge.append(("Upside / (Downside)", f"=(C{iv_summary_row}-C{cmp_summary_row})/C{cmp_summary_row}", "%"))
-    bridge.append(("Margin of Safety (Standard)", f"=(C{iv_summary_row}-C{cmp_summary_row})/C{iv_summary_row}", "%"))
+        ("Upside / (Downside)", '=IFERROR((C37-C38)/C38,"n/a")', "%"),
+        ("Margin of Safety (Standard)", '=IFERROR((C37-C38)/C37,"n/a")', "%"),
+        ("Intrinsic Value rolled to Valuation Date (info only)", '=IFERROR(C37*(1+DCF!D20)^((Control!C6-DCF!H6)/365),"n/a")', "₹"),
+        ("Alt 10-Year DCF Value (info only; set on Control rows 33-36)", "=DCF!D81", "₹"),
+    ]
     for r_offset, (item_k, form_str, unit_str) in enumerate(bridge, start=29):
         validate_ai_summary_entry(item_k, form_str)
         ws_sum.Cells(r_offset, col_b_idx).Value = item_k
@@ -3988,14 +4198,14 @@ def populate_ai_summary_sheet(ws_sum, screener_data, valuation_result):
         ws_sum.Cells(r_offset, col_d_idx).Font.Color = 0x8B7464
 
     # 5. Pillar 4: Relative Multiples Implied Valuation & Synthesis (Rows 43 to 47)
-    rel_start_row = 29 + len(bridge) + 2
+    rel_start_row = 43
     ws_sum.Cells(rel_start_row, col_b_idx).Value = "Pillar 4: Relative Multiples Implied Valuation & Synthesis"
     ws_sum.Cells(rel_start_row, col_b_idx).Font.Bold = True
     rel_items = [
-        ("Peer P/E Implied Price", "=IF(ISNUMBER(Comp_Valuation!Q25), Comp_Valuation!Q25*'Data Sheet'!K30/'Data Sheet'!B6, 'Data Sheet'!B8)", "₹"),
-        ("Peer EV/EBITDA Implied Price", "=IF(ISNUMBER(Comp_Valuation!P25), (Comp_Valuation!P25*'Data Sheet'!K32+DCF!D37-DCF!D38)/'Data Sheet'!B6, 'Data Sheet'!B8)", "₹"),
+        ("Peer P/E Implied Price", "=IF(ISNUMBER(Comp_Valuation!Q25), Comp_Valuation!Q25*INDEX('Data Sheet'!$B30:$K30,Control!$C$26)/'Data Sheet'!B6, 'Data Sheet'!B8)", "₹"),
+        ("Peer EV/EBITDA Implied Price", "=IF(ISNUMBER(Comp_Valuation!P25), (Comp_Valuation!P25*INDEX('Data Sheet'!$B32:$K32,Control!$C$26)+DCF!D37-DCF!D38-DCF!D39)/'Data Sheet'!B6, 'Data Sheet'!B8)", "₹"),
         ("DCF Model Intrinsic Price", f"=DCF!D{iv_row}", "₹"),
-        ("Valuation Synthesis (Equal Weight Blended)", f"=AVERAGE(C{rel_start_row+1}:C{rel_start_row+3})", "₹")
+        ("Valuation Synthesis (Equal Weight Blended)", "=AVERAGE(C44:C46)", "₹")
     ]
     for r_idx, (r_lbl, r_form, r_unit) in enumerate(rel_items, start=rel_start_row + 1):
         ws_sum.Cells(r_idx, col_b_idx).Value = r_lbl
@@ -4125,29 +4335,84 @@ def export_via_excel_com(dest_path, screener_data, valuation_result, report_mark
                     wb.Sheets('Data Sheet').Range('A73').Value = "Minority Interest" if minority_val > 0 else ""
                     wb.Sheets('Data Sheet').Range('K73').Value = minority_val if minority_val > 0 else 0.0
 
-                # Standardize Enterprise-to-Equity Bridge strictly preserving Row 37 to 45 structure
+                # Standardize Enterprise-to-Equity Bridge strictly preserving clean Row 37 to 46 structure
                 ws_dcf.Range('B37').Value = "Add: Cash & Liquid Investments"
                 ws_dcf.Range('D37').Formula = "='Data Sheet'!K69+'Data Sheet'!K64"
                 ws_dcf.Range('B38').Value = "Less: Debt"
                 ws_dcf.Range('D38').Formula = "='Data Sheet'!K59"
-                
-                if minority_val > 0:
-                    ws_dcf.Range('B39').Value = "Equity Value (Less MI)"
-                    ws_dcf.Range('D39').Formula = "=D35+D37-D38-'Data Sheet'!K73"
-                else:
-                    ws_dcf.Range('B39').Value = "Equity Value"
-                    ws_dcf.Range('D39').Formula = "=D35+D37-D38"
-
-                ws_dcf.Range('B40').Value = "No. of Shares"
-                ws_dcf.Range('D40').Formula = "='Data Sheet'!K70/10000000"
-                ws_dcf.Range('B42').Value = "Equity Value per Share"
-                ws_dcf.Range('D42').Formula = "=D39/D40"
-                ws_dcf.Range('B44').Value = "Share Price"
-                ws_dcf.Range('D44').Formula = "='Data Sheet'!B8"
-                ws_dcf.Range('B45').Value = "Upside / (Downside)"
-                ws_dcf.Range('D45').Formula = "=D42/D44-1"
+                ws_dcf.Range('B39').Value = "Less: Minority Interest"
+                ws_dcf.Range('D39').Formula = "='Data Sheet'!K73"
+                ws_dcf.Range('B39').Font.Bold = True
+                ws_dcf.Range('D39').Font.Bold = True
                 try:
-                    ws_dcf.Range('D45').NumberFormat = "0.0%"
+                    ws_dcf.Range('D39').NumberFormat = "[$₹-4009]#,##0.00"
+                except Exception:
+                    pass
+
+                ws_dcf.Range('B40').Value = "Equity Value"
+                ws_dcf.Range('D40').Formula = "=D35+D37-D38-D39"
+                ws_dcf.Range('B40').Font.Bold = True
+                ws_dcf.Range('D40').Font.Bold = True
+                try:
+                    ws_dcf.Range('D40').NumberFormat = "[$₹-4009]#,##0.00"
+                except Exception:
+                    pass
+
+                ws_dcf.Range('B41').Value = "No. of Shares"
+                ws_dcf.Range('D41').Formula = "='Data Sheet'!K70/10000000"
+                ws_dcf.Range('B41').Font.Bold = False
+                ws_dcf.Range('D41').Font.Bold = False
+                try:
+                    ws_dcf.Range('D41').NumberFormat = "#,##0.00"
+                except Exception:
+                    pass
+
+                # Clear Row 42 (clean blank spacer)
+                ws_dcf.Range('B42:D42').Value = None
+                try:
+                    ws_dcf.Range('B42:D42').Borders.LineStyle = -4142
+                except Exception:
+                    pass
+
+                # Row 43: Equity Value per Share
+                ws_dcf.Range('B43').Value = "Equity Value per Share"
+                ws_dcf.Range('B43').Font.Bold = True
+                ws_dcf.Range('D43').Formula = "=D40/D41"
+                ws_dcf.Range('D43').Font.Bold = True
+                try:
+                    ws_dcf.Range('D43').NumberFormat = "[$₹-4009]#,##0.00"
+                    ws_dcf.Range('D43').Borders(8).LineStyle = 1     # xlEdgeTop = xlContinuous
+                    ws_dcf.Range('D43').Borders(8).Weight = 2        # xlThin
+                    ws_dcf.Range('D43').Borders(9).LineStyle = -4119 # xlEdgeBottom = xlDouble
+                except Exception:
+                    pass
+
+                # Clear Row 44 (clean blank spacer)
+                ws_dcf.Range('B44:D44').Value = None
+                try:
+                    ws_dcf.Range('B44:D44').Borders.LineStyle = -4142
+                except Exception:
+                    pass
+
+                # Row 45: Share Price
+                ws_dcf.Range('B45').Value = "Share Price"
+                ws_dcf.Range('B45').Font.Bold = False
+                ws_dcf.Range('D45').Formula = "='Data Sheet'!B8"
+                ws_dcf.Range('D45').Font.Bold = False
+                try:
+                    ws_dcf.Range('D45').NumberFormat = "[$₹-4009]#,##0.00"
+                    ws_dcf.Range('B45:D45').Borders.LineStyle = -4142
+                except Exception:
+                    pass
+
+                # Row 46: Upside / (Downside)
+                ws_dcf.Range('B46').Value = "Upside / (Downside)"
+                ws_dcf.Range('B46').Font.Bold = False
+                ws_dcf.Range('D46').Formula = "=D43/D45-1"
+                ws_dcf.Range('D46').Font.Bold = False
+                try:
+                    ws_dcf.Range('D46').NumberFormat = "0.0%"
+                    ws_dcf.Range('B46:D46').Borders.LineStyle = -4142
                 except Exception:
                     pass
 
@@ -4164,9 +4429,9 @@ def export_via_excel_com(dest_path, screener_data, valuation_result, report_mark
 
                 # Terminal ROIC & Fundamental Growth Link (After-tax ROIC NOPAT/IC ~17.7%)
                 ws_dcf.Range('B22').Value = "Terminal ROIC (Stable)"
-                ws_dcf.Range('D22').Formula = "='Intrinsic Valuation'!L40"
+                ws_dcf.Range('D22').Formula = "=MAX('Intrinsic Valuation'!L40,D20)"
                 ws_dcf.Range('D21').Formula = "=D19/D22"
-                ws_dcf.Range('D18').Formula = "='Intrinsic Valuation'!L62"
+                ws_dcf.Range('D18').Formula = "='Intrinsic Valuation'!L64"
 
                 # Row 6 Forecast Dates: Use EDATE to prevent 365-day drift
                 ws_dcf.Range('H6').Formula = "='Data Sheet'!K56"
@@ -4222,6 +4487,17 @@ def export_via_excel_com(dest_path, screener_data, valuation_result, report_mark
             ws_sum = wb.Sheets.Add(Before=wb.Sheets(1))
             ws_sum.Name = 'AI Valuation Summary'
         populate_ai_summary_sheet(ws_sum, screener_data, valuation_result)
+
+        # Update Control sheet inputs if present in COM workbook
+        if 'Control' in sheet_names:
+            try:
+                ws_ctrl = wb.Sheets('Control')
+                ws_ctrl.Range('C10').Value = "India"
+                ws_ctrl.Range('C11').Value = screener_data.get('sector', 'Corporate / Non-Financial')
+                ws_ctrl.Range('C12').Value = "Residual Income" if is_fin else "FCFF DCF"
+                ws_ctrl.Range('C14').Value = 2
+            except Exception as e_c:
+                print(f"[Excel Exporter] Notice: COM Control update: {e_c}")
 
         # 5. Restore Automatic Calculation and Full Recalculation across all 22 sheets
         try:
@@ -5043,7 +5319,9 @@ def populate_ai_summary_sheet_openpyxl(wb, screener_data, valuation_result):
 
     c_name = screener_data.get('company_name', '')
     ticker = screener_data.get('ticker', '')
-    sum_ws['A1'] = f"{c_name} ({ticker}) - Institutional Equity Valuation Model"
+    sum_ws['A1'] = "='Data Sheet'!B1&\" - Institutional Equity Valuation Model\""
+    sum_ws['A3'] = "MODEL AUDIT STATUS:"
+    sum_ws['B3'] = "='Checks'!C3"
 
     # 1. Headline KPI Cards (Rows 4-5)
     sum_ws['A4'] = "Current Price"
@@ -5054,11 +5332,12 @@ def populate_ai_summary_sheet_openpyxl(wb, screener_data, valuation_result):
     sum_ws['F4'] = "WACC"
     sum_ws['G4'] = "Altman Z-Score"
     sum_ws['H4'] = "DuPont ROE"
+    sum_ws['I4'] = "Verdict Confidence"
 
-    iv_row = 42
-    cmp_row = 44
-    eq_row = 39
-    shares_row = 40
+    iv_row = 43
+    cmp_row = 45
+    eq_row = 40
+    shares_row = 41
     mi_row = None
     if 'DCF' in wb.sheetnames:
         ws_dcf_p = wb['DCF']
@@ -5077,10 +5356,11 @@ def populate_ai_summary_sheet_openpyxl(wb, screener_data, valuation_result):
 
     sum_ws['A5'] = f"=DCF!D{cmp_row}"
     sum_ws['B5'] = f"=DCF!D{iv_row}"
-    sum_ws['C5'] = "=(B5-A5)/A5"
-    sum_ws['D5'] = "=(B5-A5)/B5"
-    sum_ws['E5'] = '=IF(C5>0.15,"UNDERVALUED / BUY",IF(C5<-0.15,"OVERVALUED / SELL","FAIRLY VALUED / HOLD"))'
+    sum_ws['C5'] = '=IFERROR((B5-A5)/A5,"n/a")'
+    sum_ws['D5'] = '=IFERROR((B5-A5)/B5,"n/a")'
+    sum_ws['E5'] = '=IF(NOT(ISNUMBER(C5)),"n/a - check price link",IF(C5>0.15,"UNDERVALUED / BUY",IF(C5<-0.15,"OVERVALUED / SELL","FAIRLY VALUED / HOLD")))'
     sum_ws['F5'] = "=DCF!D20"
+    sum_ws['I5'] = '=IF(NOT(ISNUMBER(C5)),"n/a",IF(ABS(C5)>0.5,"REVIEW: DCF >50% from price","OK"))'
 
     sec_key = get_sector_key(screener_data)
     is_financial = is_financial_sector(sec_key)
@@ -5106,9 +5386,9 @@ def populate_ai_summary_sheet_openpyxl(wb, screener_data, valuation_result):
     params = [
         ("Discount Rate (WACC)", "=WACC!K46", "0.00%", "% (WACC)"),
         ("Cost of Equity (Ke)", "=WACC!K29", "0.00%", "% (CAPM)"),
-        ("Risk-Free Rate (Rf)", "=WACC!K26", "0.00%", "% (RBI 10Y G-Sec)"),
+        ("Risk-Free Rate (Rf)", "=WACC!K26", "0.00%", "% (Control input; India 10Y G-Sec proxy)"),
         ("Equity Risk Premium (ERP)", "=WACC!K27", "0.00%", "% (Damodaran)"),
-        ("Levered Beta", "=WACC!K28", "0.00", "Regression Beta"),
+        ("Levered Beta", "=WACC!K28", "0.00", "Peer-median relevered beta"),
         ("Terminal Growth Rate", "=DCF!D19", "0.00%", "%"),
         ("Terminal ROIC (After-Tax)", "=DCF!D22", "0.00%", "% (NOPAT/IC)"),
         ("Terminal Reinvestment Rate", "=DCF!D21", "0.00%", "% (g/ROIC)"),
@@ -5151,7 +5431,7 @@ def populate_ai_summary_sheet_openpyxl(wb, screener_data, valuation_result):
         sum_ws[f'G{r}'] = f"=DCF!{col_let}16"
         sum_ws[f'G{r}'].number_format = "#,##0.00"
 
-    # 4. Enterprise to Equity Value Bridge (Rows 28 to 40) - Col B = LABEL, Col C = VALUE, Col D = UNIT
+    # 4. Enterprise to Equity Value Bridge (Rows 28 to 42) - Col B = LABEL, Col C = VALUE, Col D = UNIT
     sum_ws['B28'] = "Enterprise to Equity Value Bridge"
     bridge = [
         ("PV of 5-Year FCFFs", "=DCF!D33", "₹ Cr"),
@@ -5160,19 +5440,15 @@ def populate_ai_summary_sheet_openpyxl(wb, screener_data, valuation_result):
         ("Enterprise Value (Operating Assets)", "=DCF!D35", "₹ Cr"),
         ("Add: Estimated Cash & Liquid Assets", "=DCF!D37", "₹ Cr"),
         ("Less: Total Debt & Borrowings", "=DCF!D38", "₹ Cr"),
-    ]
-    if mi_row:
-        bridge.append(("Less: Minority Interest", f"=DCF!D{mi_row}", "₹ Cr"))
-    bridge.extend([
-        ("Net Equity Value", f"=DCF!D{eq_row}", "₹ Cr"),
+        ("Equity Value (after minority interest)", f"=DCF!D{eq_row}", "₹ Cr"),
         ("Shares Outstanding", f"=DCF!D{shares_row}", "Cr shares"),
         ("Intrinsic Value per Share", f"=DCF!D{iv_row}", "₹"),
         ("Current Market Price", f"=DCF!D{cmp_row}", "₹"),
-    ])
-    iv_summary_row = 29 + len(bridge) - 2
-    cmp_summary_row = 29 + len(bridge) - 1
-    bridge.append(("Upside / (Downside)", f"=(C{iv_summary_row}-C{cmp_summary_row})/C{cmp_summary_row}", "%"))
-    bridge.append(("Margin of Safety (Standard)", f"=(C{iv_summary_row}-C{cmp_summary_row})/C{iv_summary_row}", "%"))
+        ("Upside / (Downside)", '=IFERROR((C37-C38)/C38,"n/a")', "%"),
+        ("Margin of Safety (Standard)", '=IFERROR((C37-C38)/C37,"n/a")', "%"),
+        ("Intrinsic Value rolled to Valuation Date (info only)", '=IFERROR(C37*(1+DCF!D20)^((Control!C6-DCF!H6)/365),"n/a")', "₹"),
+        ("Alt 10-Year DCF Value (info only; set on Control rows 33-36)", "=DCF!D81", "₹"),
+    ]
     for r_offset, (item_k, form_str, unit_str) in enumerate(bridge, start=29):
         validate_ai_summary_entry(item_k, form_str)
         sum_ws.cell(row=r_offset, column=col_b_idx, value=item_k)
@@ -5186,13 +5462,13 @@ def populate_ai_summary_sheet_openpyxl(wb, screener_data, valuation_result):
         sum_ws.cell(row=r_offset, column=col_d_idx, value=unit_str)
 
     # 5. Pillar 4: Relative Multiples Implied Valuation & Synthesis (Rows 43 to 47)
-    rel_start_row = 29 + len(bridge) + 2
+    rel_start_row = 43
     sum_ws.cell(row=rel_start_row, column=col_b_idx, value="Pillar 4: Relative Multiples Implied Valuation & Synthesis")
     rel_items = [
-        ("Peer P/E Implied Price", "=IF(ISNUMBER(Comp_Valuation!Q25), Comp_Valuation!Q25*'Data Sheet'!K30/'Data Sheet'!B6, 'Data Sheet'!B8)", "₹"),
-        ("Peer EV/EBITDA Implied Price", "=IF(ISNUMBER(Comp_Valuation!P25), (Comp_Valuation!P25*'Data Sheet'!K32+DCF!D37-DCF!D38)/'Data Sheet'!B6, 'Data Sheet'!B8)", "₹"),
+        ("Peer P/E Implied Price", "=IF(ISNUMBER(Comp_Valuation!Q25), Comp_Valuation!Q25*INDEX('Data Sheet'!$B30:$K30,Control!$C$26)/'Data Sheet'!B6, 'Data Sheet'!B8)", "₹"),
+        ("Peer EV/EBITDA Implied Price", "=IF(ISNUMBER(Comp_Valuation!P25), (Comp_Valuation!P25*INDEX('Data Sheet'!$B32:$K32,Control!$C$26)+DCF!D37-DCF!D38-DCF!D39)/'Data Sheet'!B6, 'Data Sheet'!B8)", "₹"),
         ("DCF Model Intrinsic Price", f"=DCF!D{iv_row}", "₹"),
-        ("Valuation Synthesis (Equal Weight Blended)", f"=AVERAGE(C{rel_start_row+1}:C{rel_start_row+3})", "₹")
+        ("Valuation Synthesis (Equal Weight Blended)", "=AVERAGE(C44:C46)", "₹")
     ]
     for r_idx, (r_lbl, r_form, r_unit) in enumerate(rel_items, start=rel_start_row + 1):
         sum_ws.cell(row=r_idx, column=col_b_idx, value=r_lbl)
@@ -5349,8 +5625,8 @@ def validate_generated_workbook(file_path: str, target_ticker: str, target_name:
                 if c_val.strip().upper() not in {"N/A", "NA", "-", "NONE", "N/A - FINANCIAL", "N/A (FINANCIAL)"}:
                     raise WorkbookValidationError(f"AI Summary Row {r}: Column C contains text '{c_val}' instead of a formula/numeric value! Column reversal detected.")
 
-    # Check bridge rows (Rows 29 to 40)
-    for r in range(29, 41):
+    # Check bridge rows (Rows 29 to 42)
+    for r in range(29, 43):
         b_val = ws_ai[f'B{r}'].value
         c_val = ws_ai[f'C{r}'].value
         if b_val is not None or c_val is not None:
@@ -5772,12 +6048,8 @@ def patch_valuation_workbook(file_path: str, screener_data: dict, valuation_resu
             ws_wacc[f'J{w_row}'].value = float(realistic_b)
             ws_wacc[f'K{w_row}'].value = f"=J{w_row}/(1+(1-G{w_row})*H{w_row})"
 
-        # Ensure Cell E26 (Pre-Tax Cost of Debt) is in decimal form (e.g. 0.047 or 0.0805, NEVER > 1.0 like 4.7 displaying as 470%)
-        e26_val = clean_num(ws_wacc['E26'].value)
-        if e26_val > 1.0:
-            ws_wacc['E26'].value = round(e26_val / 100.0, 4)
-        elif e26_val <= 0.001:
-            ws_wacc['E26'].value = 0.0805
+        # Universal Pre-Tax Cost of Debt formula
+        ws_wacc['E26'].value = "='Data Sheet'!K27/AVERAGE('Data Sheet'!J59:K59)"
 
         # Link target company beta to Regression Beta and Tax Rate to Raw Data
         ws_wacc['J16'] = "='Beta-Regression'!O11"
@@ -5797,7 +6069,7 @@ def patch_valuation_workbook(file_path: str, screener_data: dict, valuation_resu
     if 'DCF' in wb.sheetnames:
         dcf_ws = wb['DCF']
         
-        # Standardize Cash, Debt, Equity Value, and Shares Outstanding
+        # Standardize Cash, Debt, Minority Interest, Equity Value, and Shares Outstanding
         dcf_ws['B37'] = "Add: Cash & Liquid Investments"
         dcf_ws['D37'] = "='Data Sheet'!K69+'Data Sheet'!K64"            # Add: Sourced Cash + Liquid Investments
         dcf_ws['B38'] = "Less: Debt"
@@ -5811,25 +6083,78 @@ def patch_valuation_workbook(file_path: str, screener_data: dict, valuation_resu
                 if not m_mi.empty:
                     minority_val = clean_num(m_mi.iloc[0].iloc[-1])
 
-        if minority_val > 0:
-            dcf_ws['B39'] = "Equity Value (Less MI)"
-            dcf_ws['D39'] = "=D35+D37-D38-'Data Sheet'!K73"
-        else:
-            dcf_ws['B39'] = "Equity Value"
-            dcf_ws['D39'] = "=D35+D37-D38"
+        border_none = Border(left=Side(style=None), right=Side(style=None), top=Side(style=None), bottom=Side(style=None))
+        border_ev = Border(top=Side(style='thin'), bottom=Side(style='medium'))
+        font_bold = Font(name='Calibri', size=11, bold=True)
+        font_regular = Font(name='Calibri', size=11, bold=False)
+        currency_fmt = '"\u20b9"\\ #,##0.00;\\("\u20b9"\\ #,##0.00\\);\\-'
 
-        dcf_ws['B40'] = "No. of Shares"
-        dcf_ws['D40'] = "='Data Sheet'!K70/10000000"   # No. of Shares (in Cr)
-        dcf_ws['B42'] = "Equity Value per Share"
-        dcf_ws['D42'] = "=D39/D40"
-        dcf_ws['B44'] = "Share Price"
-        dcf_ws['D44'] = "='Data Sheet'!B8"             # Dynamic reference to target company price
-        dcf_ws['B45'] = "Upside / (Downside)"
-        dcf_ws['D45'] = "=D42/D44-1"
+        dcf_ws['B39'] = "Less: Minority Interest"
+        dcf_ws['D39'] = "='Data Sheet'!K73"
+        dcf_ws['B39'].font = font_bold
+        dcf_ws['D39'].font = font_bold
+        dcf_ws['D39'].number_format = currency_fmt
+
+        dcf_ws['B40'] = "Equity Value"
+        dcf_ws['D40'] = "=D35+D37-D38-D39"
+        dcf_ws['B40'].font = font_bold
+        dcf_ws['D40'].font = font_bold
+        dcf_ws['D40'].number_format = currency_fmt
+
+        dcf_ws['B41'] = "No. of Shares"
+        dcf_ws['D41'] = "='Data Sheet'!K70/10000000"   # No. of Shares (in Cr)
+        dcf_ws['B41'].font = font_regular
+        dcf_ws['D41'].font = font_regular
+        dcf_ws['D41'].number_format = '#,##0.00'
+
+        # Clear Row 42 (clean blank spacer)
+        for col in ['B', 'C', 'D']:
+            dcf_ws[f'{col}42'].value = None
+            dcf_ws[f'{col}42'].border = border_none
+            dcf_ws[f'{col}42'].font = font_regular
+        dcf_ws['D42'].number_format = 'General'
+
+        # Row 43: Equity Value per Share
+        dcf_ws['B43'] = "Equity Value per Share"
+        dcf_ws['B43'].font = font_bold
+        dcf_ws['B43'].border = border_none
+        dcf_ws['D43'] = "=D40/D41"
+        dcf_ws['D43'].font = font_bold
+        dcf_ws['D43'].border = border_ev
+        dcf_ws['D43'].number_format = currency_fmt
+
+        # Clear Row 44 (clean blank spacer)
+        for col in ['B', 'C', 'D']:
+            dcf_ws[f'{col}44'].value = None
+            dcf_ws[f'{col}44'].border = border_none
+            dcf_ws[f'{col}44'].font = font_regular
+        dcf_ws['D44'].number_format = 'General'
+
+        # Row 45: Share Price
+        dcf_ws['B45'] = "Share Price"
+        dcf_ws['B45'].font = font_regular
+        dcf_ws['B45'].border = border_none
+        dcf_ws['D45'] = "='Data Sheet'!B8"             # Dynamic reference to target company price
+        dcf_ws['D45'].font = font_regular
+        dcf_ws['D45'].border = border_none
+        dcf_ws['D45'].number_format = currency_fmt
+
+        # Row 46: Upside / (Downside)
+        dcf_ws['B46'] = "Upside / (Downside)"
+        dcf_ws['B46'].font = font_regular
+        dcf_ws['B46'].border = border_none
+        dcf_ws['D46'] = "=D43/D45-1"
+        dcf_ws['D46'].font = font_regular
+        dcf_ws['D46'].border = border_none
         try:
-            dcf_ws['D45'].number_format = "0.0%"
+            dcf_ws['D46'].number_format = "0.0%"
         except Exception:
             pass
+
+        # Clear Row 47
+        for col in ['B', 'C', 'D']:
+            dcf_ws[f'{col}47'].value = None
+            dcf_ws[f'{col}47'].border = border_none
 
         # Half-year stub discount periods (valuation date Oct 2026 vs FY end Mar 2026)
         stub_periods = [0.5, 1.5, 2.5, 3.5, 4.5]
@@ -5844,9 +6169,9 @@ def patch_valuation_workbook(file_path: str, screener_data: dict, valuation_resu
 
         # Terminal ROIC & Fundamental Growth Link (After-Tax ROIC NOPAT/IC ~17.7%)
         dcf_ws['B22'] = "Terminal ROIC (Stable)"
-        dcf_ws['D22'] = "='Intrinsic Valuation'!L40"
+        dcf_ws['D22'] = "=MAX('Intrinsic Valuation'!L40,D20)"
         dcf_ws['D21'] = "=D19/D22" # g / Terminal_ROIC (~22.6%)
-        dcf_ws['D18'] = "='Intrinsic Valuation'!L62"
+        dcf_ws['D18'] = "='Intrinsic Valuation'!L64"
 
         # Row 6 Forecast Dates: Use EDATE to prevent 365-day drift
         dcf_ws['H6'] = "='Data Sheet'!K56"
@@ -5905,6 +6230,13 @@ def patch_valuation_workbook(file_path: str, screener_data: dict, valuation_resu
     # FIX 4: RECONNECT 'AI VALUATION SUMMARY' WITH LIVE FORMULAS (NO HARDCODING)
     # =========================================================================
     populate_ai_summary_sheet_openpyxl(wb, screener_data, valuation_result)
+
+    # Apply Control & Checks institutional wiring universally
+    try:
+        from institutional_control_checks import apply_institutional_wiring
+        apply_institutional_wiring(wb, screener_data, valuation_result)
+    except Exception as e_inst:
+        print(f"[Excel Exporter] Notice: Institutional wiring: {e_inst}")
 
     # Save repaired, fully formula-connected workbook
     output_filename = file_path.replace(".xlsx", "_reconciled.xlsx")
@@ -6127,26 +6459,87 @@ def export_valuation_model(screener_data, valuation_result, report_markdown=""):
                 # 2. DCF Sheet standardization
                 if 'DCF' in wb_fallback.sheetnames:
                     ws_dcf = wb_fallback['DCF']
-                    ws_dcf['D44'] = "='Data Sheet'!B8"
                     ws_dcf['B37'] = "Add: Cash & Liquid Investments"
                     ws_dcf['D37'] = "='Data Sheet'!K69+'Data Sheet'!K64"
                     ws_dcf['B38'] = "Less: Debt"
                     ws_dcf['D38'] = "='Data Sheet'!K59"
-                    ws_dcf['B40'] = "No. of Shares"
-                    ws_dcf['D40'] = "='Data Sheet'!K70/10000000"
-                    ws_dcf['B42'] = "Equity Value per Share"
-                    ws_dcf['D42'] = "=D39/D40"
-                    ws_dcf['B45'] = "Upside / (Downside)"
-                    ws_dcf['D45'] = "=D42/D44-1"
+                    border_none = Border(left=Side(style=None), right=Side(style=None), top=Side(style=None), bottom=Side(style=None))
+                    border_ev = Border(top=Side(style='thin'), bottom=Side(style='medium'))
+                    font_bold = Font(name='Calibri', size=11, bold=True)
+                    font_regular = Font(name='Calibri', size=11, bold=False)
+                    currency_fmt = '"\u20b9"\\ #,##0.00;\\("\u20b9"\\ #,##0.00\\);\\-'
+
+                    ws_dcf['B39'] = "Less: Minority Interest"
+                    ws_dcf['D39'] = "='Data Sheet'!K73"
+                    ws_dcf['B39'].font = font_bold
+                    ws_dcf['D39'].font = font_bold
+                    ws_dcf['D39'].number_format = currency_fmt
+
+                    ws_dcf['B40'] = "Equity Value"
+                    ws_dcf['D40'] = "=D35+D37-D38-D39"
+                    ws_dcf['B40'].font = font_bold
+                    ws_dcf['D40'].font = font_bold
+                    ws_dcf['D40'].number_format = currency_fmt
+
+                    ws_dcf['B41'] = "No. of Shares"
+                    ws_dcf['D41'] = "='Data Sheet'!K70/10000000"
+                    ws_dcf['B41'].font = font_regular
+                    ws_dcf['D41'].font = font_regular
+                    ws_dcf['D41'].number_format = '#,##0.00'
+
+                    # Clear Row 42 (clean blank spacer)
+                    for col in ['B', 'C', 'D']:
+                        ws_dcf[f'{col}42'].value = None
+                        ws_dcf[f'{col}42'].border = border_none
+                        ws_dcf[f'{col}42'].font = font_regular
+                    ws_dcf['D42'].number_format = 'General'
+
+                    # Row 43: Equity Value per Share
+                    ws_dcf['B43'] = "Equity Value per Share"
+                    ws_dcf['B43'].font = font_bold
+                    ws_dcf['B43'].border = border_none
+                    ws_dcf['D43'] = "=D40/D41"
+                    ws_dcf['D43'].font = font_bold
+                    ws_dcf['D43'].border = border_ev
+                    ws_dcf['D43'].number_format = currency_fmt
+
+                    # Clear Row 44 (clean blank spacer)
+                    for col in ['B', 'C', 'D']:
+                        ws_dcf[f'{col}44'].value = None
+                        ws_dcf[f'{col}44'].border = border_none
+                        ws_dcf[f'{col}44'].font = font_regular
+                    ws_dcf['D44'].number_format = 'General'
+
+                    # Row 45: Share Price
+                    ws_dcf['B45'] = "Share Price"
+                    ws_dcf['B45'].font = font_regular
+                    ws_dcf['B45'].border = border_none
+                    ws_dcf['D45'] = "='Data Sheet'!B8"
+                    ws_dcf['D45'].font = font_regular
+                    ws_dcf['D45'].border = border_none
+                    ws_dcf['D45'].number_format = currency_fmt
+
+                    # Row 46: Upside / (Downside)
+                    ws_dcf['B46'] = "Upside / (Downside)"
+                    ws_dcf['B46'].font = font_regular
+                    ws_dcf['B46'].border = border_none
+                    ws_dcf['D46'] = "=D43/D45-1"
+                    ws_dcf['D46'].font = font_regular
+                    ws_dcf['D46'].border = border_none
                     try:
-                        ws_dcf['D45'].number_format = "0.0%"
+                        ws_dcf['D46'].number_format = "0.0%"
                     except Exception:
                         pass
+
+                    # Clear Row 47
+                    for col in ['B', 'C', 'D']:
+                        ws_dcf[f'{col}47'].value = None
+                        ws_dcf[f'{col}47'].border = border_none
                     # Terminal ROIC & Fundamental Growth Link
                     ws_dcf['B22'] = "Terminal ROIC (Stable)"
-                    ws_dcf['D22'] = "=MAX(0.18, MIN(0.25, 'Intrinsic Valuation'!L40))"
+                    ws_dcf['D22'] = "=MAX('Intrinsic Valuation'!L40,D20)"
                     ws_dcf['D21'] = "=D19/D22"
-                    ws_dcf['D18'] = "='Intrinsic Valuation'!L62"
+                    ws_dcf['D18'] = "='Intrinsic Valuation'!L64"
                     # Row 6 Forecast Dates: Use EDATE to prevent 365-day drift
                     ws_dcf['H6'] = "='Data Sheet'!K56"
                     for c_l in ['I', 'J', 'K', 'L', 'M']:
@@ -6184,6 +6577,13 @@ def export_valuation_model(screener_data, valuation_result, report_markdown=""):
 
                 # 10. AI Valuation Summary
                 populate_ai_summary_sheet_openpyxl(wb_fallback, screener_data, valuation_result)
+
+                # 11. Institutional Control Panel & Automated Checks
+                try:
+                    from institutional_control_checks import apply_institutional_wiring
+                    apply_institutional_wiring(wb_fallback, screener_data, valuation_result)
+                except Exception as e_inst:
+                    print(f"[Excel Exporter] Notice: Institutional wiring fallback: {e_inst}")
 
                 wb_fallback.calculation.fullCalcOnLoad = True
                 wb_fallback.save(build_temp_path)

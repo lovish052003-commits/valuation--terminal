@@ -327,44 +327,124 @@ def patch_valuation_workbook(xlsx_path: str, use_excel_com_if_available: bool = 
         ws_dcf.cell(row=dcf_eq_row, column=4, value=f"=D{ev_row}+D{cash_row}-D{debt_row}-D{dcf_mi_row}")
         print(f"   Updated DCF Row {dcf_eq_row} ('Equity Value') formula: =D{ev_row}+D{cash_row}-D{debt_row}-D{dcf_mi_row}")
 
-        # Synchronize downstream formulas
-        shares_row = dcf_eq_row + 1
-        per_share_row = dcf_eq_row + 3
-        cmp_row = dcf_eq_row + 5
+        # Synchronize downstream formulas with pristine formatting and clean spacer rows
+        border_none = Border(left=Side(style=None), right=Side(style=None), top=Side(style=None), bottom=Side(style=None))
+        border_ev = Border(top=Side(style='thin'), bottom=Side(style='medium'))
+        font_bold = Font(name='Calibri', size=11, bold=True)
+        font_regular = Font(name='Calibri', size=11, bold=False)
+        currency_fmt = '"\u20b9"\\ #,##0.00;\\("\u20b9"\\ #,##0.00\\);\\-'
 
-        # Check actual labels downstream
-        for r_down in range(dcf_eq_row + 1, dcf_eq_row + 8):
-            lbl_down = str(ws_dcf.cell(row=r_down, column=2).value or '').strip().lower()
-            if 'equity value per share' in lbl_down:
-                per_share_row = r_down
-            elif 'share price' in lbl_down or 'current market price' in lbl_down:
-                cmp_row = r_down
-            elif 'no. of shares' in lbl_down or 'shares' in lbl_down:
-                shares_row = r_down
+        # Row 40: Equity Value
+        ws_dcf['B40'] = "Equity Value"
+        ws_dcf['D40'] = f"=D{ev_row}+D{cash_row}-D{debt_row}-D{dcf_mi_row}"
+        ws_dcf['B40'].font = font_bold
+        ws_dcf['D40'].font = font_bold
+        ws_dcf['D40'].number_format = currency_fmt
 
-        ws_dcf.cell(row=per_share_row, column=4, value=f"=D{dcf_eq_row}/D{shares_row}")
-        print(f"   Updated DCF Row {per_share_row} ('Equity Value per Share') formula: =D{dcf_eq_row}/D{shares_row}")
+        # Row 41: No. of Shares
+        ws_dcf['B41'] = "No. of Shares"
+        ws_dcf['D41'] = "='Data Sheet'!K70/10000000"
+        ws_dcf['B41'].font = font_regular
+        ws_dcf['D41'].font = font_regular
+        ws_dcf['D41'].number_format = '#,##0.00'
+
+        # Row 42: Clean Blank Spacer
+        for col in ['B', 'C', 'D']:
+            ws_dcf[f'{col}42'].value = None
+            ws_dcf[f'{col}42'].border = border_none
+            ws_dcf[f'{col}42'].font = font_regular
+        ws_dcf['D42'].number_format = 'General'
+
+        # Row 43: Equity Value per Share
+        ws_dcf['B43'] = "Equity Value per Share"
+        ws_dcf['B43'].font = font_bold
+        ws_dcf['B43'].border = border_none
+        ws_dcf['D43'] = "=D40/D41"
+        ws_dcf['D43'].font = font_bold
+        ws_dcf['D43'].border = border_ev
+        ws_dcf['D43'].number_format = currency_fmt
+
+        # Row 44: Clean Blank Spacer
+        for col in ['B', 'C', 'D']:
+            ws_dcf[f'{col}44'].value = None
+            ws_dcf[f'{col}44'].border = border_none
+            ws_dcf[f'{col}44'].font = font_regular
+        ws_dcf['D44'].number_format = 'General'
+
+        # Row 45: Share Price
+        ws_dcf['B45'] = "Share Price"
+        ws_dcf['B45'].font = font_regular
+        ws_dcf['B45'].border = border_none
+        ws_dcf['D45'] = "='Data Sheet'!B8"
+        ws_dcf['D45'].font = font_regular
+        ws_dcf['D45'].border = border_none
+        ws_dcf['D45'].number_format = currency_fmt
+
+        # Row 46: Upside / (Downside)
+        ws_dcf['B46'] = "Upside / (Downside)"
+        ws_dcf['B46'].font = font_regular
+        ws_dcf['B46'].border = border_none
+        ws_dcf['D46'] = "=D43/D45-1"
+        ws_dcf['D46'].font = font_regular
+        ws_dcf['D46'].border = border_none
+        try:
+            ws_dcf['D46'].number_format = "0.0%"
+        except Exception:
+            pass
+
+        # Clean Row 47
+        for col in ['B', 'C', 'D']:
+            ws_dcf[f'{col}47'].value = None
+            ws_dcf[f'{col}47'].border = border_none
+
+        ws_dcf['D18'] = "='Intrinsic Valuation'!L64"
+        print(f"   Synchronized DCF bridge rows 37-46 with clean spacer rows and professional borders.")
+        print(f"   Updated DCF D18 ('Expected Growth Rate') formula: ='Intrinsic Valuation'!L64")
+
+        # Update Altman's Z Score if present
+        if "Altman's Z Score" in wb.sheetnames:
+            ws_alt = wb["Altman's Z Score"]
+            ws_alt['B78'] = "Total Liabilities"
+            ws_alt['E78'] = "='Data Sheet'!G61-'Data Sheet'!G57-'Data Sheet'!G58"
+            ws_alt['F78'] = "='Data Sheet'!H61-'Data Sheet'!H57-'Data Sheet'!H58"
+            ws_alt['G78'] = "='Data Sheet'!I61-'Data Sheet'!I57-'Data Sheet'!I58"
+            ws_alt['H78'] = "='Data Sheet'!J61-'Data Sheet'!J57-'Data Sheet'!J58"
+            ws_alt['I78'] = "='Data Sheet'!K61-'Data Sheet'!K57-'Data Sheet'!K58"
+            ws_alt['I59'] = "='Intrinsic Valuation'!L13+'Data Sheet'!K69-'Intrinsic Valuation'!L19"
+            print(f"   Updated Altman's Z Score: Row 78 Total Liabilities (E78:I78) & I59 Working Capital")
 
         # Update AI Valuation Summary
         if 'AI Valuation Summary' in wb.sheetnames:
             ws_ai = wb['AI Valuation Summary']
-            # Header check in Row 4
-            lbl_col1 = str(ws_ai.cell(row=4, column=1).value or '').strip().lower()
-            lbl_col2 = str(ws_ai.cell(row=4, column=2).value or '').strip().lower()
+            # Universal Connections:
+            # A5 and C38 = DCF!D45 (Current Price / CMP)
+            # B5, C37 and C46 = DCF!D43 (Intrinsic Value / Equity Value per share)
+            # C18 and C36 = DCF!D41 (Shares Outstanding)
+            # C35 = DCF!D40 (Equity Value after minority interest)
+            # Relabel C35 (Row 35, Col B) as "Equity Value (after minority interest)"
+            # Wrap C5, D5, C39 and C40 in IFERROR(...,"n/a")
+            ws_ai['A5'] = f"=DCF!D{cmp_row}"
+            ws_ai['B5'] = f"=DCF!D{per_share_row}"
+            ws_ai['C5'] = '=IFERROR((B5-A5)/A5,"n/a")'
+            ws_ai['D5'] = '=IFERROR((B5-A5)/B5,"n/a")'
 
-            if 'current price' in lbl_col1:
-                ws_ai.cell(row=5, column=1, value="='Data Sheet'!B8")
-                ws_ai.cell(row=5, column=2, value=f"=DCF!D{per_share_row}")
-                print(f"   Updated AI Valuation Summary A5 (Current Price) -> ='Data Sheet'!B8, B5 (Intrinsic Value) -> =DCF!D{per_share_row}")
-            elif 'current price' in lbl_col2:
-                ws_ai.cell(row=5, column=2, value="='Data Sheet'!B8")
-                ws_ai.cell(row=5, column=3, value=f"=DCF!D{per_share_row}")
-                print(f"   Updated AI Valuation Summary B5 (Current Price) -> ='Data Sheet'!B8, C5 (Intrinsic Value) -> =DCF!D{per_share_row}")
-            else:
-                # Set both B5 and C5 as explicitly requested by prompt
-                ws_ai['B5'] = "='Data Sheet'!B8"
-                ws_ai['C5'] = f"=DCF!D{per_share_row}"
-                print(f"   Set AI Valuation Summary B5 -> ='Data Sheet'!B8, C5 -> =DCF!D{per_share_row}")
+            ws_ai['C18'] = f"=DCF!D{shares_row}"
+
+            ws_ai['B35'] = "Equity Value (after minority interest)"
+            ws_ai['C35'] = f"=DCF!D{dcf_eq_row}"
+            ws_ai['C36'] = f"=DCF!D{shares_row}"
+            ws_ai['C37'] = f"=DCF!D{per_share_row}"
+            ws_ai['C38'] = f"=DCF!D{cmp_row}"
+            ws_ai['C39'] = '=IFERROR((C37-C38)/C38,"n/a")'
+            ws_ai['C40'] = '=IFERROR((C37-C38)/C37,"n/a")'
+            ws_ai['C46'] = f"=DCF!D{per_share_row}"
+
+            print(f"   Updated AI Valuation Summary Universal Connections:")
+            print(f"   A5 and C38 -> =DCF!D{cmp_row}")
+            print(f"   B5, C37 and C46 -> =DCF!D{per_share_row}")
+            print(f"   C18 and C36 -> =DCF!D{shares_row}")
+            print(f"   C35 -> =DCF!D{dcf_eq_row} (Relabeled: Equity Value (after minority interest))")
+            print(f"   C5, D5, C39, C40 -> Wrapped in IFERROR(...,'n/a')")
 
             results['ai_summary']['per_share_ref'] = f"DCF!D{per_share_row}"
 
@@ -433,6 +513,25 @@ def patch_valuation_workbook(xlsx_path: str, use_excel_com_if_available: bool = 
                 # Ensure Col 11 formula is dynamic
                 ws_wacc.cell(row=r, column=11, value=f"=J{r}/(1+(1-G{r})*H{r})")
                 results['peer_betas'].append({'row': r, 'peer': peer_names[idx], 'levered_beta': peer_betas[idx]})
+
+    # -------------------------------------------------------------------------
+    # ISSUE 3: Universal WACC E26, DCF D22, and Raw Data Column W Updates
+    # -------------------------------------------------------------------------
+    if 'WACC' in wb.sheetnames:
+        ws_wacc = wb['WACC']
+        ws_wacc['E26'] = "='Data Sheet'!K27/AVERAGE('Data Sheet'!J59:K59)"
+        print("3. Updated WACC!E26 = 'Data Sheet'!K27/AVERAGE('Data Sheet'!J59:K59)")
+
+    if 'DCF' in wb.sheetnames:
+        ws_dcf = wb['DCF']
+        ws_dcf['D22'] = "=MAX('Intrinsic Valuation'!L40,D20)"
+        print("4. Updated DCF!D22 = =MAX('Intrinsic Valuation'!L40,D20)")
+
+    if 'Raw Data' in wb.sheetnames:
+        ws_rd = wb['Raw Data']
+        for r in range(12, 22):
+            ws_rd.cell(row=r, column=23, value=f"=IF(X{r}>0,U{r}/X{r},\"N/A\")")
+        print("5. Updated Raw Data Rows 12-21 Column W (Col 23) = =IF(X{r}>0,U{r}/X{r},\"N/A\")")
 
     # Save workbook
     wb.calculation.fullCalcOnLoad = True

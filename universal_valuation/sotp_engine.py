@@ -101,6 +101,35 @@ class SOTPEngine:
 
         text = f"{c_dict.get('company_name', '')} {c_dict.get('business_model', '')} {c_dict.get('about', '')}".lower()
 
+        # Reliance Industries specific segment decomposition
+        if 'reliance' in text or str(c_dict.get('ticker', '')).upper() == 'RELIANCE':
+            return [
+                {
+                    "segment_name": "Oil to Chemicals (O2C: Refining & Petrochem)",
+                    "sector_peer_proxy": "IOC, BPCL, HPCL",
+                    "allocation_weight_pct": 52.0,
+                    "implied_ev": round(consolidated_ev * 0.45, 2),
+                    "benchmark_multiple": "7.0x EV/EBITDA",
+                    "driver": "Refining margins (GRMs), petrochemical crack spreads, and fuel retail."
+                },
+                {
+                    "segment_name": "Digital Services (Jio Platforms Telecom)",
+                    "sector_peer_proxy": "Bharti Airtel",
+                    "allocation_weight_pct": 31.0,
+                    "implied_ev": round(consolidated_ev * 0.35, 2),
+                    "benchmark_multiple": "11.5x EV/EBITDA",
+                    "driver": "ARPU expansion, 5G monetization, enterprise cloud, and digital services."
+                },
+                {
+                    "segment_name": "Consumer Retail (Reliance Retail Ventures)",
+                    "sector_peer_proxy": "DMart, Trent",
+                    "allocation_weight_pct": 17.0,
+                    "implied_ev": round(consolidated_ev * 0.20, 2),
+                    "benchmark_multiple": "35.0x EV/EBITDA",
+                    "driver": "Store footprint expansion, grocery/apparel retail footfalls, and e-commerce."
+                }
+            ]
+
         # Multi-business incubator platform pattern
         if any(w in text for w in ['incubator', 'concession', 'airports', 'roads', 'mining services', 'multi-business platform']):
             return [

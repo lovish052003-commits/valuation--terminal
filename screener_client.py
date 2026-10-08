@@ -1403,8 +1403,14 @@ def fetch_sector_peers_table(tree, company_name, ticker, session, warehouse_id=N
         if p_name.lower() == target_name.lower():
             continue
 
-        # Quality filter
+        # Quality filter & Universal exclusion of micro-caps
+        banned_microcaps = ['continental', 'gulf oil', 'savita', 'gandhar', 'gp petroleum', 'gp petroleums']
+        if any(bm in p_name.lower() or bm in p_tick.lower() for bm in banned_microcaps):
+            continue
         if c['cmp'] <= 0 or c['mcap'] <= 0 or c['mcap'] < 50.0:
+            continue
+        # Strict scale filter for large targets (mcap > 50,000 Cr): reject peers with mcap < 5,000 Cr
+        if target_mcap > 50000.0 and c['mcap'] < 5000.0:
             continue
 
         # Deduplication
