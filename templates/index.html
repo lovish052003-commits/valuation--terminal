@@ -15,7 +15,7 @@
             }
         })();
     </script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=9.0">
 </head>
 <body>
 
@@ -139,7 +139,37 @@
                         <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/></svg>
                         <span>Download Excel Model (.xlsx)</span>
                     </a>
+                    <a href="#" id="btnDownloadAlt" class="btn-action btn-excel" style="display:none;">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/></svg>
+                        <span>Download Alternate Valuation Model (.xlsx)</span>
+                    </a>
                 </div>
+            </div>
+
+            <!-- Alternate Valuation Panel (shown only when the FCFF DCF is not applicable) -->
+            <div id="altModelPanel" class="glass-panel" style="display:none; margin-bottom:1.5rem; padding:1.25rem 1.5rem; border:1px solid rgba(245,158,11,0.35); background:rgba(245,158,11,0.06);">
+                <div style="display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
+                    <div>
+                        <div class="kpi-label">ALTERNATE VALUATION &bull; DCF NOT APPLICABLE</div>
+                        <div id="altReason" class="text-muted" style="font-size:0.85rem; margin:0.25rem 0 0.75rem;"></div>
+                        <div>Method: <strong id="altMethod">&mdash;</strong> &bull; <span id="altType" class="text-muted"></span></div>
+                    </div>
+                    <div style="display:flex; gap:2rem; flex-wrap:wrap; align-items:flex-start;">
+                        <div><div class="pm-label">Alt. Intrinsic Value</div><div class="pm-val text-cyan" id="altValue">&mdash;</div></div>
+                        <div><div class="pm-label">Upside / (Downside)</div><div class="pm-val" id="altUpside">&mdash;</div></div>
+                        <div><div class="pm-label">Verdict</div><div class="pm-val" id="altVerdict">&mdash;</div></div>
+                    </div>
+                </div>
+                <div style="display:flex; gap:1.5rem; flex-wrap:wrap; margin-top:0.75rem; font-size:0.82rem;">
+                    <span>P/B: <strong id="altPb" class="font-mono">&mdash;</strong></span>
+                    <span>ROE: <strong id="altRoe" class="font-mono">&mdash;</strong></span>
+                    <span>Market-implied ROE: <strong id="altImpRoe" class="font-mono">&mdash;</strong></span>
+                    <span>Cost of equity: <strong id="altKe" class="font-mono">&mdash;</strong></span>
+                    <span>Peer P/E value: <strong id="altPeVal" class="font-mono">&mdash;</strong></span>
+                    <span>EV/EBITDA value: <strong id="altEvVal" class="font-mono">&mdash;</strong></span>
+                </div>
+                <div id="altConfidence" class="text-muted" style="font-size:0.75rem; margin-top:0.6rem;"></div>
+                <div class="text-muted" style="font-size:0.75rem;">All figures above are read from the downloadable Alternate Valuation workbook.</div>
             </div>
 
             <!-- Hero Valuation KPI Grid -->
@@ -236,6 +266,7 @@
                 <button class="tab-btn" data-tab="tabForensic">🔍 Forensic Check</button>
                 <button class="tab-btn" data-tab="tabAiReport">🤖 AI Research Memorandum</button>
                 <button class="tab-btn" data-tab="tabStatements">📑 Screener Statements</button>
+                <button class="tab-btn" data-tab="tabNews">📰 Market News & Sentiment</button>
             </div>
 
             <!-- TAB: 4 VALUATION PILLARS (EXECUTIVE DASHBOARD) -->
@@ -983,6 +1014,53 @@
                 <div id="rawStatementsContainer"></div>
             </div>
 
+            <!-- TAB: Market News & Sentiment -->
+            <div id="tabNews" class="tab-panel">
+                <!-- Top Summary Banner -->
+                <div class="news-sentiment-banner" id="newsSentimentBanner">
+                    <div class="sentiment-banner-top">
+                        <div class="sentiment-badge-wrapper">
+                            <span class="sentiment-badge sentiment-neutral" id="newsSentimentBadge">
+                                <span class="sentiment-pulse-dot"></span>
+                                <span id="newsSentimentText">NEUTRAL</span>
+                            </span>
+                            <span class="sentiment-score-badge" id="newsSentimentScore">50% Score</span>
+                        </div>
+                        <div class="sentiment-ai-label">
+                            <span class="ai-sparkle">⚡</span> Institutional AI Sentiment Synthesis
+                        </div>
+                    </div>
+                    <div class="sentiment-summary-content">
+                        <p id="newsSentimentSummary" class="sentiment-summary-paragraph">
+                            Live market news feed active.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Live Feed Header -->
+                <div class="news-feed-header">
+                    <div class="news-feed-title-wrap">
+                        <h3 class="news-feed-title">Latest Market Developments</h3>
+                        <span class="news-count-pill" id="newsCountBadge">0 Articles</span>
+                    </div>
+                    <div class="news-feed-source-info">
+                        <span class="live-dot-green"></span> Live Google News RSS • Real-Time
+                    </div>
+                </div>
+
+                <!-- Responsive News Cards Grid -->
+                <div class="news-grid-container" id="newsGrid">
+                    <!-- Populated dynamically via app.js -->
+                </div>
+
+                <!-- Empty State -->
+                <div class="news-empty-state" id="newsEmptyState" style="display: none;">
+                    <div class="news-empty-icon">📰</div>
+                    <h4 class="news-empty-title">No Recent News Found</h4>
+                    <p class="news-empty-desc">No live market news headlines could be retrieved for this company at this time.</p>
+                </div>
+            </div>
+
         </div>
     </main>
 
@@ -1052,6 +1130,6 @@
     <!-- Toast Notification -->
     <div id="toast" class="toast"></div>
 
-    <script src="{{ url_for('static', filename='js/app.js') }}?v=7.0"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}?v=9.0"></script>
 </body>
 </html>

@@ -21,6 +21,7 @@ import valuation_engine
 import llm_client
 import excel_exporter
 import company_logo_manager
+import news_service
 
 app = Flask(__name__)
 
@@ -28,6 +29,12 @@ app = Flask(__name__)
 ANALYSIS_CACHE = {}
 EXPORT_EVENTS = {}
 EXPORT_STATUS = {}
+ALT_STATUS = {}
+try:
+    import alt_valuation_export
+except Exception as _e_alt:
+    alt_valuation_export = None
+    print(f'[Alt Model] module unavailable: {_e_alt}')
 RUNNING_ANALYSES = set()
 ANALYSIS_LOCK = threading.Lock()
 
@@ -200,6 +207,27 @@ def analyze():
         ANALYSIS_CACHE[ticker] = cached_payload
         ANALYSIS_CACHE['latest'] = cached_payload
 
+        # 2b. Alternate valuation workbook for companies where the FCFF DCF does not apply
+        alt_info = None
+        if alt_valuation_export is not None:
+            try:
+                _iv = val_result.get('intrinsic_value_per_share')
+                _ok, _why = alt_valuation_export.is_dcf_applicable(screener_data, _iv)
+                _txt = ' '.join(str(val_result.get(k, '')) for k in ('verdict', 'dcf_status', 'notice')).upper()
+                if 'NOT APPLICABLE' in _txt or 'NOTICE' in _txt:
+                    _ok, _why = False, _why or 'DCF flagged not applicable by engine'
+                if not _ok:
+                    _r = alt_valuation_export.export_alt_model(screener_data, excel_exporter.EXPORT_DIR)
+                    alt_info = {k: v for k, v in _r.items() if k != 'path'}
+                    alt_info['reason'] = _why
+                    alt_info['download_url'] = f"/api/download-alt/{_r['filename']}"
+                    ALT_STATUS[ticker] = dict(_r, reason=_why)
+                    val_result['alt_model'] = alt_info
+                else:
+                    ALT_STATUS.pop(ticker, None)
+            except Exception as _e_alt:
+                print(f'[Alt Model] generation failed for {ticker}: {_e_alt}')
+
         # 3. AI Report Generation
         report_markdown = ""
         report_html = ""
@@ -288,6 +316,17 @@ def analyze():
 
         canonical = screener_data.get('canonical_company', {})
         c_name = screener_data.get('company_name', ticker)
+
+        # 4b. Fetch Live Market News & AI Sentiment
+        news_items = news_service.fetch_company_news(c_name or company_input, max_articles=8)
+        news_sentiment = news_service.analyze_news_sentiment(
+            company_name=c_name or company_input,
+            news_items=news_items,
+            api_key=api_key if provider == 'gemini' else os.environ.get('GEMINI_API_KEY'),
+            model=model if provider == 'gemini' else None,
+            skip_ai=skip_ai
+        )
+
         return jsonify(sanitize_for_json({
             'success': True,
             'run_id': run_id,
@@ -360,6 +399,9 @@ def analyze():
                 'model': model_name
             },
             'excel_filename': excel_filename,
+            'alt_model': alt_info,
+            'news_items': news_items,
+            'news_sentiment': news_sentiment,
             'raw_tables': raw_tables,
             'peers_table': peers_table
         }))
@@ -371,6 +413,16 @@ def analyze():
     finally:
         with ANALYSIS_LOCK:
             RUNNING_ANALYSES.discard(clean_company_key)
+
+@app.route('/api/news/<path:company>')
+def get_company_news(company):
+    """Retrieves live Google News RSS articles and sentiment for a company."""
+    items = news_service.fetch_company_news(company, max_articles=8)
+    sentiment = news_service.analyze_news_sentiment(company, items)
+    return jsonify(sanitize_for_json({
+        'news_items': items,
+        'news_sentiment': sentiment
+    }))
 
 @app.route('/api/recalculate', methods=['POST'])
 def recalculate():
@@ -468,6 +520,25 @@ def export_status(ticker):
         status_info['workbook_valuation'] = wb_val
 
     return jsonify(sanitize_for_json(status_info))
+
+@app.route('/api/alt-model/<ticker>')
+def alt_model_info(ticker):
+    t = ticker.upper()
+    info = ALT_STATUS.get(t)
+    if not info:
+        return jsonify({'available': False})
+    out = {k: v for k, v in info.items() if k != 'path'}
+    out['available'] = True
+    out['download_url'] = f"/api/download-alt/{info['filename']}"
+    return jsonify(sanitize_for_json(out))
+
+@app.route('/api/download-alt/<filename>')
+def download_alt(filename):
+    clean = os.path.basename(filename)
+    path = os.path.join(excel_exporter.EXPORT_DIR, clean)
+    if not clean.endswith('_Alt_Valuation_Model.xlsx') or not os.path.exists(path):
+        return jsonify({'error': 'Alternate valuation model not found'}), 404
+    return send_file(path, as_attachment=True, download_name=clean)
 
 @app.route('/api/download-excel/<filename>')
 def download_excel(filename):

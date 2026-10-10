@@ -524,14 +524,67 @@ document.addEventListener('DOMContentLoaded', () => {
         renderForensicCheck(data);
         renderReverseDcf(data);
 
+        // Market News & Sentiment Tab
+        renderNewsAndSentiment(data.news_items, data.news_sentiment);
+
         // Excel Download Button
         const tkr = (data.company && data.company.ticker) ? data.company.ticker : 'COMPANY';
+        applyAltModel(data.alt_model);
         monitorExcelExport(tkr, data.excel_filename);
+    }
+
+    // --- Alternate valuation (banks / NBFCs / conglomerates where FCFF DCF is not meaningful) ---
+    window.__altActive = false;
+    function applyAltModel(alt) {
+        const btn = document.getElementById('btnDownloadAlt');
+        const panel = document.getElementById('altModelPanel');
+        const params = document.querySelector('.params-toolbar');
+        if (!alt || !alt.value) {
+            window.__altActive = false;
+            if (btn) btn.style.display = 'none';
+            if (panel) panel.style.display = 'none';
+            if (params) params.style.display = '';
+            return;
+        }
+        window.__altActive = true;
+        if (btn) { btn.href = alt.download_url; btn.style.display = ''; }
+        if (panel) panel.style.display = 'block';
+        if (params) params.style.display = 'none';
+        const fx = (x, d, suf) => (typeof x === 'number' && isFinite(x)) ? x.toFixed(d) + (suf || '') : 'n/a';
+        const pct = x => (typeof x === 'number' && isFinite(x)) ? (x * 100).toFixed(1) + '%' : 'n/a';
+        const val = Number(alt.value), up = Number(alt.upside_pct);
+        safeSetText('altReason', alt.reason || '');
+        safeSetText('altMethod', alt.method || '');
+        safeSetText('altType', alt.company_type || '');
+        safeSetText('altValue', `₹${val.toFixed(2)}`);
+        safeSetText('altUpside', `${up > 0 ? '+' : ''}${up.toFixed(1)}%`);
+        safeSetText('altVerdict', alt.verdict || '');
+        safeSetText('altPb', fx(alt.pb, 2, 'x'));
+        safeSetText('altRoe', pct(alt.roe));
+        safeSetText('altImpRoe', pct(alt.implied_roe));
+        safeSetText('altKe', pct(alt.cost_of_equity));
+        safeSetText('altPeVal', typeof alt.pe_value === 'number' ? `₹${alt.pe_value.toFixed(0)}` : 'n/a');
+        safeSetText('altEvVal', typeof alt.ev_ebitda_value === 'number' ? `₹${alt.ev_ebitda_value.toFixed(0)}` : 'n/a');
+        safeSetText('altConfidence', alt.confidence || '');
+        // headline KPIs follow the alternate workbook
+        safeSetText('kpiIntrinsic', `₹${val.toFixed(2)}`);
+        const upsideEl = document.getElementById('kpiUpside');
+        if (upsideEl) {
+            upsideEl.textContent = `${up > 0 ? '+' : ''}${up.toFixed(1)}%`;
+            upsideEl.className = `kpi-val ${up >= 0 ? 'val-positive' : 'val-negative'}`;
+        }
+        const verdictEl = document.getElementById('verdictBadge');
+        if (verdictEl && alt.verdict) {
+            verdictEl.textContent = alt.verdict;
+            const vc = /UNDER/.test(alt.verdict) ? 'buy' : (/OVER/.test(alt.verdict) ? 'sell' : 'hold');
+            verdictEl.className = `verdict-badge verdict-${vc}`;
+        }
     }
 
     let excelPollInterval = null;
 
     function syncWorkbookValuationToTerminal(wbVal) {
+        if (window.__altActive) return;
         if (!wbVal || typeof wbVal !== 'object') return;
         if (wbVal.intrinsic_value && wbVal.intrinsic_value > 0) {
             safeSetText('kpiIntrinsic', `₹${wbVal.intrinsic_value}`);
@@ -1739,5 +1792,85 @@ document.addEventListener('DOMContentLoaded', () => {
                 </tr>
             `;
         }).join('');
+    }
+
+    // --- 8. Market News & Sentiment Tab ---
+    function renderNewsAndSentiment(newsItems, sentiment) {
+        const badgeEl = document.getElementById('newsSentimentBadge');
+        const textEl = document.getElementById('newsSentimentText');
+        const scoreEl = document.getElementById('newsSentimentScore');
+        const summaryEl = document.getElementById('newsSentimentSummary');
+        const countBadge = document.getElementById('newsCountBadge');
+        const gridEl = document.getElementById('newsGrid');
+        const emptyEl = document.getElementById('newsEmptyState');
+
+        if (!gridEl) return;
+
+        // Sentiment configuration
+        const sent = (sentiment && sentiment.sentiment) ? String(sentiment.sentiment).toUpperCase() : 'NEUTRAL';
+        const score = (sentiment && typeof sentiment.score === 'number') ? sentiment.score : 50;
+        const summary = (sentiment && sentiment.summary) ? sentiment.summary : 'Live market news feed active.';
+
+        if (textEl) textEl.textContent = sent;
+        if (scoreEl) scoreEl.textContent = `${score}% Score`;
+        if (summaryEl) summaryEl.textContent = summary;
+
+        if (badgeEl) {
+            badgeEl.className = 'sentiment-badge';
+            if (sent === 'BULLISH') {
+                badgeEl.classList.add('sentiment-bullish');
+            } else if (sent === 'BEARISH') {
+                badgeEl.classList.add('sentiment-bearish');
+            } else {
+                badgeEl.classList.add('sentiment-neutral');
+            }
+        }
+
+        // Render articles
+        gridEl.innerHTML = '';
+        const items = Array.isArray(newsItems) ? newsItems : [];
+        if (countBadge) countBadge.textContent = `${items.length} Article${items.length === 1 ? '' : 's'}`;
+
+        if (items.length === 0) {
+            if (emptyEl) emptyEl.style.display = 'block';
+            gridEl.style.display = 'none';
+            return;
+        }
+
+        if (emptyEl) emptyEl.style.display = 'none';
+        gridEl.style.display = 'grid';
+
+        items.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'news-card';
+
+            const source = item.source || 'Market News';
+            const pubDate = item.published || '';
+            const title = item.title || 'Untitled Headline';
+            const link = item.link || '#';
+
+            card.innerHTML = `
+                <div>
+                    <div class="news-card-meta">
+                        <span class="news-source-tag">${escapeHtml(source)}</span>
+                        <span class="news-date">${escapeHtml(pubDate)}</span>
+                    </div>
+                    <h4 class="news-title">${escapeHtml(title)}</h4>
+                </div>
+                <div class="news-card-footer">
+                    <a href="${encodeURI(link)}" target="_blank" rel="noopener noreferrer" class="news-link-btn">
+                        Read Article ↗
+                    </a>
+                </div>
+            `;
+            gridEl.appendChild(card);
+        });
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
     }
 });

@@ -134,5 +134,22 @@
     "enterprise_value": -2146826281.0,
     "equity_value": -2146826281.0,
     "shares_cr": 1539.0
+  },
+  "ASIANPAINT": {
+    "current_price": 2339.0,
+    "intrinsic_value": 508.91,
+    "upside_pct": -78.24,
+    "margin_of_safety_pct": -359.61,
+    "verdict": "OVERVALUED / SELL",
+    "verdict_class": "sell",
+    "wacc": 12.84,
+    "growth_rate": 8.29,
+    "terminal_growth": 4.0,
+    "tax_rate": 25.17,
+    "altman_z": 13.08452523883669,
+    "dupont_roe": 21.56,
+    "enterprise_value": 44648.7,
+    "equity_value": 48855.7,
+    "shares_cr": 96.0
   }
 }
