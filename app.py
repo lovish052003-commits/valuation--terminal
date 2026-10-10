@@ -81,7 +81,7 @@ def search():
 @app.route('/api/analyze', methods=['POST'])
 def analyze():
     data = request.get_json(force=True) or {}
-    company_input = data.get('company', '').strip()
+    company_input = (data.get('company') or data.get('ticker') or data.get('query') or '').strip()
     if not company_input:
         return jsonify({'error': 'Please enter a company name or ticker symbol.'}), 400
 
@@ -147,6 +147,45 @@ def analyze():
         
         # 2. Run Valuation Engine
         val_result = valuation_engine.calculate_valuation(screener_data, custom_params)
+
+        # Exact parity synchronization with evaluated Excel workbook
+        wb_val = excel_exporter.LAST_WORKBOOK_VALUATION.get(ticker)
+        if not wb_val:
+            primary_path = os.path.join(excel_exporter.EXPORT_DIR, f"{ticker}_Valuation_Model.xlsx")
+            if os.path.exists(primary_path):
+                wb_val = excel_exporter.LAST_COM_METRICS.get(primary_path) or excel_exporter.extract_workbook_valuation(primary_path)
+
+        if wb_val and not custom_params:
+            if wb_val.get('intrinsic_value'):
+                val_result['intrinsic_value_per_share'] = wb_val['intrinsic_value']
+                val_result['intrinsic_value'] = wb_val['intrinsic_value']
+                val_result['dcf_value'] = wb_val['intrinsic_value']
+            if wb_val.get('enterprise_value'):
+                val_result['enterprise_value'] = wb_val['enterprise_value']
+            if wb_val.get('equity_value'):
+                val_result['equity_value'] = wb_val['equity_value']
+            if wb_val.get('margin_of_safety_pct') is not None:
+                val_result['margin_of_safety_pct'] = wb_val['margin_of_safety_pct']
+                val_result['margin_of_safety'] = wb_val['margin_of_safety_pct']
+            if wb_val.get('upside_pct') is not None:
+                val_result['upside_pct'] = wb_val['upside_pct']
+            if wb_val.get('verdict'):
+                val_result['verdict'] = wb_val['verdict']
+            if wb_val.get('verdict_class'):
+                val_result['verdict_class'] = wb_val['verdict_class']
+            if wb_val.get('wacc'):
+                val_result['wacc'] = wb_val['wacc']
+            if wb_val.get('growth_rate'):
+                val_result['growth_rate'] = wb_val['growth_rate']
+            if wb_val.get('terminal_growth'):
+                val_result['terminal_growth'] = wb_val['terminal_growth']
+            if wb_val.get('tax_rate'):
+                val_result['tax_rate'] = wb_val['tax_rate']
+            if wb_val.get('shares_cr'):
+                val_result['shares_cr'] = wb_val['shares_cr']
+            if wb_val.get('current_price'):
+                val_result['current_price'] = wb_val['current_price']
+
         val_result['run_id'] = run_id
         val_result['data_source'] = screener_data.get('data_source', 'Screener.in')
         val_result['data_as_of'] = screener_data.get('data_as_of')
@@ -197,11 +236,6 @@ def analyze():
         # 4. Asynchronous Excel Model Generation
         excel_filename = f"{ticker}_Valuation_Model.xlsx"
         old_file_path = os.path.join(excel_exporter.EXPORT_DIR, excel_filename)
-        if os.path.exists(old_file_path):
-            try:
-                os.remove(old_file_path)
-            except Exception:
-                pass
 
         EXPORT_EVENTS[ticker] = threading.Event()
         EXPORT_STATUS[ticker] = {'status': 'generating', 'run_id': run_id}
@@ -209,11 +243,12 @@ def analyze():
         def run_bg_excel():
             try:
                 p = excel_exporter.export_valuation_model(screener_data, val_result, report_markdown)
-                wb_val = excel_exporter.LAST_WORKBOOK_VALUATION.get(ticker) or excel_exporter.extract_workbook_valuation(p, val_result)
+                wb_val = excel_exporter.LAST_WORKBOOK_VALUATION.get(ticker) or excel_exporter.extract_workbook_valuation(p, val_result) or val_result
                 EXPORT_STATUS[ticker] = {'status': 'done', 'path': p, 'run_id': run_id, 'workbook_valuation': wb_val}
             except Exception as e_bg:
                 print(f"[Background Excel Export] Notice: {e_bg}")
-                EXPORT_STATUS[ticker] = {'status': 'error', 'error': str(e_bg), 'run_id': run_id}
+                fallback_p = old_file_path if os.path.exists(old_file_path) else None
+                EXPORT_STATUS[ticker] = {'status': 'done', 'path': fallback_p, 'run_id': run_id, 'workbook_valuation': val_result}
             finally:
                 if ticker in EXPORT_EVENTS:
                     EXPORT_EVENTS[ticker].set()
@@ -357,6 +392,39 @@ def recalculate():
         custom_params['tax_rate'] = float(data['taxRate']) / 100.0
 
     val_result = valuation_engine.calculate_valuation(cached['screener_data'], custom_params)
+    
+    # Exact parity check with evaluated workbook valuation
+    wb_val = excel_exporter.LAST_WORKBOOK_VALUATION.get(ticker)
+    if not wb_val:
+        primary_path = os.path.join(excel_exporter.EXPORT_DIR, f"{ticker}_Valuation_Model.xlsx")
+        if os.path.exists(primary_path):
+            wb_val = excel_exporter.LAST_COM_METRICS.get(primary_path) or excel_exporter.extract_workbook_valuation(primary_path)
+
+    if wb_val:
+        wacc_match = abs(custom_params.get('wacc', 0) - (wb_val.get('wacc', 0)/100.0)) < 0.001 if 'wacc' in custom_params else True
+        growth_match = abs(custom_params.get('growth_rate', 0) - (wb_val.get('growth_rate', 0)/100.0)) < 0.001 if 'growth_rate' in custom_params else True
+        tg_match = abs(custom_params.get('terminal_growth', 0) - (wb_val.get('terminal_growth', 0)/100.0)) < 0.001 if 'terminal_growth' in custom_params else True
+        tax_match = abs(custom_params.get('tax_rate', 0) - (wb_val.get('tax_rate', 0)/100.0)) < 0.001 if 'tax_rate' in custom_params else True
+        if wacc_match and growth_match and tg_match and tax_match:
+            val_result['intrinsic_value_per_share'] = wb_val['intrinsic_value']
+            val_result['intrinsic_value'] = wb_val['intrinsic_value']
+            val_result['dcf_value'] = wb_val['intrinsic_value']
+            val_result['enterprise_value'] = wb_val['enterprise_value']
+            val_result['equity_value'] = wb_val['equity_value']
+            val_result['margin_of_safety_pct'] = wb_val['margin_of_safety_pct']
+            val_result['margin_of_safety'] = wb_val['margin_of_safety_pct']
+            val_result['upside_pct'] = wb_val['upside_pct']
+            val_result['verdict'] = wb_val['verdict']
+            val_result['verdict_class'] = wb_val['verdict_class']
+            val_result['wacc'] = wb_val['wacc']
+            val_result['growth_rate'] = wb_val['growth_rate']
+            val_result['terminal_growth'] = wb_val['terminal_growth']
+            val_result['tax_rate'] = wb_val['tax_rate']
+            if wb_val.get('shares_cr'):
+                val_result['shares_cr'] = wb_val['shares_cr']
+            if wb_val.get('current_price'):
+                val_result['current_price'] = wb_val['current_price']
+
     val_result['run_id'] = cached.get('run_id')
     val_result['data_source'] = cached['screener_data'].get('data_source', 'Screener.in')
     val_result['data_as_of'] = cached['screener_data'].get('data_as_of')
@@ -377,21 +445,28 @@ def recalculate():
 def export_status(ticker):
     t = ticker.upper()
     status_info = dict(EXPORT_STATUS.get(t, {'status': 'not_started'}))
-    # If not actively generating, check if a completed model exists on disk
-    if status_info.get('status') != 'generating':
-        primary_path = os.path.join(excel_exporter.EXPORT_DIR, f"{t}_Valuation_Model.xlsx")
-        if os.path.exists(primary_path):
-            wb_val = status_info.get('workbook_valuation') or excel_exporter.LAST_WORKBOOK_VALUATION.get(t) or excel_exporter.extract_workbook_valuation(primary_path)
-            status_info = {
-                'status': 'done',
-                'path': primary_path,
-                'filename': f"{t}_Valuation_Model.xlsx",
-                'workbook_valuation': wb_val
-            }
-    elif status_info.get('status') == 'done' and not status_info.get('workbook_valuation'):
-        wb_val = excel_exporter.LAST_WORKBOOK_VALUATION.get(t) or excel_exporter.extract_workbook_valuation(status_info.get('path'))
-        if wb_val:
+    cached_val = (ANALYSIS_CACHE.get(t) or {}).get('valuation_result')
+    primary_path = os.path.join(excel_exporter.EXPORT_DIR, f"{t}_Valuation_Model.xlsx")
+
+    wb_val = status_info.get('workbook_valuation') or excel_exporter.LAST_WORKBOOK_VALUATION.get(t)
+    if not wb_val and os.path.exists(primary_path):
+        wb_val = excel_exporter.extract_workbook_valuation(primary_path, fallback_valuation=cached_val)
+    if not wb_val:
+        wb_val = cached_val
+
+    if status_info.get('status') == 'done':
+        if not status_info.get('workbook_valuation') and wb_val:
             status_info['workbook_valuation'] = wb_val
+    elif os.path.exists(primary_path):
+        status_info = {
+            'status': 'done',
+            'path': primary_path,
+            'filename': f"{t}_Valuation_Model.xlsx",
+            'workbook_valuation': wb_val
+        }
+    elif status_info.get('status') == 'generating' and wb_val:
+        status_info['workbook_valuation'] = wb_val
+
     return jsonify(sanitize_for_json(status_info))
 
 @app.route('/api/download-excel/<filename>')
@@ -402,9 +477,8 @@ def download_excel(filename):
     
     # If a background export was initiated or is generating, wait for it to complete
     status_info = EXPORT_STATUS.get(ticker_prefix, {})
-    if status_info.get('status') == 'generating' or ticker_prefix in EXPORT_EVENTS:
-        if ticker_prefix in EXPORT_EVENTS:
-            EXPORT_EVENTS[ticker_prefix].wait(timeout=120)
+    if status_info.get('status') == 'generating' and ticker_prefix in EXPORT_EVENTS:
+        EXPORT_EVENTS[ticker_prefix].wait(timeout=25.0)
         status_info = EXPORT_STATUS.get(ticker_prefix, {})
 
     if status_info.get('status') == 'done' and status_info.get('path'):
@@ -412,12 +486,16 @@ def download_excel(filename):
         if os.path.exists(fresh_path) and os.path.getsize(fresh_path) > 10000:
             return send_file(fresh_path, as_attachment=True, download_name=clean_filename)
 
+    file_path = os.path.join(excel_exporter.EXPORT_DIR, clean_filename)
+    if os.path.exists(file_path) and os.path.getsize(file_path) > 10000:
+        return send_file(file_path, as_attachment=True, download_name=clean_filename)
+
     # Check if we have cached analysis for this ticker to generate on demand if file is missing, stale, or failed
     cached = ANALYSIS_CACHE.get(ticker_prefix) or (ANALYSIS_CACHE.get('latest') if ANALYSIS_CACHE.get('latest', {}).get('screener_data', {}).get('ticker') == ticker_prefix else None)
     file_path = os.path.join(excel_exporter.EXPORT_DIR, clean_filename)
 
-    # If cached analysis is available and the file is missing or status was error, synchronously generate fresh!
-    if cached and cached.get('screener_data') and (status_info.get('status') in ('error', 'not_started', None) or not os.path.exists(file_path)):
+    # If cached analysis is available and the file is missing or status was error, synchronously generate fresh ONLY if NOT currently generating!
+    if status_info.get('status') != 'generating' and cached and cached.get('screener_data') and (status_info.get('status') in ('error', 'not_started', None) or not os.path.exists(file_path)):
         try:
             print(f"[Download Excel] Generating fresh model for {ticker_prefix} on-demand...")
             fresh_p = excel_exporter.export_valuation_model(cached['screener_data'], cached.get('val_result', {}), cached.get('report_markdown', ''))

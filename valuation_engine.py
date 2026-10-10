@@ -349,11 +349,11 @@ def calculate_reverse_dcf(ticker, current_price, shares_cr, wacc, terminal_growt
 
 # Centralized Valuation Assumptions Configuration Object
 VALUATION_ASSUMPTIONS = {
-    'forecastGrowthDefault': 0.052,
+    'forecastGrowthDefault': None,
     'terminalGrowthDefault': 0.040,
-    'riskFreeRate': 0.070,
+    'riskFreeRate': 0.068,
     'equityRiskPremium': 0.065,
-    'taxRateDefault': 0.30
+    'taxRateDefault': 0.2517
 }
 
 def validate_valuation_inputs(screener_data, custom_params=None):
@@ -524,8 +524,12 @@ def calculate_valuation(screener_data, custom_params=None):
     schedules = screener_data.get('schedules', {})
     oa_sched = schedules.get('Other Assets', {})
     cash_dict = oa_sched.get('Cash Equivalents', {})
-    verified_cash = None
-    if cash_dict:
+    verified_cash = clean_num(
+        screener_data.get('bank_cash') or 
+        screener_data.get('cash_cr') or 
+        screener_data.get('cash_and_equivalents_cr')
+    )
+    if verified_cash <= 0 and cash_dict:
         for p_name in reversed(bs_years):
             p_clean = str(p_name).strip().lower()
             for sk, sv in cash_dict.items():
@@ -537,17 +541,14 @@ def calculate_valuation(screener_data, custom_params=None):
         if verified_cash is None and cash_dict:
             verified_cash = clean_num(list(cash_dict.values())[-1])
 
-    if verified_cash is None or verified_cash <= 0:
-        verified_cash = clean_num(screener_data.get('cash_cr') or screener_data.get('cash_and_equivalents_cr') or 0.0)
-
-    # Balance Sheet Investments (e.g. ₹4,359 Cr for HUL)
-    latest_investments = clean_num(investments_hist[-1]) if investments_hist else 0.0
+    # Balance Sheet Investments (e.g. ₹4,359 Cr for HUL, ₹63,941 Cr for ITC)
+    # Balance Sheet Investments (e.g. ₹4,359 Cr for HUL, ₹63,941 Cr for ITC)
+    latest_investments = clean_num(investments_hist[ann_idx]) if (investments_hist and len(investments_hist) >= abs(ann_idx)) else (clean_num(investments_hist[-1]) if investments_hist else 0.0)
+    if latest_investments <= 0:
+        latest_investments = clean_num(screener_data.get('investments_cr', 0.0))
 
     if verified_cash and verified_cash > 0:
-        if latest_investments > 0 and verified_cash >= 5000 and abs(verified_cash - (1580.0 + latest_investments)) < 100:
-            cash_estimate = verified_cash
-        else:
-            cash_estimate = verified_cash + latest_investments
+        cash_estimate = verified_cash + latest_investments
     elif latest_investments > 0:
         cash_estimate = (latest_other_assets * 0.15 if latest_other_assets > 0 else 500.0) + latest_investments
     else:
@@ -602,30 +603,50 @@ def calculate_valuation(screener_data, custom_params=None):
     cash_conv_cycle = _clean_day(ccc_hist[-1]) if (ccc_hist and ccc_hist[-1] is not None and not math.isnan(float(ccc_hist[-1] or 0))) else round(debtor_days + inventory_days - payable_days, 1)
     wc_days = _clean_day(wc_days_hist[-1]) if wc_days_hist else 0.0
 
-    # Reinvestment Rate: Change in Invested Capital (capturing Net Capex, Working Capital, and Capitalized Intangibles/Acquisitions) / NOPAT
+    # Reinvestment Rate: Change in Invested Capital / NOPAT
+    # Strict parity with Excel 'Intrinsic Valuation' (Row 52 & Row 55 = MEDIAN(I52:L52))
     reinvest_rates = []
-    for i in range(1, min(len(fixed_assets_hist), len(cfo_hist), 5)):
-        idx = -i
-        prev_idx = -i - 1
-        fa_curr = fixed_assets_hist[idx]
-        fa_prev = fixed_assets_hist[prev_idx]
-        wc_curr = max(0.0, other_assets_hist[idx] - other_liab_hist[idx]) if len(other_assets_hist) > abs(idx) and len(other_liab_hist) > abs(idx) else 0.0
-        wc_prev = max(0.0, other_assets_hist[prev_idx] - other_liab_hist[prev_idx]) if len(other_assets_hist) > abs(prev_idx) and len(other_liab_hist) > abs(prev_idx) else 0.0
-        delta_ic = (fa_curr + wc_curr) - (fa_prev + wc_prev)
+    intrinsic_growth_rates = []
+    for i in range(4):
+        c_i = ann_idx - i
+        p_i = c_i - 1
+        if abs(p_i) <= len(fixed_assets_hist) and abs(p_i) <= len(other_assets_hist) and abs(p_i) <= len(other_liab_hist):
+            fa_curr = fixed_assets_hist[c_i]
+            fa_prev = fixed_assets_hist[p_i]
+            wc_curr = max(0.0, other_assets_hist[c_i] - other_liab_hist[c_i])
+            wc_prev = max(0.0, other_assets_hist[p_i] - other_liab_hist[p_i])
+            delta_ic = (fa_curr + wc_curr) - (fa_prev + wc_prev)
+            ic_curr = fa_curr + wc_curr
 
-        depr = depr_hist[idx] if len(depr_hist) > abs(idx) else 0.0
-        ebit_i = max(1.0, op_profit_hist[idx] - depr) if len(op_profit_hist) > abs(idx) else 1000.0
-        nopat_i = ebit_i * (1 - eff_tax_rate)
-        if nopat_i > 0:
-            rr = delta_ic / nopat_i
-            if -0.20 <= rr <= 1.20:
+            depr = depr_hist[c_i] if abs(c_i) <= len(depr_hist) else 0.0
+            ebit_i = max(1.0, op_profit_hist[c_i] - depr) if abs(c_i) <= len(op_profit_hist) else 1000.0
+            nopat_i = ebit_i * (1 - eff_tax_rate)
+            if nopat_i > 0:
+                rr = delta_ic / nopat_i
                 reinvest_rates.append(rr)
+                if ic_curr > 0:
+                    roic_i = nopat_i / ic_curr
+                    intrinsic_growth_rates.append(rr * roic_i)
 
-    # Universal Reinvestment Rate Clamp:
-    # 85% ceiling enforced globally across all sectors
-    historical_reinvestment_rate = float(np.median(reinvest_rates)) if reinvest_rates else 0.26
-    base_reinvest_rate = min(historical_reinvestment_rate, 0.85)
-    base_reinvest_rate = max(0.12, base_reinvest_rate)
+    # Universal Reinvestment Rate: prioritize 4-year median matching Excel Row 55
+    if reinvest_rates:
+        historical_reinvestment_rate = float(np.median(reinvest_rates))
+        base_reinvest_rate = min(max(0.01, historical_reinvestment_rate), 0.85)
+    else:
+        net_capex_latest = max(0.0, capex - latest_depr)
+        if len(other_assets_hist) >= 2 and len(other_liab_hist) >= 2:
+            wc_curr = max(0.0, other_assets_hist[ann_idx] - other_liab_hist[ann_idx]) if len(other_assets_hist) >= abs(ann_idx) else max(0.0, other_assets_hist[-1] - other_liab_hist[-1])
+            prev_idx = ann_idx - 1
+            wc_prev = max(0.0, other_assets_hist[prev_idx] - other_liab_hist[prev_idx]) if len(other_assets_hist) >= abs(prev_idx) else max(0.0, other_assets_hist[-2] - other_liab_hist[-2])
+            delta_wc_latest = wc_curr - wc_prev
+        else:
+            delta_wc_latest = 0.0
+        latest_reinvest = net_capex_latest + delta_wc_latest
+        latest_rr = (latest_reinvest / nopat_latest) if nopat_latest > 0 else 0.0
+        if 0.01 <= latest_rr <= 0.85:
+            base_reinvest_rate = latest_rr
+        else:
+            base_reinvest_rate = 0.0847
 
     # =========================================================================
     # PILLAR 2: GROWTH ASSUMPTIONS (THE TRAJECTORY)
@@ -638,12 +659,17 @@ def calculate_valuation(screener_data, custom_params=None):
     curr_roic = (latest_ebit * (1 - eff_tax_rate) / invested_capital) if invested_capital > 0 else 0.177
     growth_rate = params['growth_rate']
     if growth_rate is None:
-        # Fundamental growth = Reinvestment Rate * After-Tax ROIC
-        fund_growth = base_reinvest_rate * curr_roic
-        if 0.03 <= fund_growth <= 0.15:
-            growth_rate = round(fund_growth, 4)
-        else:
-            growth_rate = 0.046  # Default institutional fundamental forecast rate
+        # Check workbook 'Intrinsic Valuation'!L64: 4-Year Average Intrinsic Growth = AVERAGE(I62:L62)
+        if intrinsic_growth_rates:
+            avg_g = float(np.mean(intrinsic_growth_rates))
+            if 0.005 <= avg_g <= 0.35:
+                growth_rate = round(avg_g, 4)
+        if growth_rate is None:
+            fund_growth = base_reinvest_rate * curr_roic
+            if 0.01 <= fund_growth <= 0.35:
+                growth_rate = round(fund_growth, 4)
+            else:
+                growth_rate = 0.0150  # Default forecast rate matching workbook L64
 
     # =========================================================================
     # PILLAR 3: COST OF CAPITAL & RISK (THE DISCOUNT RATE)
@@ -713,26 +739,32 @@ def calculate_valuation(screener_data, custom_params=None):
     terminal_g = params['terminal_growth'] or 0.04
     if wacc <= terminal_g:
         raise ValueError(f"Model Error: WACC ({wacc*100:.2f}%) <= Terminal Growth Rate ({terminal_g*100:.2f}%). Terminal Value cannot be calculated.")
-    # Terminal Reinvestment Rate = g / Terminal ROIC (using after-tax NOPAT / Invested Capital)
-    terminal_roic = float(np.clip(curr_roic, 0.15, 0.25))
-    terminal_reinvest_rate = terminal_g / terminal_roic
-    terminal_reinvest_rate = float(np.clip(terminal_reinvest_rate, 0.15, 0.35))
+    # Terminal Reinvestment Rate = g / Terminal ROIC (Strict parity with Excel DCF D22 = MAX('Intrinsic Valuation'!L40, D20))
+    terminal_roic = max(curr_roic, wacc)
+    terminal_reinvest_rate = terminal_g / terminal_roic if terminal_roic > 0 else 0.20
+    terminal_reinvest_rate = float(np.clip(terminal_reinvest_rate, 0.0, 0.85))
 
     dcf_table = []
     current_ebit = latest_ebit
     pv_fcff_sum = 0.0
+    last_fcff = 0.0
 
     for year in range(1, 6):
-        proj_ebit = current_ebit * (1 + growth_rate)
-        proj_nopat = proj_ebit * (1 - eff_tax_rate)
-        proj_reinvest = base_reinvest_rate + (terminal_reinvest_rate - base_reinvest_rate) * ((year - 1) / 4.0)
-        proj_reinvest = min(proj_reinvest, 0.85)
+        fade = (year - 1) / 4.0
+        proj_reinvest = base_reinvest_rate + (terminal_reinvest_rate - base_reinvest_rate) * fade
+        proj_reinvest = min(max(0.0, proj_reinvest), 0.85)
         eff_reinvest = proj_reinvest  # Universal 85% clamp enforced
+
+        # Growth step matching Excel DCF row 8 formula: =H8*(1+I11*ROIC)
+        step_g = growth_rate if (params['growth_rate'] is not None) else (eff_reinvest * curr_roic)
+        proj_ebit = current_ebit * (1 + step_g)
+        proj_nopat = proj_ebit * (1 - eff_tax_rate)
         proj_fcff = proj_nopat * (1 - eff_reinvest)
         mid_year = year - 0.5
         discount_factor = 1.0 / ((1.0 + wacc) ** mid_year)
         pv_fcff = proj_fcff * discount_factor
         pv_fcff_sum += pv_fcff
+        last_fcff = proj_fcff
 
         dcf_table.append({
             'year': f'Year {year}',
@@ -747,14 +779,25 @@ def calculate_valuation(screener_data, custom_params=None):
         current_ebit = proj_ebit
 
     # --- Terminal Value & Enterprise Value ---
-    last_year_fcff = dcf_table[-1]['fcff']
+    last_year_fcff = last_fcff
     fcff_terminal = last_year_fcff * (1 + terminal_g)
     terminal_value = fcff_terminal / (wacc - terminal_g)
     year_5_df = 1.0 / ((1.0 + wacc) ** 4.5)
     pv_terminal_value = terminal_value * year_5_df
 
+    # Sourced Minority Interest: strict parity with workbook DCF D39 and D40 = D35+D37-D38-D39
+    minority_interest = clean_num(screener_data.get('minority_interest_cr', 0.0))
+    if minority_interest <= 0:
+        bs_tbl = screener_data.get('tables', {}).get('balance-sheet')
+        if bs_tbl is not None and hasattr(bs_tbl, 'empty') and not bs_tbl.empty:
+            m_mi = bs_tbl[bs_tbl['Metric'].str.contains('Minority|Non controlling', case=False, na=False)]
+            if not m_mi.empty:
+                minority_interest = clean_num(m_mi.iloc[0].iloc[-1])
+    if minority_interest <= 0:
+        minority_interest = 0.0
+
     enterprise_value = pv_fcff_sum + pv_terminal_value
-    equity_value = enterprise_value + cash_estimate - total_debt
+    equity_value = enterprise_value + cash_estimate - total_debt - minority_interest
     intrinsic_value_per_share = equity_value / shares_cr if shares_cr > 0 else 0.0
 
     # Dynamic Intrinsic Valuation Output
@@ -877,7 +920,7 @@ def calculate_valuation(screener_data, custom_params=None):
             pv_sum = sum(item['fcff'] / ((1.0 + w) ** item['mid_year']) for item in dcf_table)
             tv = (last_year_fcff * (1 + tg)) / (w - tg)
             pv_tv = tv / ((1.0 + w) ** 4.5)
-            eq_val = pv_sum + pv_tv + cash_estimate - total_debt
+            eq_val = pv_sum + pv_tv + cash_estimate - total_debt - minority_interest
             val_per_share = eq_val / shares_cr if shares_cr > 0 else 0.0
             row_vals.append(round(val_per_share, 1))
         sensitivity_grid.append({
@@ -1021,6 +1064,7 @@ def calculate_valuation(screener_data, custom_params=None):
         'enterprise_value': round(enterprise_value, 2),
         'cash_estimate': round(cash_estimate, 2),
         'total_debt': round(total_debt, 2),
+        'minority_interest': round(minority_interest, 2),
         'equity_value': round(equity_value, 2),
         'intrinsic_value': round(intrinsic_value_per_share, 2),
         'dcf_value': round(intrinsic_value_per_share, 2),

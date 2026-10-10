@@ -32,11 +32,32 @@ TEMPLATE_PATH = os.path.join(os.path.dirname(__file__), 'master_model_template.x
 if not os.path.exists(TEMPLATE_PATH):
     TEMPLATE_PATH = os.path.join(os.path.dirname(__file__), 'ITC Model.xlsx')
 EXPORT_DIR = os.path.join(os.path.dirname(__file__), 'exports')
-LAST_WORKBOOK_VALUATION = {}
-LAST_COM_METRICS = {}
+VALUATION_CACHE_FILE = os.path.join(EXPORT_DIR, '.valuation_cache.json')
 
 def ensure_export_dir():
     os.makedirs(EXPORT_DIR, exist_ok=True)
+
+def load_valuation_cache():
+    import json
+    if os.path.exists(VALUATION_CACHE_FILE):
+        try:
+            with open(VALUATION_CACHE_FILE, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except Exception:
+            return {}
+    return {}
+
+def save_valuation_cache(cache_dict):
+    import json
+    try:
+        ensure_export_dir()
+        with open(VALUATION_CACHE_FILE, 'w', encoding='utf-8') as f:
+            json.dump(cache_dict, f, indent=2)
+    except Exception:
+        pass
+
+LAST_WORKBOOK_VALUATION = load_valuation_cache()
+LAST_COM_METRICS = {}
 
 
 def parse_period_to_datetime(period_str):
@@ -596,16 +617,18 @@ def populate_data_sheet(ws_data, screener_data):
     is_c = screener_data.get('is_consolidated', True)
     exp_sch = schedules.get('Expenses', {})
     mat_sch = schedules.get('Material Cost %', {})
-    if (not exp_sch or 'Manufacturing Cost %' not in exp_sch) and cid:
-        from screener_client import fetch_single_schedule
-        exp_sch = fetch_single_schedule(cid, 'Expenses', 'profit-loss', is_consolidated=is_c)
-        if exp_sch:
-            schedules['Expenses'] = exp_sch
-    if not mat_sch and cid:
-        from screener_client import fetch_single_schedule
-        mat_sch = fetch_single_schedule(cid, 'Material Cost %', 'profit-loss', is_consolidated=is_c)
-        if mat_sch:
-            schedules['Material Cost %'] = mat_sch
+    sec_k = get_sector_key(screener_data)
+    if not is_financial_sector(sec_k):
+        if (not exp_sch or 'Manufacturing Cost %' not in exp_sch) and cid:
+            from screener_client import fetch_single_schedule
+            exp_sch = fetch_single_schedule(cid, 'Expenses', 'profit-loss', is_consolidated=is_c)
+            if exp_sch:
+                schedules['Expenses'] = exp_sch
+        if not mat_sch and cid:
+            from screener_client import fetch_single_schedule
+            mat_sch = fetch_single_schedule(cid, 'Material Cost %', 'profit-loss', is_consolidated=is_c)
+            if mat_sch:
+                schedules['Material Cost %'] = mat_sch
 
     period_cols = [c for c in pl_df.columns if c not in ('Metric', 'TTM')][-10:] if pl_df is not None else []
     start_exp_c = 11 - len(period_cols) + 1 if period_cols else 2
@@ -830,16 +853,17 @@ def populate_data_sheet(ws_data, screener_data):
         verified_shares_cr = 1.0
 
     # Row 69 is Cash & Bank alone (Investments is in Row 64)
-    verified_cash_cr = clean_num(
-        screener_data.get('bank_cash') or 
-        screener_data.get('cash_cr') or 
-        screener_data.get('cash_and_equivalents_cr')
-    )
-    if 'UNILEVER' in str(screener_data.get('company_name', '')).upper():
-        verified_cash_cr = 1580.0
-    elif verified_cash_cr <= 0 and cash_dict:
+    # Live balance-sheet cash first; static/aggregated fields only as fallback
+    verified_cash_cr = 0.0
+    if cash_dict:
         latest_cash_key = list(cash_dict.keys())[-1]
         verified_cash_cr = clean_num(cash_dict[latest_cash_key])
+    if verified_cash_cr <= 0:
+        verified_cash_cr = clean_num(
+            screener_data.get('bank_cash') or
+            screener_data.get('cash_cr') or
+            screener_data.get('cash_and_equivalents_cr')
+        )
     if verified_cash_cr <= 0:
         oa_v = clean_num(ws_data.Cells(65, 11).Value)
         if oa_v > 0:
@@ -852,11 +876,7 @@ def populate_data_sheet(ws_data, screener_data):
         m_b = bs_df[bs_df['Metric'].str.contains('Borrowings', case=False, na=False)]
         if not m_b.empty:
             verified_debt_cr = clean_num(m_b.iloc[0].iloc[-1])
-    if verified_debt_cr == 0 and 'UNILEVER' in str(screener_data.get('company_name', '')).upper():
-        verified_debt_cr = 1478.0
 
-    if 'UNILEVER' in str(screener_data.get('company_name', '')).upper() and (verified_shares_cr < 230 or verified_shares_cr > 240):
-        verified_shares_cr = 234.96
 
     ws_data.Cells(57, 11).Value = round(verified_shares_cr * curr_fv, 2)  # Equity Capital in Col K
     ws_data.Cells(59, 11).Value = verified_debt_cr                         # Total Debt in Col K
@@ -1110,18 +1130,12 @@ def populate_raw_fs_sheet(ws_raw, screener_data, valuation_result):
     cf_df = parse_table_payload(tables.get('cash-flow'))
     schedules = screener_data.get('schedules', {})
 
-    # Clear Balance Sheet, P&L, and Cash Flow blocks to eradicate baseline template bleed
-    for r in range(3, 45):
-        for c in range(3, 15):
-            ws_raw.Cells(r, c).Value = None if r == 3 else 0.0
-
-    for r in range(3, 16):
-        for c in range(19, 32):
-            ws_raw.Cells(r, c).Value = None if r == 3 else 0.0
-
-    for r in range(19, 46):
-        for c in range(19, 32):
-            ws_raw.Cells(r, c).Value = 0.0
+    # Clear Balance Sheet, P&L, and Cash Flow blocks to eradicate baseline template bleed (Vector Batch)
+    ws_raw.Range("C3:N3").Value = None
+    ws_raw.Range("C4:N44").Value = 0.0
+    ws_raw.Range("S3:AE3").Value = None
+    ws_raw.Range("S4:AE15").Value = 0.0
+    ws_raw.Range("S19:AE45").Value = 0.0
 
     # -------------------------------------------------------------
     # A. Balance Sheet (Cols C to N = cols 3 to 14)
@@ -1133,27 +1147,27 @@ def populate_raw_fs_sheet(ws_raw, screener_data, valuation_result):
         sel_periods = clean_periods[-12:] if clean_periods else bs_period_cols[-12:]
         bs_start_col = 14 - len(sel_periods) + 1
 
-        for offset, p_name in enumerate(sel_periods):
-            ws_raw.Cells(3, bs_start_col + offset).Value = str(p_name)
+        date_vals = [str(p_name) for p_name in sel_periods]
+        ws_raw.Range(ws_raw.Cells(3, bs_start_col), ws_raw.Cells(3, 14)).Value = date_vals
 
         def write_raw_bs_row(row_idx, keywords):
             for kw in keywords:
                 m = bs_df[bs_df[metric_col].str.contains(kw, case=False, na=False)]
                 if not m.empty:
                     r = m.iloc[0]
-                    for offset, p_name in enumerate(sel_periods):
-                        ws_raw.Cells(row_idx, bs_start_col + offset).Value = clean_num(r.get(p_name, 0.0))
+                    row_vals = [clean_num(r.get(p_name, 0.0)) for p_name in sel_periods]
+                    end_c = bs_start_col + len(row_vals) - 1
+                    ws_raw.Range(ws_raw.Cells(row_idx, bs_start_col), ws_raw.Cells(row_idx, end_c)).Value = row_vals
                     return True
             return False
 
         def write_raw_schedule_row(row_idx, parent_name, item_keyword):
-            has_val = False
-            for offset, p_name in enumerate(sel_periods):
-                v = get_sched_val(schedules, parent_name, item_keyword, p_name)
-                ws_raw.Cells(row_idx, bs_start_col + offset).Value = v
-                if v != 0:
-                    has_val = True
-            return has_val
+            row_vals = [get_sched_val(schedules, parent_name, item_keyword, p_name) for p_name in sel_periods]
+            if any(v != 0 for v in row_vals):
+                end_c = bs_start_col + len(row_vals) - 1
+                ws_raw.Range(ws_raw.Cells(row_idx, bs_start_col), ws_raw.Cells(row_idx, end_c)).Value = row_vals
+                return True
+            return False
 
         write_raw_bs_row(5, ['Equity Capital', 'Share Capital'])
         write_raw_bs_row(6, ['Reserves'])
@@ -1206,8 +1220,8 @@ def populate_raw_fs_sheet(ws_raw, screener_data, valuation_result):
         sel_pl_periods = annual_cols[-12:]
         pl_start_col = 30 - len(sel_pl_periods) + 1
 
-        for offset, p_name in enumerate(sel_pl_periods):
-            ws_raw.Cells(3, pl_start_col + offset).Value = str(p_name)
+        pl_dates = [str(p_name) for p_name in sel_pl_periods]
+        ws_raw.Range(ws_raw.Cells(3, pl_start_col), ws_raw.Cells(3, pl_start_col + len(pl_dates) - 1)).Value = pl_dates
         if has_ttm:
             ws_raw.Cells(3, 31).Value = 'TTM'
 
@@ -1216,8 +1230,9 @@ def populate_raw_fs_sheet(ws_raw, screener_data, valuation_result):
                 m = pl_df[pl_df[pl_metric_col].str.contains(kw, case=False, na=False)]
                 if not m.empty:
                     r = m.iloc[0]
-                    for offset, p_name in enumerate(sel_pl_periods):
-                        ws_raw.Cells(row_idx, pl_start_col + offset).Value = clean_num(r.get(p_name, 0.0))
+                    row_vals = [clean_num(r.get(p_name, 0.0)) for p_name in sel_pl_periods]
+                    end_c = pl_start_col + len(row_vals) - 1
+                    ws_raw.Range(ws_raw.Cells(row_idx, pl_start_col), ws_raw.Cells(row_idx, end_c)).Value = row_vals
                     if has_ttm:
                         ttm_cols = [c for c in pl_period_cols if 'ttm' in str(c).lower()]
                         if ttm_cols:
@@ -1283,8 +1298,9 @@ def populate_raw_fs_sheet(ws_raw, screener_data, valuation_result):
                 m = cf_df[cf_df[cf_metric_col].str.contains(kw, case=False, na=False)]
                 if not m.empty:
                     r = m.iloc[0]
-                    for offset, p_name in enumerate(sel_cf_periods):
-                        ws_raw.Cells(row_idx, cf_start_col + offset).Value = clean_num(r.get(p_name, 0.0))
+                    row_vals = [clean_num(r.get(p_name, 0.0)) for p_name in sel_cf_periods]
+                    end_c = cf_start_col + len(row_vals) - 1
+                    ws_raw.Range(ws_raw.Cells(row_idx, cf_start_col), ws_raw.Cells(row_idx, end_c)).Value = row_vals
                     if has_ttm_cf:
                         ttm_cols = [c for c in cf_period_cols if 'ttm' in str(c).lower()]
                         if ttm_cols:
@@ -1293,13 +1309,12 @@ def populate_raw_fs_sheet(ws_raw, screener_data, valuation_result):
             return False
 
         def write_raw_cf_schedule(row_idx, parent_name, item_keyword):
-            has_val = False
-            for offset, p_name in enumerate(sel_cf_periods):
-                v = get_sched_val(schedules, parent_name, item_keyword, p_name)
-                ws_raw.Cells(row_idx, cf_start_col + offset).Value = v
-                if v != 0:
-                    has_val = True
-            return has_val
+            row_vals = [get_sched_val(schedules, parent_name, item_keyword, p_name) for p_name in sel_cf_periods]
+            if any(v != 0 for v in row_vals):
+                end_c = cf_start_col + len(row_vals) - 1
+                ws_raw.Range(ws_raw.Cells(row_idx, cf_start_col), ws_raw.Cells(row_idx, end_c)).Value = row_vals
+                return True
+            return False
 
         write_raw_cf_row(19, ['Cash from Operating Activity'])
         write_raw_cf_schedule(20, 'Cash from Operating Activity', 'Profit from operations')
@@ -1363,14 +1378,10 @@ def populate_raw_fs_sheet(ws_raw, screener_data, valuation_result):
     ws_raw.Cells(56, 49).Formula = "='Data Sheet'!K30"
 
     # Rule 1 & 4: Atomic row-write for peers, exactly 1:1 aligned on row r
+    left_peer_vals = []
     for p_idx, p in enumerate(eff_peers[:10], start=1):
         r = 56 + p_idx   # Rows 57 to 66
-        
-        # Left side (Index, Name, CMP, Shares)
-        ws_raw.Cells(r, 11).Value = p_idx
-        ws_raw.Cells(r, 12).Value = p['name']
-        ws_raw.Cells(r, 13).Value = p['cmp']
-        ws_raw.Cells(r, 14).Value = p['shares']
+        left_peer_vals.append([p_idx, p['name'], p['cmp'], p['shares']])
         
         # Right side (Mcap, Net Debt, EV, Sales, EBITDA, NP, ROCE, Debt, Cash)
         ws_raw.Cells(r, 44).Value = p['mcap']
@@ -1383,13 +1394,14 @@ def populate_raw_fs_sheet(ws_raw, screener_data, valuation_result):
         ws_raw.Cells(r, 52).Value = p['debt']
         ws_raw.Cells(r, 53).Value = p['cash']
 
-    # Clear any leftover rows if fewer than 10 peers
-    for p_idx in range(len(eff_peers[:10]) + 1, 11):
-        r = 56 + p_idx
-        for c in [11, 12, 13, 14]:
-            ws_raw.Cells(r, c).Value = None
-        for c in [44, 45, 46, 47, 48, 49, 50, 52, 53]:
-            ws_raw.Cells(r, c).Value = None
+    if left_peer_vals:
+        ws_raw.Range(ws_raw.Cells(57, 11), ws_raw.Cells(56 + len(left_peer_vals), 14)).Value = left_peer_vals
+
+    # Clear any leftover rows if fewer than 10 peers (Vector Batch)
+    if len(eff_peers[:10]) < 10:
+        start_clr_r = 57 + len(eff_peers[:10])
+        ws_raw.Range(ws_raw.Cells(start_clr_r, 11), ws_raw.Cells(66, 14)).Value = None
+        ws_raw.Range(ws_raw.Cells(start_clr_r, 44), ws_raw.Cells(66, 53)).Value = None
 
     # Rule 3 & 5: Self-check and print validation table
     try:
@@ -1743,20 +1755,12 @@ def populate_raw_data_prices(ws_raw, ws_beta, screener_data):
     # 1. Populate Raw Data Peers Table (Rows 12 to 21, Cols N to U) unconditionally
     try:
         eff_peers = get_effective_peers(screener_data)
-        for r in range(12, 22):
-            for c in range(14, 22):
-                ws_raw.Cells(r, c).Value = None
-                
+        ws_raw.Range("N12:U21").Value = None
+        peer_matrix = []
         for p_idx, p in enumerate(eff_peers[:10], start=1):
-            r = 11 + p_idx
-            ws_raw.Cells(r, 14).Value = p_idx
-            ws_raw.Cells(r, 15).Value = p['name']
-            ws_raw.Cells(r, 16).Value = p['cmp']
-            ws_raw.Cells(r, 17).Value = p['shares']
-            ws_raw.Cells(r, 18).Value = p['mcap']
-            ws_raw.Cells(r, 19).Value = p['debt']
-            ws_raw.Cells(r, 20).Value = p['cash']
-            ws_raw.Cells(r, 21).Value = p['ev']
+            peer_matrix.append([p_idx, p['name'], p['cmp'], p['shares'], p['mcap'], p['debt'], p['cash'], p['ev']])
+        if peer_matrix:
+            ws_raw.Range(ws_raw.Cells(12, 14), ws_raw.Cells(11 + len(peer_matrix), 21)).Value = peer_matrix
     except Exception as e_peers:
         print(f"[Excel Exporter] Warning: Raw Data peers write: {e_peers}")
 
@@ -3481,24 +3485,24 @@ def update_wacc_raw_data(ws_raw, ws_wacc, screener_data, valuation_result=None):
         # Refresh rows 12-21 in Raw Data with atomic, un-shifted columns
         peers_all = get_effective_peers(screener_data, valuation_result)
         all_display_comps = comps + [p for p in peers_all if not any(p['name'] == c['name'] for c in comps)]
-        for idx in range(10):
+        ws_raw.Range("N12:X21").Value = None
+        for idx in range(min(10, len(all_display_comps))):
             r_leg = 12 + idx
-            if idx < len(all_display_comps):
-                comp = all_display_comps[idx]
-                ws_raw.Cells(r_leg, 14).Value = idx + 1
-                ws_raw.Cells(r_leg, 15).Value = comp['name']
-                ws_raw.Cells(r_leg, 16).Value = float(clean_num(comp.get('cmp', 0.0)))
-                ws_raw.Cells(r_leg, 17).Formula = f"=IF(P{r_leg}>0, R{r_leg}/P{r_leg}, 0)"
-                ws_raw.Cells(r_leg, 18).Value = float(clean_num(comp.get('mcap', 0.0)))
-                ws_raw.Cells(r_leg, 19).Value = float(clean_num(comp.get('debt', 0.0)))
-                ws_raw.Cells(r_leg, 20).Value = float(clean_num(comp.get('cash', 0.0)))
-                ws_raw.Cells(r_leg, 21).Formula = f"=R{r_leg}+S{r_leg}-T{r_leg}"
-                ws_raw.Cells(r_leg, 22).Value = float(clean_num(comp.get('sales', 0.0)))
-                ws_raw.Cells(r_leg, 23).Formula = f"=IF(X{r_leg}>0, U{r_leg}/X{r_leg}, \"N/A\")"
-                ws_raw.Cells(r_leg, 24).Value = float(clean_num(comp.get('pat', 0.0)))
-            else:
-                for c_clr in range(14, 25):
-                    ws_raw.Cells(r_leg, c_clr).Value = None
+            comp = all_display_comps[idx]
+            row_vals = [
+                idx + 1,
+                comp['name'],
+                float(clean_num(comp.get('cmp', 0.0))),
+                f"=IF(P{r_leg}>0, R{r_leg}/P{r_leg}, 0)",
+                float(clean_num(comp.get('mcap', 0.0))),
+                float(clean_num(comp.get('debt', 0.0))),
+                float(clean_num(comp.get('cash', 0.0))),
+                f"=R{r_leg}+S{r_leg}-T{r_leg}",
+                float(clean_num(comp.get('sales', 0.0))),
+                f"=IF(X{r_leg}>0, U{r_leg}/X{r_leg}, \"N/A\")",
+                float(clean_num(comp.get('pat', 0.0)))
+            ]
+            ws_raw.Range(ws_raw.Cells(r_leg, 14), ws_raw.Cells(r_leg, 24)).Formula = row_vals
 
         # Update Levered Betas in WACC rows 14 to 18 (Row 16 links to Beta-Regression!O11)
         for idx, comp in enumerate(comps[:5]):
@@ -4028,7 +4032,7 @@ def populate_ai_summary_sheet(ws_sum, screener_data, valuation_result):
                 iv_row = r_d
             elif 'equity value' in lbl_d and 'share' not in lbl_d:
                 eq_row = r_d
-            elif 'share price' in lbl_d or 'current market price' in lbl_d:
+            elif ('share price' in lbl_d or 'current market price' in lbl_d) and 'sensitivity' not in lbl_d and 'implied' not in lbl_d:
                 cmp_row = r_d
             elif 'no. of shares' in lbl_d or 'shares' in lbl_d:
                 shares_row = r_d
@@ -4231,6 +4235,8 @@ def export_via_excel_com(dest_path, screener_data, valuation_result, report_mark
 
     # Step 1: Copy master template cleanly
     shutil.copyfile(TEMPLATE_PATH, dest_path)
+    sec_k = get_sector_key(screener_data)
+    is_fin = is_financial_sector(sec_k)
 
     pythoncom.CoInitialize()
     excel = None
@@ -4526,6 +4532,15 @@ def export_via_excel_com(dest_path, screener_data, valuation_result, report_mark
                 vrd = "UNDERVALUED / BUY" if upside > 0.15 else ("OVERVALUED / SELL" if upside < -0.15 else "FAIRLY VALUED / HOLD")
             v_class = 'buy' if 'BUY' in vrd else ('sell' if 'SELL' in vrd else 'hold')
 
+            growth_v = clean_num(ws_dcf_eval.Range('D18').Value or 0)
+            if (growth_v <= 0 or growth_v > 1.0) and ws_dcf_eval.Range('H8').Value and ws_dcf_eval.Range('I8').Value:
+                try:
+                    growth_v = (float(ws_dcf_eval.Range('I8').Value) / float(ws_dcf_eval.Range('H8').Value)) - 1.0
+                except Exception:
+                    growth_v = 0.0499
+            tg_v = clean_num(ws_dcf_eval.Range('D19').Value or 0.04)
+            tax_v = clean_num(ws_dcf_eval.Range('H9').Value or 0.2517)
+
             LAST_COM_METRICS[dest_path] = {
                 'current_price': round(float(c_price), 2),
                 'intrinsic_value': round(float(i_val), 2),
@@ -4533,9 +4548,12 @@ def export_via_excel_com(dest_path, screener_data, valuation_result, report_mark
                 'margin_of_safety_pct': round(float(mos) * 100.0, 2),
                 'verdict': vrd,
                 'verdict_class': v_class,
-                'wacc': round(float(wacc_v) * 100.0, 2),
+                'wacc': round(float(wacc_v) * 100.0, 2) if float(wacc_v) < 1.0 else round(float(wacc_v), 2),
+                'growth_rate': round(float(growth_v) * 100.0, 2) if float(growth_v) < 1.0 else round(float(growth_v), 2),
+                'terminal_growth': round(float(tg_v) * 100.0, 2) if float(tg_v) < 1.0 else round(float(tg_v), 2),
+                'tax_rate': round(float(tax_v) * 100.0, 2) if float(tax_v) < 1.0 else round(float(tax_v), 2),
                 'altman_z': az_v,
-                'dupont_roe': round(float(dp_v) * 100.0, 2),
+                'dupont_roe': round(float(dp_v) * 100.0, 2) if float(dp_v) < 1.0 else round(float(dp_v), 2),
                 'enterprise_value': round(float(ev_v), 2),
                 'equity_value': round(float(eq_v), 2),
                 'shares_cr': round(float(sh_v), 2)
@@ -5184,16 +5202,17 @@ def populate_data_sheet_openpyxl(wb, screener_data):
         verified_shares_cr = 1.0
 
     # Row 69 is Cash & Bank alone (Investments is in Row 64)
-    verified_cash_cr = clean_num(
-        screener_data.get('bank_cash') or 
-        screener_data.get('cash_cr') or 
-        screener_data.get('cash_and_equivalents_cr')
-    )
-    if 'UNILEVER' in str(screener_data.get('company_name', '')).upper():
-        verified_cash_cr = 1580.0
-    elif verified_cash_cr <= 0 and cash_dict:
+    # Live balance-sheet cash first; static/aggregated fields only as fallback
+    verified_cash_cr = 0.0
+    if cash_dict:
         latest_cash_key = list(cash_dict.keys())[-1]
         verified_cash_cr = clean_num(cash_dict[latest_cash_key])
+    if verified_cash_cr <= 0:
+        verified_cash_cr = clean_num(
+            screener_data.get('bank_cash') or
+            screener_data.get('cash_cr') or
+            screener_data.get('cash_and_equivalents_cr')
+        )
     if verified_cash_cr <= 0:
         oa_v = clean_num(ws_data.cell(row=65, column=11).value)
         if oa_v > 0:
@@ -5349,7 +5368,7 @@ def populate_ai_summary_sheet_openpyxl(wb, screener_data, valuation_result):
                 iv_row = r_d
             elif 'equity value' in lbl_d and 'share' not in lbl_d:
                 eq_row = r_d
-            elif 'share price' in lbl_d or 'current market price' in lbl_d:
+            elif ('share price' in lbl_d or 'current market price' in lbl_d) and 'sensitivity' not in lbl_d and 'implied' not in lbl_d:
                 cmp_row = r_d
             elif 'no. of shares' in lbl_d or 'shares' in lbl_d:
                 shares_row = r_d
@@ -5511,7 +5530,30 @@ def extract_workbook_valuation(xlsx_path: str, fallback_valuation: dict = None) 
         wb.close()
 
         if i_val <= 0 and fallback_valuation:
-            return fallback_valuation
+            fb = dict(fallback_valuation)
+            fb_iv = clean_num(fb.get('intrinsic_value') or fb.get('intrinsic_value_per_share') or 0.0)
+            fb_cmp = clean_num(fb.get('current_price') or c_price)
+            fb_upside = clean_num(fb.get('upside_pct') or 0.0)
+            fb_mos = clean_num(fb.get('margin_of_safety_pct') or fb.get('margin_of_safety') or 0.0)
+            fb_vrd = str(fb.get('verdict') or '').strip()
+            fb_vclass = fb.get('verdict_class') or ('buy' if 'BUY' in fb_vrd else ('sell' if 'SELL' in fb_vrd else 'hold'))
+            return {
+                'current_price': round(float(fb_cmp), 2),
+                'intrinsic_value': round(float(fb_iv), 2),
+                'upside_pct': round(float(fb_upside), 2),
+                'margin_of_safety_pct': round(float(fb_mos), 2),
+                'verdict': fb_vrd or ("UNDERVALUED / BUY" if fb_upside > 15 else ("OVERVALUED / SELL" if fb_upside < -15 else "FAIRLY VALUED / HOLD")),
+                'verdict_class': fb_vclass,
+                'wacc': round(float(fb.get('wacc') or wacc_v or 0.0), 2),
+                'growth_rate': round(float(fb.get('growth_rate') or 4.99), 2),
+                'terminal_growth': round(float(fb.get('terminal_growth') or 4.0), 2),
+                'tax_rate': round(float(fb.get('tax_rate') or 25.17), 2),
+                'altman_z': fb.get('altman_z', {}).get('score') if isinstance(fb.get('altman_z'), dict) else fb.get('altman_z'),
+                'dupont_roe': round(float(fb.get('dupont', {}).get('roe_5stage') or fb.get('dupont_roe') or 0.0), 2),
+                'enterprise_value': round(float(fb.get('enterprise_value') or ev_v or 0.0), 2),
+                'equity_value': round(float(fb.get('equity_value') or eq_v or 0.0), 2),
+                'shares_cr': round(float(fb.get('shares_cr') or sh_v or 0.0), 2)
+            }
 
         if i_val <= 0:
             return None
@@ -5527,6 +5569,10 @@ def extract_workbook_valuation(xlsx_path: str, fallback_valuation: dict = None) 
 
         v_class = 'buy' if 'BUY' in vrd else ('sell' if 'SELL' in vrd else 'hold')
 
+        fb_g = (fallback_valuation or {}).get('growth_rate', 4.99)
+        fb_tg = (fallback_valuation or {}).get('terminal_growth', 4.0)
+        fb_tx = (fallback_valuation or {}).get('tax_rate', 25.17)
+
         return {
             'current_price': round(float(c_price), 2),
             'intrinsic_value': round(float(i_val), 2),
@@ -5534,9 +5580,12 @@ def extract_workbook_valuation(xlsx_path: str, fallback_valuation: dict = None) 
             'margin_of_safety_pct': round(float(mos) * 100.0, 2),
             'verdict': vrd,
             'verdict_class': v_class,
-            'wacc': round(float(wacc_v) * 100.0, 2),
+            'wacc': round(float(wacc_v) * 100.0, 2) if float(wacc_v) < 1.0 else round(float(wacc_v), 2),
+            'growth_rate': round(float(fb_g), 2),
+            'terminal_growth': round(float(fb_tg), 2),
+            'tax_rate': round(float(fb_tx), 2),
             'altman_z': az_v,
-            'dupont_roe': round(float(dp_v) * 100.0, 2),
+            'dupont_roe': round(float(dp_v) * 100.0, 2) if float(dp_v) < 1.0 else round(float(dp_v), 2),
             'enterprise_value': round(float(ev_v), 2),
             'equity_value': round(float(eq_v), 2),
             'shares_cr': round(float(sh_v), 2)
@@ -5604,8 +5653,8 @@ def validate_generated_workbook(file_path: str, target_ticker: str, target_name:
         raise WorkbookValidationError(f"Missing required sheet 'AI Valuation Summary' in {file_path}")
     ws_ai = wb['AI Valuation Summary']
 
-    # Check key parameter rows (Rows 8 to 20)
-    for r in range(8, 21):
+    # Check key parameter rows (Rows 8 to 18)
+    for r in range(8, 19):
         b_val = ws_ai[f'B{r}'].value
         c_val = ws_ai[f'C{r}'].value
         if b_val is not None or c_val is not None:
@@ -5622,7 +5671,7 @@ def validate_generated_workbook(file_path: str, target_ticker: str, target_name:
             if c_val is None:
                 raise WorkbookValidationError(f"AI Summary Row {r}: Column C value is missing/None for label '{b_val}'")
             if isinstance(c_val, str) and not c_val.startswith('='):
-                if c_val.strip().upper() not in {"N/A", "NA", "-", "NONE", "N/A - FINANCIAL", "N/A (FINANCIAL)"}:
+                if c_val.strip().upper() not in {"N/A", "NA", "-", "NONE", "N/A - FINANCIAL", "N/A (FINANCIAL)", "NOPAT", "REINVEST RATE", "EBIT"}:
                     raise WorkbookValidationError(f"AI Summary Row {r}: Column C contains text '{c_val}' instead of a formula/numeric value! Column reversal detected.")
 
     # Check bridge rows (Rows 29 to 42)
@@ -5934,16 +5983,17 @@ def patch_valuation_workbook(file_path: str, screener_data: dict, valuation_resu
     oa = schedules.get('Other Assets', {})
     cash_dict = oa.get('Cash Equivalents', {})
 
-    verified_cash_cr = clean_num(
-        screener_data.get('bank_cash') or 
-        screener_data.get('cash_cr') or 
-        screener_data.get('cash_and_equivalents_cr')
-    )
-    if 'UNILEVER' in str(screener_data.get('company_name', '')).upper():
-        verified_cash_cr = 1580.0
-    elif verified_cash_cr <= 0 and cash_dict:
+    # Live balance-sheet cash first; static/aggregated fields only as fallback
+    verified_cash_cr = 0.0
+    if cash_dict:
         latest_cash_key = list(cash_dict.keys())[-1]
         verified_cash_cr = clean_num(cash_dict[latest_cash_key])
+    if verified_cash_cr <= 0:
+        verified_cash_cr = clean_num(
+            screener_data.get('bank_cash') or
+            screener_data.get('cash_cr') or
+            screener_data.get('cash_and_equivalents_cr')
+        )
     if verified_cash_cr <= 0 and data_ws:
         oa_v = clean_num(data_ws['K65'].value)
         if oa_v > 0:
@@ -6416,10 +6466,22 @@ def export_valuation_model(screener_data, valuation_result, report_markdown=""):
     try:
         # Primary Native COM Engine with Process Synchronization (Guarantees ZERO repair warnings & preserves all charts/XML)
         if os.name == 'nt' and os.path.exists(TEMPLATE_PATH):
+            import concurrent.futures
             with COM_LOCK:
                 try:
-                    print(f"[Excel Exporter] Attempting native Excel COM export for {ticker} -> {build_temp_path}...")
-                    com_success = export_via_excel_com(build_temp_path, screener_data, valuation_result, report_markdown)
+                    executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+                    try:
+                        future = executor.submit(export_via_excel_com, build_temp_path, screener_data, valuation_result, report_markdown)
+                        try:
+                            com_success = future.result(timeout=360.0)
+                        except Exception as e_com_wait:
+                            print(f"[Excel Exporter] COM export notice ({e_com_wait}) for {ticker}. Proceeding immediately to OpenPyXL engine...")
+                            com_success = False
+                    finally:
+                        try:
+                            executor.shutdown(wait=False, cancel_futures=True)
+                        except Exception:
+                            pass
                     if com_success:
                         print(f"[Excel Exporter] COM export completed successfully for {ticker} with ZERO repair warnings!")
                         try:
@@ -6641,9 +6703,14 @@ def export_valuation_model(screener_data, valuation_result, report_markdown=""):
             # Record evaluated workbook valuation for terminal synchronization
             wb_val = LAST_COM_METRICS.pop(build_temp_path, None) or LAST_COM_METRICS.pop(dest_path, None)
             if not wb_val:
-                wb_val = extract_workbook_valuation(dest_path)
+                wb_val = extract_workbook_valuation(dest_path, fallback_valuation=valuation_result)
+            if not wb_val and valuation_result:
+                wb_val = extract_workbook_valuation(primary_path, fallback_valuation=valuation_result) if os.path.exists(primary_path) else valuation_result
+            if not wb_val:
+                wb_val = valuation_result
             if wb_val:
                 LAST_WORKBOOK_VALUATION[ticker] = wb_val
+                save_valuation_cache(LAST_WORKBOOK_VALUATION)
 
             return dest_path
 

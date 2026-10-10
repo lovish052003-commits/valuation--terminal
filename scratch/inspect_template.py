@@ -1,18 +1,13 @@
-import openpyxl
+import openpyxl, sys
 
-wb = openpyxl.load_workbook('master_model_template.xlsx', data_only=False)
-print('Sheet names:', wb.sheetnames)
-if 'DCF' in wb.sheetnames:
-    ws = wb['DCF']
-    print('DCF D18:', ws['D18'].value)
-    print('DCF D19:', ws['D19'].value)
-    print('DCF D20:', ws['D20'].value)
-    print('DCF D21:', ws['D21'].value)
-    print('DCF I11:', ws['I11'].value)
-if 'Intrinsic Valuation' in wb.sheetnames:
-    iv = wb['Intrinsic Valuation']
-    print('Intrinsic Valuation L55:', iv['L55'].value)
-    for r in range(50, 78):
-        row_vals = [f'{c}{r}: {iv[f"{c}{r}"].value}' for c in ['A', 'B', 'K', 'L'] if iv[f'{c}{r}'].value is not None]
-        if row_vals:
-            print(' | '.join(row_vals))
+wb = openpyxl.load_workbook('ITC Model.xlsx', data_only=False)
+if 'AI Valuation Summary' in wb.sheetnames:
+    ws = wb['AI Valuation Summary']
+    for r in range(1, 45):
+        b = str(ws[f'B{r}'].value or '').encode('ascii', errors='replace').decode('ascii')
+        c = str(ws[f'C{r}'].value or '').encode('ascii', errors='replace').decode('ascii')
+        d = str(ws[f'D{r}'].value or '').encode('ascii', errors='replace').decode('ascii')
+        if b or c or d:
+            print(f"Row {r:2d}: B={b:<35} C={c:<35} D={d}")
+else:
+    print("AI Valuation Summary not found")

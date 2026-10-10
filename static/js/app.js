@@ -336,9 +336,21 @@ document.addEventListener('DOMContentLoaded', () => {
             };
         }
 
-        // Show loading spinner
+        // Show loading spinner & reset Excel download state
         loadingOverlay.style.display = 'block';
         workspaceContainer.style.display = 'none';
+
+        if (excelPollInterval) {
+            clearInterval(excelPollInterval);
+            excelPollInterval = null;
+        }
+        const btnExcelPre = document.getElementById('btnDownloadExcel');
+        if (btnExcelPre) {
+            const textSpan = btnExcelPre.querySelector('span') || btnExcelPre;
+            textSpan.textContent = "Calculating Excel Model (22 Sheets)...";
+            btnExcelPre.style.opacity = "0.7";
+            btnExcelPre.removeAttribute('href');
+        }
 
         try {
             const payload = {
@@ -537,9 +549,40 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             if (wbVal.wacc) {
                 safeSetText('kpiWacc', `${wbVal.wacc}%`);
+                if (sliderWacc) {
+                    sliderWacc.value = wbVal.wacc;
+                    safeSetText('badgeWacc', `${wbVal.wacc}%`);
+                }
+            }
+            if (wbVal.growth_rate && sliderGrowth) {
+                sliderGrowth.value = wbVal.growth_rate;
+                safeSetText('badgeGrowth', `${wbVal.growth_rate}%`);
+            }
+            if (wbVal.terminal_growth && sliderTerminal) {
+                sliderTerminal.value = wbVal.terminal_growth;
+                safeSetText('badgeTerminal', `${wbVal.terminal_growth}%`);
+            }
+            if (wbVal.tax_rate && sliderTax) {
+                sliderTax.value = wbVal.tax_rate;
+                safeSetText('badgeTax', `${wbVal.tax_rate}%`);
+            }
+            if (wbVal.shares_cr) {
+                safeSetText('kpiShares', `${wbVal.shares_cr} Cr Shares`);
             }
             if (wbVal.enterprise_value) {
                 safeSetText('kpiEv', `₹${Number(wbVal.enterprise_value).toLocaleString()} Cr`);
+            }
+            safeSetText('p4DcfPrice', `₹${wbVal.intrinsic_value}`);
+            if (activeValuation) {
+                activeValuation.intrinsic_value_per_share = wbVal.intrinsic_value;
+                activeValuation.intrinsic_value = wbVal.intrinsic_value;
+                activeValuation.enterprise_value = wbVal.enterprise_value;
+                activeValuation.margin_of_safety_pct = wbVal.margin_of_safety_pct;
+                activeValuation.verdict = wbVal.verdict;
+                activeValuation.wacc = wbVal.wacc;
+                activeValuation.growth_rate = wbVal.growth_rate;
+                activeValuation.terminal_growth = wbVal.terminal_growth;
+                activeValuation.tax_rate = wbVal.tax_rate;
             }
         }
     }
@@ -564,6 +607,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     btnExcel.style.opacity = "1";
                     syncWorkbookValuationToTerminal(statusData.workbook_valuation);
                 } else if (statusData.status === 'generating') {
+                    if (statusData.workbook_valuation) {
+                        syncWorkbookValuationToTerminal(statusData.workbook_valuation);
+                    }
                     textSpan.textContent = "Calculating Excel Model (22 Sheets)...";
                     btnExcel.style.opacity = "0.8";
                     
@@ -573,6 +619,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         try {
                             const r = await fetch(`/api/export-status/${encodeURIComponent(ticker)}`);
                             const s = await r.json();
+                            if (s.workbook_valuation) {
+                                syncWorkbookValuationToTerminal(s.workbook_valuation);
+                            }
                             if (s.status === 'done') {
                                 clearInterval(excelPollInterval);
                                 excelPollInterval = null;
@@ -849,6 +898,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (verdictEl) {
                     verdictEl.textContent = v.verdict;
                     verdictEl.className = `verdict-badge verdict-${v.verdict_class}`;
+                }
+
+                // Update EV and WACC in Verdict card
+                if (v.enterprise_value) {
+                    safeSetText('kpiEv', `₹${Number(v.enterprise_value).toLocaleString()} Cr`);
+                }
+                if (v.wacc) {
+                    safeSetText('kpiWacc', `${v.wacc}%`);
                 }
 
                 // Update 4 Pillars Dashboard, DCF Table & Sensitivity Grid
