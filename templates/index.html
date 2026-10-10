@@ -15,7 +15,8 @@
             }
         })();
     </script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=9.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=11.0">
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 </head>
 <body>
 
@@ -267,6 +268,8 @@
                 <button class="tab-btn" data-tab="tabAiReport">🤖 AI Research Memorandum</button>
                 <button class="tab-btn" data-tab="tabStatements">📑 Screener Statements</button>
                 <button class="tab-btn" data-tab="tabNews">📰 Market News & Sentiment</button>
+                <button class="tab-btn" data-tab="tabEvents">📅 Corporate Events</button>
+                <button class="tab-btn" data-tab="tabForecasting">📈 Financial Forecasting</button>
             </div>
 
             <!-- TAB: 4 VALUATION PILLARS (EXECUTIVE DASHBOARD) -->
@@ -1061,6 +1064,99 @@
                 </div>
             </div>
 
+            <!-- TAB: Corporate Events & Actions -->
+            <div id="tabEvents" class="tab-panel">
+                <!-- Header Banner -->
+                <div class="events-header-banner glass-panel">
+                    <div class="events-header-content">
+                        <div class="events-header-left">
+                            <h3 class="events-title">📅 Corporate Actions & Filings</h3>
+                            <p class="events-subtitle">Upcoming and recent dividends, board meetings, earnings releases, and stock splits.</p>
+                        </div>
+                        <div class="events-header-right">
+                            <span class="events-count-badge" id="eventsCountBadge">0 Actions</span>
+                            <span class="events-live-indicator"><span class="live-dot-green"></span> NSE / BSE Verified</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Events Filter Chips -->
+                <div class="events-filter-bar">
+                    <button class="event-filter-chip active" data-filter="all">All Events</button>
+                    <button class="event-filter-chip" data-filter="Dividend">💰 Dividends</button>
+                    <button class="event-filter-chip" data-filter="Earnings">📊 Earnings</button>
+                    <button class="event-filter-chip" data-filter="Board Meeting">🏛️ Board Meetings</button>
+                    <button class="event-filter-chip" data-filter="Stock Split">✂️ Splits / Bonus</button>
+                </div>
+
+                <!-- Groww-style Vertical Timeline / List Container -->
+                <div class="events-timeline" id="eventsTimeline">
+                    <!-- Populated dynamically via app.js -->
+                </div>
+
+                <!-- Empty State -->
+                <div class="events-empty-state" id="eventsEmptyState" style="display: none;">
+                    <div class="events-empty-icon">📅</div>
+                    <h4 class="events-empty-title">No Recent Corporate Events Found</h4>
+                    <p class="events-empty-desc">No recent or scheduled corporate actions, dividends, or board meetings recorded for this company.</p>
+                </div>
+            </div>
+
+            <!-- TAB: Financial Forecasting -->
+            <div id="tabForecasting" class="tab-panel">
+                <!-- Header Banner -->
+                <div class="forecast-header-banner glass-panel">
+                    <div class="forecast-header-content">
+                        <div class="forecast-header-left">
+                            <h3 class="forecast-title">📈 5-Year Financial Forecasting & Growth Trajectory</h3>
+                            <p class="forecast-subtitle">Synchronized with the DCF Valuation Model's baseline financials and compounding growth rate.</p>
+                        </div>
+                        <div class="forecast-header-badges">
+                            <div class="forecast-kpi-chip">
+                                <span class="chip-label">DCF Growth Rate</span>
+                                <span class="chip-val text-cyan" id="fcBadgeGrowth">—</span>
+                            </div>
+                            <div class="forecast-kpi-chip">
+                                <span class="chip-label">Normal EBITDA Margin</span>
+                                <span class="chip-val text-emerald" id="fcBadgeEbitdaM">—</span>
+                            </div>
+                            <div class="forecast-kpi-chip">
+                                <span class="chip-label">Normal Net Margin</span>
+                                <span class="chip-val text-amber" id="fcBadgeNetM">—</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top Section: Plotly.js Visualization -->
+                <div class="glass-panel forecast-chart-card">
+                    <div class="forecast-chart-header">
+                        <div>
+                            <h4 class="forecast-section-title">📊 Revenue, EBITDA & Net Profit Trajectory (10-Year Horizon)</h4>
+                            <p class="forecast-section-desc">Solid bars & lines represent 5 years of verified Screener.in history; dashed/striped indicators reflect the 5-year DCF projection.</p>
+                        </div>
+                        <div class="forecast-chart-legend">
+                            <span class="legend-item"><span class="legend-box hist-rev"></span> Historical Rev</span>
+                            <span class="legend-item"><span class="legend-box proj-rev"></span> Forecast Rev</span>
+                            <span class="legend-item"><span class="legend-line ebitda-line"></span> EBITDA</span>
+                            <span class="legend-item"><span class="legend-line pat-line"></span> Net Income</span>
+                        </div>
+                    </div>
+                    <div id="forecastPlotlyChart" class="forecast-plotly-wrapper" style="width: 100%; min-height: 440px;"></div>
+                </div>
+
+                <!-- Bottom Section: Dark-Themed 10-Year Data Table -->
+                <div class="glass-panel forecast-table-card">
+                    <div class="forecast-table-header">
+                        <h4 class="forecast-section-title">📋 Comprehensive 10-Year Financial Model Table</h4>
+                        <span class="forecast-tag-synchronized">⚡ Synchronized with DCF</span>
+                    </div>
+                    <div class="table-responsive forecast-table-responsive" id="forecastTableContainer">
+                        <!-- Populated dynamically via app.js -->
+                    </div>
+                </div>
+            </div>
+
         </div>
     </main>
 
@@ -1130,6 +1226,6 @@
     <!-- Toast Notification -->
     <div id="toast" class="toast"></div>
 
-    <script src="{{ url_for('static', filename='js/app.js') }}?v=9.0"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}?v=11.0"></script>
 </body>
 </html>

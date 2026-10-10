@@ -527,6 +527,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // Market News & Sentiment Tab
         renderNewsAndSentiment(data.news_items, data.news_sentiment);
 
+        // Corporate Events Tab
+        renderCorporateEvents(data.corporate_events);
+
+        // Financial Forecasting Tab
+        renderFinancialForecasting(data.forecast_data);
+
         // Excel Download Button
         const tkr = (data.company && data.company.ticker) ? data.company.ticker : 'COMPANY';
         applyAltModel(data.alt_model);
@@ -970,6 +976,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Update Excel download link
                 const tkr = (activeCompany && activeCompany.ticker) ? activeCompany.ticker : 'COMPANY';
                 monitorExcelExport(tkr, data.excel_filename);
+
+                // Update Financial Forecasting Tab synchronized with recalculation
+                if (data.forecast_data) {
+                    renderFinancialForecasting(data.forecast_data);
+                }
             }
         } catch (err) {
             console.error("Recalculation error:", err);
@@ -986,7 +997,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             btn.classList.add('active');
             const targetId = btn.getAttribute('data-tab');
-            document.getElementById(targetId).classList.add('active');
+            const targetPanel = document.getElementById(targetId);
+            if (targetPanel) {
+                targetPanel.classList.add('active');
+            }
+            if (targetId === 'tabForecasting' && window.Plotly && document.getElementById('forecastPlotlyChart')) {
+                setTimeout(() => {
+                    Plotly.Plots.resize('forecastPlotlyChart');
+                }, 60);
+            }
         });
     });
 
@@ -1872,5 +1891,319 @@ document.addEventListener('DOMContentLoaded', () => {
         const div = document.createElement('div');
         div.textContent = str;
         return div.innerHTML;
+    }
+
+    // --- 9. Corporate Events & Actions Tab ---
+    let currentCorporateEvents = [];
+    let currentEventFilter = 'all';
+
+    function renderCorporateEvents(events) {
+        currentCorporateEvents = Array.isArray(events) ? events : [];
+        const countBadge = document.getElementById('eventsCountBadge');
+        if (countBadge) {
+            countBadge.textContent = `${currentCorporateEvents.length} Action${currentCorporateEvents.length === 1 ? '' : 's'}`;
+        }
+        applyEventFilter(currentEventFilter);
+    }
+
+    function applyEventFilter(filterType) {
+        currentEventFilter = filterType;
+        const timelineEl = document.getElementById('eventsTimeline');
+        const emptyEl = document.getElementById('eventsEmptyState');
+
+        if (!timelineEl) return;
+
+        let filtered = currentCorporateEvents;
+        if (filterType !== 'all') {
+            if (filterType === 'Stock Split') {
+                filtered = currentCorporateEvents.filter(e => e.event_type === 'Stock Split' || e.event_type === 'Bonus Issue');
+            } else {
+                filtered = currentCorporateEvents.filter(e => e.event_type === filterType);
+            }
+        }
+
+        timelineEl.innerHTML = '';
+
+        if (filtered.length === 0) {
+            if (emptyEl) emptyEl.style.display = 'block';
+            timelineEl.style.display = 'none';
+            return;
+        }
+
+        if (emptyEl) emptyEl.style.display = 'none';
+        timelineEl.style.display = 'flex';
+
+        filtered.forEach(ev => {
+            const card = document.createElement('div');
+            card.className = `event-item-card ${ev.is_upcoming ? 'is-upcoming' : ''}`;
+
+            let badgeClass = 'badge-other';
+            let icon = '📌';
+            const t = (ev.event_type || '').toLowerCase();
+            if (t.includes('dividend')) {
+                badgeClass = 'badge-dividend';
+                icon = '💰';
+            } else if (t.includes('board meeting')) {
+                badgeClass = 'badge-board-meeting';
+                icon = '🏛️';
+            } else if (t.includes('earnings') || t.includes('result')) {
+                badgeClass = 'badge-earnings';
+                icon = '📊';
+            } else if (t.includes('split')) {
+                badgeClass = 'badge-split';
+                icon = '✂️';
+            } else if (t.includes('bonus')) {
+                badgeClass = 'badge-bonus';
+                icon = '🎁';
+            } else if (t.includes('agm') || t.includes('general meeting')) {
+                badgeClass = 'badge-agm';
+                icon = '👥';
+            }
+
+            card.innerHTML = `
+                <div class="event-card-left">
+                    <div class="event-date-box">
+                        <span class="event-date-main">${escapeHtml(ev.event_date || 'TBD')}</span>
+                        ${ev.is_upcoming ? '<span class="event-upcoming-tag">● Upcoming</span>' : ''}
+                    </div>
+                </div>
+                <div class="event-card-right">
+                    <div class="event-info-group">
+                        <span class="event-type-badge ${badgeClass}">${icon} ${escapeHtml(ev.event_type)}</span>
+                        <span class="event-details-text">${escapeHtml(ev.details || '')}</span>
+                    </div>
+                    <span class="event-status-tag">${ev.is_upcoming ? 'Scheduled' : 'Completed'}</span>
+                </div>
+            `;
+            timelineEl.appendChild(card);
+        });
+    }
+
+    // Event Filter Chips listener
+    document.querySelectorAll('.event-filter-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            document.querySelectorAll('.event-filter-chip').forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+            const filter = chip.getAttribute('data-filter') || 'all';
+            applyEventFilter(filter);
+        });
+    });
+
+    // --- 8. Financial Forecasting (Synchronized with DCF Model) ---
+    function renderFinancialForecasting(fc) {
+        if (!fc) return;
+
+        // KPI Badges
+        safeSetText('fcBadgeGrowth', `${fc.dcf_growth_rate || 0}%`);
+        safeSetText('fcBadgeEbitdaM', `${fc.avg_ebitda_margin || 0}%`);
+        safeSetText('fcBadgeNetM', `${fc.avg_net_margin || 0}%`);
+
+        // Render Plotly Chart
+        const chartEl = document.getElementById('forecastPlotlyChart');
+        if (chartEl && window.Plotly) {
+            const histYears = (fc.historical && fc.historical.years) ? fc.historical.years : [];
+            const fcastYears = (fc.forecast && fc.forecast.years) ? fc.forecast.years : [];
+            const histRev = (fc.historical && fc.historical.revenue) ? fc.historical.revenue : [];
+            const fcastRev = (fc.forecast && fc.forecast.revenue) ? fc.forecast.revenue : [];
+            const histEb = (fc.historical && fc.historical.ebitda) ? fc.historical.ebitda : [];
+            const fcastEb = (fc.forecast && fc.forecast.ebitda) ? fc.forecast.ebitda : [];
+            const histNet = (fc.historical && fc.historical.net_income) ? fc.historical.net_income : [];
+            const fcastNet = (fc.forecast && fc.forecast.net_income) ? fc.forecast.net_income : [];
+
+            // Connect lines smoothly from the last historical point
+            const lastHistYear = histYears[histYears.length - 1];
+            const lastHistEb = histEb[histEb.length - 1];
+            const lastHistNet = histNet[histNet.length - 1];
+
+            const bridgeYears = lastHistYear ? [lastHistYear, ...fcastYears] : fcastYears;
+            const bridgeEb = (lastHistEb !== undefined) ? [lastHistEb, ...fcastEb] : fcastEb;
+            const bridgeNet = (lastHistNet !== undefined) ? [lastHistNet, ...fcastNet] : fcastNet;
+
+            const traces = [
+                // 1. Historical Revenue (Solid Blue/Cyan Bar)
+                {
+                    name: 'Historical Revenue',
+                    x: histYears,
+                    y: histRev,
+                    type: 'bar',
+                    marker: {
+                        color: '#0284c7',
+                        opacity: 0.9
+                    },
+                    hovertemplate: '<b>%{x} (Actual)</b><br>Revenue: ₹%{y:,.0f} Cr<extra></extra>'
+                },
+                // 2. Forecasted Revenue (Distinct Lighter Cyan with dotted boundary Bar)
+                {
+                    name: 'Forecasted Revenue',
+                    x: fcastYears,
+                    y: fcastRev,
+                    type: 'bar',
+                    marker: {
+                        color: 'rgba(56, 189, 248, 0.35)',
+                        line: {
+                            color: '#38bdf8',
+                            width: 2,
+                            dash: 'dot'
+                        }
+                    },
+                    hovertemplate: '<b>%{x} (DCF Forecast)</b><br>Revenue: ₹%{y:,.0f} Cr<extra></extra>'
+                },
+                // 3. Historical EBITDA (Emerald Solid Line)
+                {
+                    name: 'Historical EBITDA',
+                    x: histYears,
+                    y: histEb,
+                    type: 'scatter',
+                    mode: 'lines+markers',
+                    line: {
+                        color: '#10b981',
+                        width: 3
+                    },
+                    marker: {
+                        size: 7,
+                        color: '#10b981'
+                    },
+                    hovertemplate: '<b>%{x} (Actual)</b><br>EBITDA: ₹%{y:,.0f} Cr<extra></extra>'
+                },
+                // 4. Forecasted EBITDA (Emerald Dotted Line)
+                {
+                    name: 'Forecasted EBITDA',
+                    x: bridgeYears,
+                    y: bridgeEb,
+                    type: 'scatter',
+                    mode: 'lines+markers',
+                    line: {
+                        color: '#34d399',
+                        width: 3,
+                        dash: 'dot'
+                    },
+                    marker: {
+                        size: 7,
+                        symbol: 'diamond',
+                        color: '#34d399'
+                    },
+                    hovertemplate: '<b>%{x} (DCF Proj)</b><br>EBITDA: ₹%{y:,.0f} Cr<extra></extra>'
+                },
+                // 5. Historical Net Profit (Amber Solid Line)
+                {
+                    name: 'Historical Net Profit',
+                    x: histYears,
+                    y: histNet,
+                    type: 'scatter',
+                    mode: 'lines+markers',
+                    line: {
+                        color: '#f59e0b',
+                        width: 3
+                    },
+                    marker: {
+                        size: 7,
+                        color: '#f59e0b'
+                    },
+                    hovertemplate: '<b>%{x} (Actual)</b><br>Net Profit: ₹%{y:,.0f} Cr<extra></extra>'
+                },
+                // 6. Forecasted Net Profit (Amber Dotted Line)
+                {
+                    name: 'Forecasted Net Profit',
+                    x: bridgeYears,
+                    y: bridgeNet,
+                    type: 'scatter',
+                    mode: 'lines+markers',
+                    line: {
+                        color: '#fbbf24',
+                        width: 3,
+                        dash: 'dot'
+                    },
+                    marker: {
+                        size: 7,
+                        symbol: 'diamond',
+                        color: '#fbbf24'
+                    },
+                    hovertemplate: '<b>%{x} (DCF Proj)</b><br>Net Profit: ₹%{y:,.0f} Cr<extra></extra>'
+                }
+            ];
+
+            const layout = {
+                barmode: 'group',
+                bargap: 0.28,
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: {
+                    family: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+                    color: '#94a3b8',
+                    size: 11
+                },
+                xaxis: {
+                    gridcolor: 'rgba(255, 255, 255, 0.05)',
+                    linecolor: '#1f242d',
+                    tickfont: { color: '#cbd5e1' }
+                },
+                yaxis: {
+                    title: {
+                        text: '₹ Crores',
+                        font: { color: '#94a3b8', size: 11 }
+                    },
+                    gridcolor: 'rgba(255, 255, 255, 0.05)',
+                    linecolor: '#1f242d',
+                    tickfont: { color: '#94a3b8' }
+                },
+                legend: {
+                    orientation: 'h',
+                    y: -0.22,
+                    x: 0.5,
+                    xanchor: 'center',
+                    font: { color: '#e2e8f0', size: 11 }
+                },
+                margin: { t: 25, r: 25, l: 65, b: 65 },
+                hovermode: 'closest'
+            };
+
+            const config = {
+                responsive: true,
+                displayModeBar: false
+            };
+
+            Plotly.newPlot(chartEl, traces, layout, config);
+        }
+
+        // Render Data Table (matching #11141a background & #1f242d borders)
+        const tableContainer = document.getElementById('forecastTableContainer');
+        if (tableContainer) {
+            const cols = fc.table_columns || [];
+            const rows = fc.table_rows || [];
+
+            let html = '<table class="forecast-table">';
+            html += '<thead><tr><th class="metric-col">Financial Metric</th>';
+            cols.forEach(c => {
+                if (c.is_forecast) {
+                    html += `<th class="th-forecast">${escapeHtml(c.year)} <span class="forecast-pill-proj">Proj</span></th>`;
+                } else {
+                    html += `<th>${escapeHtml(c.year)} <span class="forecast-pill-hist">Hist</span></th>`;
+                }
+            });
+            html += '</tr></thead><tbody>';
+
+            rows.forEach(r => {
+                const isMargin = r.is_margin;
+                html += `<tr class="${isMargin ? 'row-margin' : ''}">`;
+                html += `<td class="metric-col">${escapeHtml(r.metric)}</td>`;
+                (r.values || []).forEach((val, idx) => {
+                    const isFcast = cols[idx] ? cols[idx].is_forecast : false;
+                    const tdClass = isFcast ? 'td-forecast' : '';
+                    let displayVal = '—';
+                    if (val !== null && val !== undefined) {
+                        if (isMargin) {
+                            displayVal = `${Number(val).toFixed(1)}%`;
+                        } else {
+                            displayVal = `₹${Number(val).toLocaleString('en-IN', { maximumFractionDigits: 1 })}`;
+                        }
+                    }
+                    html += `<td class="${tdClass}">${displayVal}</td>`;
+                });
+                html += '</tr>';
+            });
+
+            html += '</tbody></table>';
+            tableContainer.innerHTML = html;
+        }
     }
 });

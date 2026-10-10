@@ -22,6 +22,8 @@ import llm_client
 import excel_exporter
 import company_logo_manager
 import news_service
+import events_engine
+import forecasting_engine
 
 app = Flask(__name__)
 
@@ -327,6 +329,13 @@ def analyze():
             skip_ai=skip_ai
         )
 
+        # 4c. Fetch Corporate Events & Actions
+        corporate_events = events_engine.fetch_corporate_events(screener_data.get('ticker') or ticker)
+
+        # 4d. Generate Financial Forecast (synchronized with DCF growth rate)
+        dcf_growth_rate = val_result.get('growth_rate', 10.0)
+        forecast_data = forecasting_engine.generate_financial_forecast(screener_data, dcf_growth_rate)
+
         return jsonify(sanitize_for_json({
             'success': True,
             'run_id': run_id,
@@ -402,6 +411,8 @@ def analyze():
             'alt_model': alt_info,
             'news_items': news_items,
             'news_sentiment': news_sentiment,
+            'corporate_events': corporate_events,
+            'forecast_data': forecast_data,
             'raw_tables': raw_tables,
             'peers_table': peers_table
         }))
@@ -414,6 +425,14 @@ def analyze():
         with ANALYSIS_LOCK:
             RUNNING_ANALYSES.discard(clean_company_key)
 
+@app.route('/api/events/<path:ticker>')
+def get_company_events(ticker):
+    """Retrieves corporate actions and calendar events for a company."""
+    events = events_engine.fetch_corporate_events(ticker)
+    return jsonify(sanitize_for_json({
+        'corporate_events': events
+    }))
+
 @app.route('/api/news/<path:company>')
 def get_company_news(company):
     """Retrieves live Google News RSS articles and sentiment for a company."""
@@ -423,6 +442,23 @@ def get_company_news(company):
         'news_items': items,
         'news_sentiment': sentiment
     }))
+
+@app.route('/api/forecast/<path:ticker>')
+def get_company_forecast(ticker):
+    """Retrieves 5-year financial forecast synchronized with DCF growth rate."""
+    t = ticker.strip().upper()
+    cached = ANALYSIS_CACHE.get(t) or ANALYSIS_CACHE.get('latest')
+    if cached and cached.get('screener_data'):
+        dcf_g = cached.get('valuation_result', {}).get('growth_rate', 10.0)
+        fc = forecasting_engine.generate_financial_forecast(cached['screener_data'], dcf_g)
+        return jsonify(sanitize_for_json({'forecast_data': fc}))
+    
+    sc_data = screener_client.fetch_company_data(ticker)
+    if not sc_data:
+        return jsonify({'error': f'Company {ticker} not found'}), 404
+    val = valuation_engine.calculate_valuation(sc_data)
+    fc = forecasting_engine.generate_financial_forecast(sc_data, val.get('growth_rate', 10.0))
+    return jsonify(sanitize_for_json({'forecast_data': fc}))
 
 @app.route('/api/recalculate', methods=['POST'])
 def recalculate():
@@ -484,12 +520,17 @@ def recalculate():
 
     cached['valuation_result'] = val_result
 
+    # Recalculate forecast data synchronized with updated growth rate
+    dcf_growth_rate = val_result.get('growth_rate', 10.0)
+    forecast_data = forecasting_engine.generate_financial_forecast(cached['screener_data'], dcf_growth_rate)
+
     t = cached['screener_data'].get('ticker', 'COMPANY').upper()
     excel_filename = f"{t}_Valuation_Model.xlsx"
 
     return jsonify(sanitize_for_json({
         'success': True,
         'valuation': val_result,
+        'forecast_data': forecast_data,
         'excel_filename': excel_filename
     }))
 

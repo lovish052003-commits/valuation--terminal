@@ -151,5 +151,22 @@
     "enterprise_value": 44648.7,
     "equity_value": 48855.7,
     "shares_cr": 96.0
+  },
+  "TATAMOTORS": {
+    "current_price": 435.0,
+    "intrinsic_value": -2146826281.0,
+    "upside_pct": 0.0,
+    "margin_of_safety_pct": 0.0,
+    "verdict": "n/a - check price link",
+    "verdict_class": "hold",
+    "wacc": 11.95,
+    "growth_rate": -8798358.61,
+    "terminal_growth": 4.0,
+    "tax_rate": 25.17,
+    "altman_z": -2146826281,
+    "dupont_roe": -214682628100.0,
+    "enterprise_value": -2146826281.0,
+    "equity_value": -2146826281.0,
+    "shares_cr": 367.9
   }
 }
