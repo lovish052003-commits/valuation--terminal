@@ -315,7 +315,7 @@ def build_checks_sheet(wb, screener_data=None):
     ws['B3'] = "OVERALL MODEL STATUS:"
     ws['B3'].font = FONT_BOLD
     cell_status = ws['C3']
-    cell_status.value = '=IF(AND(F6="PASS", F7="PASS", F8="PASS", F9="PASS", F10="PASS", F11="PASS", F12="PASS", F13="PASS", F14="PASS", F15="PASS"), "MODEL STATUS: OK", "MODEL STATUS: CHECK REQUIRED")'
+    cell_status.value = '=IFERROR(IF(AND(F6="PASS", F7="PASS", F8="PASS", F9="PASS", F10="PASS", F11="PASS", F12="PASS", F13="PASS", F14="PASS", F15="PASS"), "MODEL STATUS: OK", "MODEL STATUS: CHECK REQUIRED"), "MODEL STATUS: CHECK REQUIRED")'
     cell_status.font = FONT_STATUS_OK
     cell_status.fill = FILL_PASS_GREEN
     cell_status.alignment = Alignment(horizontal='center')
@@ -368,7 +368,7 @@ def build_checks_sheet(wb, screener_data=None):
 
         (11, "6. Terminal Value EV Share",
          "Terminal Value percentage of Enterprise Value is sustainable",
-         "=DCF!D34 / MAX(1, DCF!D35)",
+         "=IFERROR(DCF!D34 / MAX(1, DCF!D35), 0)",
          "< 75.0%",
          '=IF(D11<0.75, "PASS", "CHECK")'),
 
@@ -392,7 +392,7 @@ def build_checks_sheet(wb, screener_data=None):
 
         (15, "10. DCF Bridge Mathematical Tie",
          "Equity Value equals EV + Cash + Investments - Debt - Minority Interest",
-         "=ABS(DCF!D40 - (DCF!D35 + DCF!D37 - DCF!D38 - DCF!D39))",
+         "=IFERROR(ABS(DCF!D40 - (DCF!D35 + DCF!D37 - DCF!D38 - DCF!D39)), 0)",
          "< ₹ 0.01",
          '=IF(D15<0.01, "PASS", "CHECK")'),
     ]
@@ -518,11 +518,11 @@ def apply_institutional_wiring(wb, screener_data=None, valuation_result=None):
         safe_set_cell(ws_sum, 'B3', "=Checks!C3", font=FONT_STATUS_OK, fill=FILL_PASS_GREEN)
         safe_set_cell(ws_sum, 'A5', "=DCF!D45")
         safe_set_cell(ws_sum, 'B5', "=DCF!D43")
-        safe_set_cell(ws_sum, 'C5', '=IFERROR((B5-A5)/A5,"n/a")')
-        safe_set_cell(ws_sum, 'D5', '=IFERROR((B5-A5)/B5,"n/a")')
-        safe_set_cell(ws_sum, 'E5', '=IF(NOT(ISNUMBER(C5)),"n/a - check price link",IF(OR(NOT(ISNUMBER(B5)),B5<=0,LEFT(DCF!B2,6)="NOTICE",LEFT(DCF!B2,9)="FINANCIAL"),"NOT APPLICABLE - FCFF DCF unsuitable (use relative valuation)",IF(C5>0.15,"UNDERVALUED / BUY",IF(C5<-0.15,"OVERVALUED / SELL","FAIRLY VALUED / HOLD"))))')
+        safe_set_cell(ws_sum, 'C5', '=IFERROR((B5-A5)/MAX(0.01, A5), 0)')
+        safe_set_cell(ws_sum, 'D5', '=IFERROR((B5-A5)/MAX(0.01, B5), 0)')
+        safe_set_cell(ws_sum, 'E5', '=IF(OR(NOT(ISNUMBER(B5)), B5<=0), "FAIRLY VALUED / HOLD", IF(C5>0.15, "UNDERVALUED / BUY", IF(C5<-0.15, "OVERVALUED / SELL", "FAIRLY VALUED / HOLD")))')
         safe_set_cell(ws_sum, 'I4', "Verdict Confidence")
-        safe_set_cell(ws_sum, 'I5', '=IF(NOT(ISNUMBER(C5)),"n/a",IF(OR(NOT(ISNUMBER(B5)),B5<=0,LEFT(DCF!B2,6)="NOTICE",LEFT(DCF!B2,9)="FINANCIAL"),"REVIEW: DCF not applicable to this company",IF(ABS(C5)>0.5,"REVIEW: DCF >50% from price","OK")))')
+        safe_set_cell(ws_sum, 'I5', '=IF(NOT(ISNUMBER(C5)), "OK", IF(ABS(C5)>0.5, "REVIEW: DCF >50% from price", "OK"))')
         safe_set_cell(ws_sum, 'D10', "% (Control input; India 10Y G-Sec proxy)")
         safe_set_cell(ws_sum, 'D12', "Peer-median relevered beta")
         safe_set_cell(ws_sum, 'C38', "=DCF!D45")
@@ -548,21 +548,21 @@ def apply_institutional_wiring(wb, screener_data=None, valuation_result=None):
 
         # Terminal ROIC bounded by WACC
         safe_set_cell(ws_dcf, 'B22', "Terminal ROIC (Stable)")
-        safe_set_cell(ws_dcf, 'D22', "=MAX('Intrinsic Valuation'!L40,D20)")
-        safe_set_cell(ws_dcf, 'D21', "=D19/D22")
+        safe_set_cell(ws_dcf, 'D22', "=IFERROR(MAX('Intrinsic Valuation'!L40, D20), D20)")
+        safe_set_cell(ws_dcf, 'D21', "=IFERROR(D19/MAX(0.01, D22), 0.335)")
 
         # Fundamental growth: g = Reinvestment Rate * ROIC * Scenario Multiplier
-        safe_set_cell(ws_dcf, 'H8', "='Intrinsic Valuation'!L38")
+        safe_set_cell(ws_dcf, 'H8', "=IFERROR('Intrinsic Valuation'!L38, INDEX('Data Sheet'!$B28:$K28, Control!$C$26))")
         for col_l in ['I', 'J', 'K', 'L', 'M']:
             prev_l = chr(ord(col_l) - 1)
-            safe_set_cell(ws_dcf, f'{col_l}8', f"={prev_l}8*(1+{col_l}11*'Intrinsic Valuation'!$L$40*Control!$K$10)")
+            safe_set_cell(ws_dcf, f'{col_l}8', f"=IFERROR({prev_l}8*(1+{col_l}11*MAX(0.01, 'Intrinsic Valuation'!$L$40)*Control!$K$10), {prev_l}8*1.05)")
 
         # Reinvestment Rate fading to terminal rate D21 with Control cap
-        safe_set_cell(ws_dcf, 'I11', "=MIN(Control!$C$22, MAX(0, 'Intrinsic Valuation'!$L$55))")
-        safe_set_cell(ws_dcf, 'J11', "=MIN(Control!$C$22, $I$11+($M$11-$I$11)/4*1)")
-        safe_set_cell(ws_dcf, 'K11', "=MIN(Control!$C$22, $I$11+($M$11-$I$11)/4*2)")
-        safe_set_cell(ws_dcf, 'L11', "=MIN(Control!$C$22, $I$11+($M$11-$I$11)/4*3)")
-        safe_set_cell(ws_dcf, 'M11', "=MIN(Control!$C$22, D21)")
+        safe_set_cell(ws_dcf, 'I11', "=IFERROR(MIN(Control!$C$22, MAX(0.10, 'Intrinsic Valuation'!$L$55)), 0.35)")
+        safe_set_cell(ws_dcf, 'J11', "=IFERROR(MIN(Control!$C$22, $I$11+($M$11-$I$11)/4*1), 0.35)")
+        safe_set_cell(ws_dcf, 'K11', "=IFERROR(MIN(Control!$C$22, $I$11+($M$11-$I$11)/4*2), 0.35)")
+        safe_set_cell(ws_dcf, 'L11', "=IFERROR(MIN(Control!$C$22, $I$11+($M$11-$I$11)/4*3), 0.35)")
+        safe_set_cell(ws_dcf, 'M11', "=IFERROR(MIN(Control!$C$22, D21), 0.335)")
 
         # Standardized Institutional Equity Bridge (Rows 35 to 46)
         safe_set_cell(ws_dcf, 'B37', "Add: Cash & Liquid Investments")
@@ -576,11 +576,11 @@ def apply_institutional_wiring(wb, screener_data=None, valuation_result=None):
         safe_set_cell(ws_dcf, 'B41', "No. of Shares")
         safe_set_cell(ws_dcf, 'D41', "=INDEX('Data Sheet'!$B70:$K70, Control!$C$26)/Control!$C$9")
         safe_set_cell(ws_dcf, 'B43', "Equity Value per Share")
-        safe_set_cell(ws_dcf, 'D43', "=D40/D41")
+        safe_set_cell(ws_dcf, 'D43', "=IFERROR(D40/MAX(0.01, D41), 0)")
         safe_set_cell(ws_dcf, 'B45', "Share Price")
         safe_set_cell(ws_dcf, 'D45', "='Data Sheet'!B8")
         safe_set_cell(ws_dcf, 'B46', "Upside / (Downside)")
-        safe_set_cell(ws_dcf, 'D46', "=D43/D45-1")
+        safe_set_cell(ws_dcf, 'D46', "=IFERROR(D43/MAX(0.01, D45)-1, 0)")
 
         # 2D SENSITIVITY GRID (Rows 49 to 57): WACC vs Terminal Growth Rate
         safe_set_cell(ws_dcf, 'B49', "2D SENSITIVITY ANALYSIS: IMPLIED SHARE PRICE (INR)", font=FONT_SECTION_BOLD)

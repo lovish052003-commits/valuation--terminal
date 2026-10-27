@@ -463,8 +463,18 @@ document.addEventListener('DOMContentLoaded', () => {
         // Verdict Badge
         const verdictEl = document.getElementById('verdictBadge');
         if (verdictEl) {
-            verdictEl.textContent = v.verdict;
-            verdictEl.className = `verdict-badge verdict-${v.verdict_class}`;
+            let vText = String(v.verdict || '').trim();
+            let vClass = v.verdict_class || 'hold';
+            if (!/^(UNDER|OVER|FAIRLY)/i.test(vText)) {
+                const cmp = Number(v.current_price) || 0;
+                const iv = Number(v.intrinsic_value_per_share || v.intrinsic_value) || 0;
+                const up = cmp > 0 ? ((iv - cmp) / cmp) * 100 : 0;
+                if (up > 15) { vText = "UNDERVALUED / BUY"; vClass = "buy"; }
+                else if (up < -15) { vText = "OVERVALUED / SELL"; vClass = "sell"; }
+                else { vText = "FAIRLY VALUED / HOLD"; vClass = "hold"; }
+            }
+            verdictEl.textContent = vText;
+            verdictEl.className = `verdict-badge verdict-${vClass}`;
         }
 
         // Secondary KPIs
@@ -602,8 +612,20 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const verdictEl = document.getElementById('verdictBadge');
             if (verdictEl && wbVal.verdict) {
-                verdictEl.textContent = wbVal.verdict;
-                const vClass = wbVal.verdict_class || (wbVal.verdict.includes('BUY') ? 'buy' : (wbVal.verdict.includes('SELL') ? 'sell' : 'hold'));
+                let vText = String(wbVal.verdict).trim();
+                let vClass = wbVal.verdict_class || 'hold';
+                if (/BUY/i.test(vText)) { vText = "UNDERVALUED / BUY"; vClass = "buy"; }
+                else if (/SELL/i.test(vText)) { vText = "OVERVALUED / SELL"; vClass = "sell"; }
+                else if (/HOLD|FAIR/i.test(vText)) { vText = "FAIRLY VALUED / HOLD"; vClass = "hold"; }
+                else {
+                    const cmp = Number(wbVal.current_price || v.current_price) || 0;
+                    const iv = Number(wbVal.intrinsic_value) || 0;
+                    const up = cmp > 0 ? ((iv - cmp) / cmp) * 100 : 0;
+                    if (up > 15) { vText = "UNDERVALUED / BUY"; vClass = "buy"; }
+                    else if (up < -15) { vText = "OVERVALUED / SELL"; vClass = "sell"; }
+                    else { vText = "FAIRLY VALUED / HOLD"; vClass = "hold"; }
+                }
+                verdictEl.textContent = vText;
                 verdictEl.className = `verdict-badge verdict-${vClass}`;
             }
             if (wbVal.wacc) {

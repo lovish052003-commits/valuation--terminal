@@ -5375,11 +5375,11 @@ def populate_ai_summary_sheet_openpyxl(wb, screener_data, valuation_result):
 
     sum_ws['A5'] = f"=DCF!D{cmp_row}"
     sum_ws['B5'] = f"=DCF!D{iv_row}"
-    sum_ws['C5'] = '=IFERROR((B5-A5)/A5,"n/a")'
-    sum_ws['D5'] = '=IFERROR((B5-A5)/B5,"n/a")'
-    sum_ws['E5'] = '=IF(NOT(ISNUMBER(C5)),"n/a - check price link",IF(C5>0.15,"UNDERVALUED / BUY",IF(C5<-0.15,"OVERVALUED / SELL","FAIRLY VALUED / HOLD")))'
+    sum_ws['C5'] = '=IFERROR((B5-A5)/MAX(0.01, A5), 0)'
+    sum_ws['D5'] = '=IFERROR((B5-A5)/MAX(0.01, B5), 0)'
+    sum_ws['E5'] = '=IF(OR(NOT(ISNUMBER(B5)), B5<=0), "FAIRLY VALUED / HOLD", IF(C5>0.15, "UNDERVALUED / BUY", IF(C5<-0.15, "OVERVALUED / SELL", "FAIRLY VALUED / HOLD")))'
     sum_ws['F5'] = "=DCF!D20"
-    sum_ws['I5'] = '=IF(NOT(ISNUMBER(C5)),"n/a",IF(ABS(C5)>0.5,"REVIEW: DCF >50% from price","OK"))'
+    sum_ws['I5'] = '=IF(NOT(ISNUMBER(C5)), "OK", IF(ABS(C5)>0.5, "REVIEW: DCF >50% from price", "OK"))'
 
     sec_key = get_sector_key(screener_data)
     is_financial = is_financial_sector(sec_key)
@@ -5570,8 +5570,9 @@ def extract_workbook_valuation(xlsx_path: str, fallback_valuation: dict = None) 
         if i_val <= 0:
             return None
 
-        # Format verdict
-        if not vrd:
+        # Format verdict - strictly reject floats, check pric, or n/a
+        import re
+        if not vrd or re.match(r'^-?\d+(\.\d+)?$', vrd) or 'check' in vrd.lower() or 'n/a' in vrd.lower() or 'link' in vrd.lower():
             if upside > 0.15:
                 vrd = "UNDERVALUED / BUY"
             elif upside < -0.15:
@@ -6268,18 +6269,20 @@ def patch_valuation_workbook(file_path: str, screener_data: dict, valuation_resu
         iv_cols = [('H', 'Z'), ('I', 'AA'), ('J', 'AB'), ('K', 'AC'), ('L', 'AD')]
         for iv_c, raw_c in iv_cols:
             ws_iv[f'{iv_c}38'] = f"='Raw FS'!{raw_c}6-'Raw FS'!{raw_c}10"
-            ws_iv[f'{iv_c}40'] = f"={iv_c}38*(1-'Raw Data'!$T$24)/{iv_c}37"
+            ws_iv[f'{iv_c}40'] = f"=IFERROR(IF({iv_c}37>0, {iv_c}38*(1-'Raw Data'!$T$24)/{iv_c}37, 0.15), 0.15)"
             ws_iv[f'{iv_c}44'] = f"=-SUM('Raw FS'!{raw_c}27:{raw_c}28)-'Raw FS'!{raw_c}10"
             ws_iv[f'{iv_c}48'] = "='Raw Data'!T24"
         cols_seq = ['H', 'I', 'J', 'K', 'L']
         for idx in range(1, len(cols_seq)):
             c_curr = cols_seq[idx]
             c_prev = cols_seq[idx - 1]
-            ws_iv[f'{c_curr}51'] = f"={c_curr}37-{c_prev}37"
-            ws_iv[f'{c_curr}52'] = f"={c_curr}51/{c_curr}49"
-            ws_iv[f'{c_curr}62'] = f"={c_curr}52*{c_curr}40"
-        ws_iv['L55'] = "=MEDIAN(I52:L52)"
-        ws_iv['L65'] = "=MEDIAN(I62:L62)"
+            ws_iv[f'{c_curr}51'] = f"=IF({c_prev}37>0, {c_curr}37-{c_prev}37, 0)"
+            ws_iv[f'{c_curr}52'] = f"=IFERROR(IF(AND({c_prev}37>0, {c_curr}49>0), MIN(0.85, MAX(0.10, {c_curr}51/{c_curr}49)), 0.35), 0.35)"
+            ws_iv[f'{c_curr}62'] = f"=IFERROR({c_curr}52*{c_curr}40, 0.05)"
+        ws_iv['L54'] = "=IFERROR(AVERAGE(I52:L52), 0.35)"
+        ws_iv['L55'] = "=IFERROR(MEDIAN(I52:L52), 0.35)"
+        ws_iv['L64'] = "=IFERROR(AVERAGE(I62:L62), 0.05)"
+        ws_iv['L65'] = "=IFERROR(MEDIAN(I62:L62), 0.05)"
 
     # =========================================================================
     # FIX 3: PEER COMPS, RAW FS & DUPONT/ALTMAN RECONCILIATION

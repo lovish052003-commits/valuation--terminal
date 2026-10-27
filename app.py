@@ -165,35 +165,55 @@ def analyze():
                 wb_val = excel_exporter.LAST_COM_METRICS.get(primary_path) or excel_exporter.extract_workbook_valuation(primary_path)
 
         if wb_val and not custom_params:
-            if wb_val.get('intrinsic_value'):
-                val_result['intrinsic_value_per_share'] = wb_val['intrinsic_value']
-                val_result['intrinsic_value'] = wb_val['intrinsic_value']
-                val_result['dcf_value'] = wb_val['intrinsic_value']
-            if wb_val.get('enterprise_value'):
-                val_result['enterprise_value'] = wb_val['enterprise_value']
-            if wb_val.get('equity_value'):
-                val_result['equity_value'] = wb_val['equity_value']
+            if wb_val.get('intrinsic_value') and float(wb_val['intrinsic_value']) > 0:
+                val_result['intrinsic_value_per_share'] = round(float(wb_val['intrinsic_value']), 2)
+                val_result['intrinsic_value'] = round(float(wb_val['intrinsic_value']), 2)
+                val_result['dcf_value'] = round(float(wb_val['intrinsic_value']), 2)
+            if wb_val.get('enterprise_value') and float(wb_val['enterprise_value']) > 0:
+                val_result['enterprise_value'] = round(float(wb_val['enterprise_value']), 2)
+            if wb_val.get('equity_value') and float(wb_val['equity_value']) > 0:
+                val_result['equity_value'] = round(float(wb_val['equity_value']), 2)
             if wb_val.get('margin_of_safety_pct') is not None:
-                val_result['margin_of_safety_pct'] = wb_val['margin_of_safety_pct']
-                val_result['margin_of_safety'] = wb_val['margin_of_safety_pct']
+                try:
+                    mos_f = float(wb_val['margin_of_safety_pct'])
+                    if mos_f != 0.0 or val_result.get('margin_of_safety_pct') == 0:
+                        val_result['margin_of_safety_pct'] = round(mos_f, 2)
+                        val_result['margin_of_safety'] = round(mos_f, 2)
+                except Exception:
+                    pass
             if wb_val.get('upside_pct') is not None:
-                val_result['upside_pct'] = wb_val['upside_pct']
-            if wb_val.get('verdict'):
-                val_result['verdict'] = wb_val['verdict']
-            if wb_val.get('verdict_class'):
-                val_result['verdict_class'] = wb_val['verdict_class']
-            if wb_val.get('wacc'):
-                val_result['wacc'] = wb_val['wacc']
+                try:
+                    up_f = float(wb_val['upside_pct'])
+                    if up_f != 0.0 or val_result.get('upside_pct') == 0:
+                        val_result['upside_pct'] = round(up_f, 2)
+                except Exception:
+                    pass
+            
+            # Protect verdict: only allow genuine string verdicts
+            v_raw = str(wb_val.get('verdict') or '').strip().upper()
+            if 'BUY' in v_raw:
+                val_result['verdict'] = "UNDERVALUED / BUY"
+                val_result['verdict_class'] = "buy"
+            elif 'SELL' in v_raw:
+                val_result['verdict'] = "OVERVALUED / SELL"
+                val_result['verdict_class'] = "sell"
+            elif 'HOLD' in v_raw or 'FAIR' in v_raw:
+                val_result['verdict'] = "FAIRLY VALUED / HOLD"
+                val_result['verdict_class'] = "hold"
+            # If v_raw is a float, check price, or empty, do NOT overwrite val_result['verdict']!
+
+            if wb_val.get('wacc') and float(wb_val['wacc']) > 0:
+                val_result['wacc'] = round(float(wb_val['wacc']), 2)
             if wb_val.get('growth_rate'):
-                val_result['growth_rate'] = wb_val['growth_rate']
+                val_result['growth_rate'] = round(float(wb_val['growth_rate']), 2)
             if wb_val.get('terminal_growth'):
-                val_result['terminal_growth'] = wb_val['terminal_growth']
+                val_result['terminal_growth'] = round(float(wb_val['terminal_growth']), 2)
             if wb_val.get('tax_rate'):
-                val_result['tax_rate'] = wb_val['tax_rate']
+                val_result['tax_rate'] = round(float(wb_val['tax_rate']), 2)
             if wb_val.get('shares_cr'):
-                val_result['shares_cr'] = wb_val['shares_cr']
-            if wb_val.get('current_price'):
-                val_result['current_price'] = wb_val['current_price']
+                val_result['shares_cr'] = round(float(wb_val['shares_cr']), 2)
+            if wb_val.get('current_price') and float(wb_val['current_price']) > 0:
+                val_result['current_price'] = round(float(wb_val['current_price']), 2)
 
         val_result['run_id'] = run_id
         val_result['data_source'] = screener_data.get('data_source', 'Screener.in')
@@ -597,6 +617,10 @@ def download_excel(filename):
         fresh_path = status_info['path']
         if os.path.exists(fresh_path) and os.path.getsize(fresh_path) > 10000:
             return send_file(fresh_path, as_attachment=True, download_name=clean_filename)
+
+    reconciled_path = os.path.join(excel_exporter.EXPORT_DIR, clean_filename.replace('.xlsx', '_reconciled.xlsx'))
+    if os.path.exists(reconciled_path) and os.path.getsize(reconciled_path) > 10000:
+        return send_file(reconciled_path, as_attachment=True, download_name=clean_filename)
 
     file_path = os.path.join(excel_exporter.EXPORT_DIR, clean_filename)
     if os.path.exists(file_path) and os.path.getsize(file_path) > 10000:
