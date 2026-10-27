@@ -831,10 +831,6 @@ def search_companies(query):
         if len(results) >= 8:
             break
 
-    # If we have strong local results, return them immediately!
-    if len(results) >= 4:
-        return results
-
     # 2. Fast non-blocking Screener.in search supplement (0.8s timeout)
     try:
         url = f"https://www.screener.in/api/company/search/?q={requests.utils.quote(clean_query)}"
@@ -842,18 +838,18 @@ def search_companies(query):
         r = session.get(url, timeout=(0.8, 1.2))
         if r.status_code == 200:
             api_items = r.json()
-            for item in api_items:
+            for item in reversed(api_items):
                 m = re.search(r'/company/([^/]+)/', item.get('url', ''))
                 ticker = m.group(1) if m else item.get('name', '')
                 if ticker not in seen:
                     seen.add(ticker)
-                    results.append({
+                    results.insert(0, {
                         'id': item.get('id'),
                         'name': item.get('name'),
                         'url': item.get('url'),
                         'ticker': ticker
                     })
-                if len(results) >= 10:
+                if len(results) >= 12:
                     break
     except Exception:
         # Ignore network errors on search; local results always guarantee autocomplete works
@@ -1871,48 +1867,119 @@ def fetch_company_data(symbol_or_query):
     company_id = resolved_info.get('id')
     ticker = resolved_info.get('ticker', clean_query.upper())
 
-    # 2. Fetch page (try consolidated first, fallback to standalone)
+    # 2. Fetch page: Try primary path, BSE code, NSE ticker, and live search API
     session = get_screener_session()
-    full_url = f"https://www.screener.in{company_path}"
     resp = None
     is_consolidated = True
+    full_url = None
 
-    try:
-        resp = session.get(full_url, timeout=(3.0, 10.0))
-        if resp.status_code == 429:
-            time.sleep(1.5)
-            resp = session.get(full_url, timeout=(4.0, 12.0))
-        if resp.status_code == 404 and '/consolidated/' in full_url:
-            full_url = full_url.replace('/consolidated/', '/')
-            resp = session.get(full_url, timeout=(3.0, 10.0))
-            is_consolidated = False
-    except Exception as e_net:
-        print(f"[ScreenerClient] Live network request failed for '{ticker}': {e_net}. Checking local cache/models...")
-        offline_data = load_offline_company_data(ticker, display_name)
-        if offline_data:
-            return offline_data
-        raise RuntimeError(
-            f"Unable to connect to Screener.in live server ({str(e_net)}). "
-            f"Your network connection (e.g. 24Online Client) may need re-authentication or is blocking port 443. "
-            f"Please verify internet access or analyze one of the pre-loaded companies: "
-            f"ITC Ltd, Tata Motors, Nestle India, Force Motors, Jubilant FoodWorks, Infosys, Britannia, Unilever, Tata Steel, Reliance, etc."
-        )
+    # Build prioritized candidate paths:
+    candidate_paths = []
+    if company_path:
+        candidate_paths.append(company_path)
 
+    bse_code = resolved_info.get('bse_code') or resolved_info.get('bseCode')
+    if bse_code and str(bse_code).strip():
+        b_clean = str(bse_code).strip()
+        b_path = f"/company/{b_clean}/consolidated/"
+        if b_path not in candidate_paths:
+            candidate_paths.append(b_path)
+
+    nse_ticker = resolved_info.get('nse_ticker') or resolved_info.get('nseSymbol')
+    if nse_ticker and str(nse_ticker).strip():
+        n_clean = str(nse_ticker).strip()
+        n_path = f"/company/{n_clean}/consolidated/"
+        if n_path not in candidate_paths:
+            candidate_paths.append(n_path)
+
+    # Try candidate paths (both consolidated and standalone)
+    for c_path in candidate_paths:
+        urls_to_try = [f"https://www.screener.in{c_path}"]
+        if '/consolidated/' in c_path:
+            urls_to_try.append(f"https://www.screener.in{c_path.replace('/consolidated/', '/')}")
+        else:
+            urls_to_try.insert(0, f"https://www.screener.in{c_path.rstrip('/')}/consolidated/")
+
+        for u in urls_to_try:
+            try:
+                r = session.get(u, timeout=(3.0, 10.0))
+                if r.status_code == 429:
+                    time.sleep(1.5)
+                    r = session.get(u, timeout=(4.0, 12.0))
+                if r.status_code == 200:
+                    resp = r
+                    full_url = u
+                    is_consolidated = '/consolidated/' in u
+                    m_slug = re.search(r'/company/([^/]+)/', u)
+                    if m_slug:
+                        found_slug = m_slug.group(1).upper()
+                        if found_slug != ticker:
+                            ticker = found_slug
+                    break
+            except Exception:
+                pass
+        if resp and resp.status_code == 200:
+            break
+
+    # 3. Fallback: Query live Screener.in search API directly with multiple query variations
     if resp is None or resp.status_code != 200:
-        # Try direct search again as fallback
         try:
-            matches = search_companies(clean_query)
-            if not matches and resolved_info and resolved_info.get('company_name'):
-                matches = search_companies(resolved_info['company_name'])
-            if matches and matches[0]['url'] != company_path:
-                full_url = f"https://www.screener.in{matches[0]['url']}"
-                resp = session.get(full_url, timeout=(3.0, 8.0))
-                if resp.status_code == 200:
-                    display_name = matches[0]['name']
-                    ticker = matches[0].get('ticker', ticker)
-                    company_id = matches[0].get('id')
-        except Exception:
-            pass
+            from urllib.parse import quote
+            clean_search_terms = [clean_query]
+            no_ltd = re.sub(r'\b(ltd|limited|pvt|private|inc|corp)\b\.?', '', clean_query, flags=re.I).strip()
+            if no_ltd and no_ltd != clean_query:
+                clean_search_terms.append(no_ltd)
+            c_name_cand = resolved_info.get('company_name') or resolved_info.get('name')
+            if c_name_cand and c_name_cand not in clean_search_terms:
+                clean_search_terms.append(c_name_cand)
+                no_ltd_c = re.sub(r'\b(ltd|limited|pvt|private|inc|corp)\b\.?', '', c_name_cand, flags=re.I).strip()
+                if no_ltd_c and no_ltd_c not in clean_search_terms:
+                    clean_search_terms.append(no_ltd_c)
+
+            live_matches = []
+            for st in clean_search_terms:
+                try:
+                    s_url = f"https://www.screener.in/api/company/search/?q={quote(st)}"
+                    s_resp = session.get(s_url, timeout=(2.0, 5.0))
+                    if s_resp.status_code == 200:
+                        for item in s_resp.json():
+                            if item not in live_matches:
+                                live_matches.append(item)
+                except Exception:
+                    pass
+                if live_matches:
+                    break
+
+            for lm in live_matches:
+                u_base = lm.get('url', '')
+                if not u_base:
+                    continue
+                lm_urls = [f"https://www.screener.in{u_base}"]
+                if '/consolidated/' not in u_base:
+                    lm_urls.insert(0, f"https://www.screener.in{u_base.rstrip('/')}/consolidated/")
+                else:
+                    lm_urls.append(f"https://www.screener.in{u_base.replace('/consolidated/', '/')}")
+
+                for u_try in lm_urls:
+                    try:
+                        r_try = session.get(u_try, timeout=(3.0, 8.0))
+                        if r_try.status_code == 200:
+                            resp = r_try
+                            full_url = u_try
+                            is_consolidated = '/consolidated/' in u_try
+                            display_name = lm.get('name', display_name)
+                            m_slug = re.search(r'/company/([^/]+)/', u_base)
+                            if m_slug:
+                                ticker = m_slug.group(1).upper()
+                            company_id = lm.get('id') or company_id
+                            break
+                    except Exception:
+                        pass
+                if resp and resp.status_code == 200:
+                    print(f"[ScreenerClient] Successfully resolved '{clean_query}' to live page: {full_url}")
+                    break
+        except Exception as e_search_fallback:
+            print(f"[ScreenerClient] Live search fallback notice: {e_search_fallback}")
 
     if resp is None or resp.status_code != 200:
         offline_data = load_offline_company_data(ticker, display_name)
@@ -1953,6 +2020,30 @@ def fetch_company_data(symbol_or_query):
             k = name[0].strip()
             v = "".join(val).strip()
             meta[k] = v
+
+    # If consolidated page returned empty ratios/prices (e.g. standalone-only companies), fall back to standalone
+    if clean_num(meta.get('Current Price', 0)) <= 0 and is_consolidated and full_url and '/consolidated/' in full_url:
+        alt_standalone_url = full_url.replace('/consolidated/', '/')
+        try:
+            r_alt = session.get(alt_standalone_url, timeout=(3.0, 10.0))
+            if r_alt.status_code == 200:
+                tree_alt = html.fromstring(r_alt.content)
+                meta_alt = {}
+                for li in tree_alt.xpath('//ul[@id="top-ratios"]//li'):
+                    name_a = li.xpath('.//span[@class="name"]/text()')
+                    val_a = li.xpath('.//span[@class="nowrap value"]//text()')
+                    if name_a and val_a:
+                        k_a = name_a[0].strip()
+                        v_a = "".join(val_a).strip()
+                        meta_alt[k_a] = v_a
+                if clean_num(meta_alt.get('Current Price', 0)) > 0:
+                    resp = r_alt
+                    tree = tree_alt
+                    meta = meta_alt
+                    full_url = alt_standalone_url
+                    is_consolidated = False
+        except Exception:
+            pass
 
     # Extract Company Profile & Sector/Industry
     about_p = tree.xpath('//div[@class="about"]//p')
