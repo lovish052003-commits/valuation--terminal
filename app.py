@@ -602,6 +602,11 @@ def download_excel(filename):
     if os.path.exists(file_path) and os.path.getsize(file_path) > 10000:
         return send_file(file_path, as_attachment=True, download_name=clean_filename)
 
+    if ticker_prefix == 'TATAMOTORS':
+        tmcv_p = os.path.join(excel_exporter.EXPORT_DIR, 'TMCV_Valuation_Model.xlsx')
+        if os.path.exists(tmcv_p) and os.path.getsize(tmcv_p) > 10000:
+            return send_file(tmcv_p, as_attachment=True, download_name=clean_filename)
+
     # Check if we have cached analysis for this ticker to generate on demand if file is missing, stale, or failed
     cached = ANALYSIS_CACHE.get(ticker_prefix) or (ANALYSIS_CACHE.get('latest') if ANALYSIS_CACHE.get('latest', {}).get('screener_data', {}).get('ticker') == ticker_prefix else None)
     file_path = os.path.join(excel_exporter.EXPORT_DIR, clean_filename)

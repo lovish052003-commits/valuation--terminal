@@ -66,13 +66,16 @@ COMPANY_ALIAS_MAP = {
     'TATA CONSULTANCY': 'TCS',
     'TATA CONSULTANCY SERVICES': 'TCS',
     'TATA CONSULTANCY SERVICES LTD': 'TCS',
-    'TATA MOTORS': 'TATAMOTORS',
-    'TATA MOTOR': 'TATAMOTORS',
-    'TATAMOTORS': 'TATAMOTORS',
-    'TATA MOTORS LTD': 'TATAMOTORS',
-    'TATA MOTORS LIMITED': 'TATAMOTORS',
-    'TMCV': 'TATAMOTORS',
-    'TMPV': 'TATAMOTORS',
+    'TATA MOTORS': 'TMCV',
+    'TATA MOTOR': 'TMCV',
+    'TATAMOTORS': 'TMCV',
+    'TATA MOTORS LTD': 'TMCV',
+    'TATA MOTORS LIMITED': 'TMCV',
+    'TMCV': 'TMCV',
+    'TMPV': 'TMPV',
+    'TATA MOTORS PASSENGER VEHICLES': 'TMPV',
+    'TATA MOTORS PASSENGER VEHICLES LTD': 'TMPV',
+    'TATA MOTORS PV': 'TMPV',
     'FORCE MOTORS': 'FORCEMOT',
     'FORCE MOTORS LTD': 'FORCEMOT',
     'FORCE MOTORS LIMITED': 'FORCEMOT',
@@ -392,6 +395,11 @@ def load_list_of_stocks():
                     nse = 'HINDUNILVR'
                     bse = '500696'
                     ind = 'Personal Products'
+                elif bse == '500570' or nse in ('TATAMOTORS', 'TMCV'):
+                    c_name_str = 'TATA MOTORS LTD'
+                    nse = 'TMCV'
+                    bse = '500570'
+                    ind = 'Commercial Vehicles'
                 
                 entry = {
                     'company_name': c_name_str,
@@ -407,6 +415,21 @@ def load_list_of_stocks():
                     _STOCKS_BY_BSE[bse] = entry
                 if entry['norm_name']:
                     _STOCKS_BY_NAME[entry['norm_name']] = entry
+
+        # Map legacy TATAMOTORS ticker to TMCV and add TMPV
+        if 'TMCV' in _STOCKS_BY_NSE:
+            _STOCKS_BY_NSE['TATAMOTORS'] = _STOCKS_BY_NSE['TMCV']
+        if 'TMPV' not in _STOCKS_BY_NSE:
+            tmpv_entry = {
+                'company_name': 'TATA MOTORS PASSENGER VEHICLES LTD',
+                'bse_code': '544563',
+                'nse_ticker': 'TMPV',
+                'industry': 'Passenger Vehicles',
+                'norm_name': 'TATA MOTORS PASSENGER VEHICLES LTD'
+            }
+            _LIST_OF_STOCKS.append(tmpv_entry)
+            _STOCKS_BY_NSE['TMPV'] = tmpv_entry
+            _STOCKS_BY_NAME['TATA MOTORS PASSENGER VEHICLES LTD'] = tmpv_entry
     except Exception as e:
         print(f"[List of Stocks] Notice: Pre-load List of Stocks: {e}")
         
@@ -1554,8 +1577,8 @@ def fetch_nse_daily_prices_1y(ticker):
     }
     clean_t = ticker.upper().replace('.NS', '').replace('.BO', '').strip()
     ticker_candidates = [clean_t]
-    if clean_t == 'TATAMOTORS':
-        ticker_candidates.extend(['TATAMTRDVR', 'TTM'])
+    if clean_t in ('TATAMOTORS', 'TMCV'):
+        ticker_candidates.extend(['TMCV', 'TATAMOTORS', 'TATAMTRDVR', 'TTM'])
 
     for c_ticker in ticker_candidates:
         for suffix in ['.NS', '.BO']:
@@ -1666,6 +1689,8 @@ def load_offline_company_data(ticker, display_name=None):
     2. Fallback: inspects pre-existing institutional Excel models in exports/ or workspace root.
     """
     clean_t = ticker.upper().strip()
+    if clean_t in ('TATAMOTORS', 'TATA MOTORS'):
+        clean_t = 'TMCV'
     cache_dir = os.path.join(os.path.dirname(__file__), 'exports', '.screener_cache')
     cache_file = os.path.join(cache_dir, f"{clean_t}_data.json")
     
@@ -1705,7 +1730,9 @@ def load_offline_company_data(ticker, display_name=None):
     special_models = {
         'ITC': os.path.join(ws_root, 'ITC Model.xlsx'),
         'NESTLEIND': os.path.join(ws_root, 'Nestle India Model.xlsx'),
-        'TATAMOTORS': os.path.join(exports_dir, 'TATAMOTORS_Valuation_Model.xlsx'),
+        'TMCV': os.path.join(exports_dir, 'TMCV_Valuation_Model.xlsx'),
+        'TATAMOTORS': os.path.join(exports_dir, 'TMCV_Valuation_Model.xlsx'),
+        'TMPV': os.path.join(exports_dir, 'TMPV_Valuation_Model.xlsx'),
         'BRITANNIA': os.path.join(ws_root, 'Britannia Inds Model.xlsx'),
         'HINDUNILVR': os.path.join(ws_root, 'Hind. Unilever Model.xlsx'),
         'INFY': os.path.join(ws_root, 'Infosys Ltd.xlsx'),

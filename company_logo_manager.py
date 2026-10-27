@@ -21,6 +21,8 @@ os.makedirs(STATIC_LOGO_DIR, exist_ok=True)
 DOMAIN_MAP = {
     'TATASTEEL': 'tatasteel.com',
     'TATAMOTORS': 'tatamotors.com',
+    'TMCV': 'tatamotors.com',
+    'TMPV': 'tatamotors.com',
     'TCS': 'tcs.com',
     'RELIANCE': 'relianceindustries.com',
     'HINDUNILVR': 'hul.co.in',
