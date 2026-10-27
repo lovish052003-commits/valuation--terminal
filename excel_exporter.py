@@ -5513,15 +5513,27 @@ def extract_workbook_valuation(xlsx_path: str, fallback_valuation: dict = None) 
             return None
         ws_sum = wb['AI Valuation Summary']
         ws_dcf = wb['DCF'] if 'DCF' in wb.sheetnames else None
+        header_map = {}
+        for col_idx in range(1, 15):
+            h_val = str(ws_sum.cell(row=4, column=col_idx).value or '').lower()
+            if 'price' in h_val: header_map['price'] = col_idx
+            elif 'intrinsic' in h_val: header_map['iv'] = col_idx
+            elif 'upside' in h_val or 'downside' in h_val: header_map['upside'] = col_idx
+            elif 'margin' in h_val or 'safety' in h_val: header_map['mos'] = col_idx
+            elif 'verdict' in h_val and 'confidence' not in h_val: header_map['verdict'] = col_idx
+            elif 'wacc' in h_val: header_map['wacc'] = col_idx
+            elif 'altman' in h_val or 'z-score' in h_val: header_map['altman'] = col_idx
+            elif 'dupont' in h_val or 'roe' in h_val: header_map['dupont'] = col_idx
 
-        c_price = clean_num(ws_sum['A5'].value or 0)
-        i_val = clean_num(ws_sum['B5'].value or 0)
-        upside = clean_num(ws_sum['C5'].value or 0)
-        mos = clean_num(ws_sum['D5'].value or 0)
-        vrd = str(ws_sum['E5'].value or '').strip()
-        wacc_v = clean_num(ws_sum['F5'].value or 0)
-        az_v = ws_sum['G5'].value
-        dp_v = clean_num(ws_sum['H5'].value or 0)
+        c_price = clean_num(ws_sum.cell(row=5, column=header_map.get('price', 1)).value or 0)
+        i_val = clean_num(ws_sum.cell(row=5, column=header_map.get('iv', 2)).value or 0)
+        upside = clean_num(ws_sum.cell(row=5, column=header_map.get('upside', 3)).value or 0) if 'upside' in header_map else (clean_num((i_val - c_price)/c_price) if c_price > 0 else 0)
+        mos = clean_num(ws_sum.cell(row=5, column=header_map.get('mos', 4 if 'upside' in header_map else 3)).value or 0)
+        vrd_val = ws_sum.cell(row=5, column=header_map.get('verdict', 5 if 'upside' in header_map else 4)).value
+        vrd = str(vrd_val or '').strip()
+        wacc_v = clean_num(ws_sum.cell(row=5, column=header_map.get('wacc', 6 if 'upside' in header_map else 5)).value or 0)
+        az_v = ws_sum.cell(row=5, column=header_map.get('altman', 7 if 'upside' in header_map else 6)).value
+        dp_v = clean_num(ws_sum.cell(row=5, column=header_map.get('dupont', 8 if 'upside' in header_map else 7)).value or 0)
 
         ev_v = clean_num(ws_dcf['D35'].value or 0) if ws_dcf else 0.0
         eq_v = clean_num(ws_dcf['D40'].value or 0) if ws_dcf else 0.0
