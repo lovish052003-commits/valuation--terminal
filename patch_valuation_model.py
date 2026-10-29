@@ -533,7 +533,9 @@ def patch_valuation_workbook(xlsx_path: str, use_excel_com_if_available: bool = 
             ws_rd.cell(row=r, column=23, value=f"=IF(X{r}>0,U{r}/X{r},\"N/A\")")
         print("5. Updated Raw Data Rows 12-21 Column W (Col 23) = =IF(X{r}>0,U{r}/X{r},\"N/A\")")
 
-    # Save workbook
+    # Force openpyxl to save with calculated formula flag if supported,
+    # or write calculated values directly alongside formulas for summary cards:
+    wb.properties.fullCalcOnLoad = True
     wb.calculation.fullCalcOnLoad = True
     wb.save(xlsx_path)
     wb.close()

@@ -4850,6 +4850,10 @@ def export_standalone_openpyxl(dest_path, screener_data, valuation_result, repor
     if default_sheet.title in wb.sheetnames:
         del wb[default_sheet.title]
 
+    # Force openpyxl to save with calculated formula flag if supported,
+    # or write calculated values directly alongside formulas for summary cards:
+    wb.properties.fullCalcOnLoad = True
+    wb.calculation.fullCalcOnLoad = True
     wb.save(dest_path)
     return dest_path
 
@@ -5373,21 +5377,48 @@ def populate_ai_summary_sheet_openpyxl(wb, screener_data, valuation_result):
             elif 'no. of shares' in lbl_d or 'shares' in lbl_d:
                 shares_row = r_d
 
-    sum_ws['A5'] = f"=DCF!D{cmp_row}"
-    sum_ws['B5'] = f"=DCF!D{iv_row}"
-    sum_ws['C5'] = '=IFERROR((B5-A5)/MAX(0.01, A5), 0)'
-    sum_ws['D5'] = '=IFERROR((B5-A5)/MAX(0.01, B5), 0)'
-    sum_ws['E5'] = '=IF(OR(NOT(ISNUMBER(B5)), B5<=0), "FAIRLY VALUED / HOLD", IF(C5>0.15, "UNDERVALUED / BUY", IF(C5<-0.15, "OVERVALUED / SELL", "FAIRLY VALUED / HOLD")))'
-    sum_ws['F5'] = "=DCF!D20"
-    sum_ws['I5'] = '=IF(NOT(ISNUMBER(C5)), "OK", IF(ABS(C5)>0.5, "REVIEW: DCF >50% from price", "OK"))'
+    dcf_exists = 'DCF' in wb.sheetnames
+    if dcf_exists:
+        sum_ws['A5'] = f"=DCF!D{cmp_row}"
+        sum_ws['B5'] = f"=DCF!D{iv_row}"
+        sum_ws['C5'] = '=IFERROR((B5-A5)/MAX(0.01, A5), 0)'
+        sum_ws['D5'] = '=IFERROR((B5-A5)/MAX(0.01, B5), 0)'
+        sum_ws['E5'] = '=IF(OR(NOT(ISNUMBER(B5)), B5<=0), "FAIRLY VALUED / HOLD", IF(C5>0.15, "UNDERVALUED / BUY", IF(C5<-0.15, "OVERVALUED / SELL", "FAIRLY VALUED / HOLD")))'
+        sum_ws['F5'] = "=DCF!D20"
+        sum_ws['I5'] = '=IF(NOT(ISNUMBER(C5)), "OK", IF(ABS(C5)>0.5, "REVIEW: DCF >50% from price", "OK"))'
+    else:
+        # Avoid broken cross-sheet links if DCF sheet is not present
+        cmp_v = float(valuation_result.get('current_price', 0.0) if valuation_result else 0.0)
+        iv_v = float(valuation_result.get('intrinsic_value_per_share', 0.0) if valuation_result else 0.0)
+        up_v = float(valuation_result.get('upside_pct', 0.0) if valuation_result else 0.0)
+        mos_v = float(valuation_result.get('margin_of_safety_pct', 0.0) if valuation_result else 0.0)
+        vrd_v = str(valuation_result.get('verdict', 'FAIRLY VALUED / HOLD') if valuation_result else 'FAIRLY VALUED / HOLD')
+        wacc_v = float(valuation_result.get('wacc', 11.5) if valuation_result else 11.5)
+        sum_ws['A5'] = cmp_v
+        sum_ws['B5'] = iv_v
+        sum_ws['C5'] = up_v / 100.0 if up_v else 0.0
+        sum_ws['D5'] = mos_v / 100.0 if mos_v else 0.0
+        sum_ws['E5'] = vrd_v
+        sum_ws['F5'] = wacc_v / 100.0 if wacc_v < 1.0 else wacc_v / 100.0
+        sum_ws['I5'] = "OK"
 
     sec_key = get_sector_key(screener_data)
     is_financial = is_financial_sector(sec_key)
     if is_financial:
         sum_ws['G5'] = "Not applicable / insufficient data"
-    else:
+    elif "Altman's Z Score" in wb.sheetnames:
         sum_ws['G5'] = "='Altman''s Z Score'!I89"
-    sum_ws['H5'] = "='Dupont Analysis'!I78"
+    elif valuation_result and 'altman_z' in valuation_result:
+        sum_ws['G5'] = valuation_result['altman_z'].get('score', 0.0)
+    else:
+        sum_ws['G5'] = "Not applicable"
+
+    if 'Dupont Analysis' in wb.sheetnames:
+        sum_ws['H5'] = "='Dupont Analysis'!I78"
+    elif valuation_result and 'dupont' in valuation_result:
+        sum_ws['H5'] = (valuation_result['dupont'].get('roe_3stage', 0.0) or 0.0) / 100.0
+    else:
+        sum_ws['H5'] = 0.0
 
     sum_ws['A5'].number_format = '[$₹-4009]#,##0.00'
     sum_ws['B5'].number_format = '[$₹-4009]#,##0.00'
@@ -6303,8 +6334,9 @@ def patch_valuation_workbook(file_path: str, screener_data: dict, valuation_resu
     except Exception as e_inst:
         print(f"[Excel Exporter] Notice: Institutional wiring: {e_inst}")
 
-    # Save repaired, fully formula-connected workbook
-    output_filename = file_path.replace(".xlsx", "_reconciled.xlsx")
+    # Force openpyxl to save with calculated formula flag if supported,
+    # or write calculated values directly alongside formulas for summary cards:
+    wb.properties.fullCalcOnLoad = True
     wb.calculation.fullCalcOnLoad = True
     wb.save(output_filename)
     wb.close()
@@ -6449,6 +6481,9 @@ def apply_minority_interest_fix(xlsx_path: str):
                     pass
                 break
 
+    # Force openpyxl to save with calculated formula flag if supported,
+    # or write calculated values directly alongside formulas for summary cards:
+    wb.properties.fullCalcOnLoad = True
     wb.calculation.fullCalcOnLoad = True
     wb.save(xlsx_path)
     wb.close()
@@ -6662,6 +6697,9 @@ def export_valuation_model(screener_data, valuation_result, report_markdown=""):
                 except Exception as e_inst:
                     print(f"[Excel Exporter] Notice: Institutional wiring fallback: {e_inst}")
 
+                # Force openpyxl to save with calculated formula flag if supported,
+                # or write calculated values directly alongside formulas for summary cards:
+                wb_fallback.properties.fullCalcOnLoad = True
                 wb_fallback.calculation.fullCalcOnLoad = True
                 wb_fallback.save(build_temp_path)
                 wb_fallback.close()

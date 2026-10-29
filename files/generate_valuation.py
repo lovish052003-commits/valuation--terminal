@@ -555,6 +555,10 @@ def write_workbook(data: dict, wacc_out: dict, dcf_out: dict, comps_out: dict,
         ws5.append([line])
     ws5.column_dimensions["A"].width = 120
 
+    # Force openpyxl to save with calculated formula flag if supported,
+    # or write calculated values directly alongside formulas for summary cards:
+    wb.properties.fullCalcOnLoad = True
+    wb.calculation.fullCalcOnLoad = True
     wb.save(out_path)
 
 

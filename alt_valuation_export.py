@@ -294,6 +294,10 @@ def build_workbook(inp, path):
             ws.cell(73 + i, 3 + j, f'=$C$9*($B{73+i}-$C$22)/({L}$72-$C$22)').number_format = '#,##0'
     ws['B78'] = 'Note: grid shows steady-state justified P/B; the headline value uses the full 10-year fade above.'
     ws.sheet_view.showGridLines = False
+    # Force openpyxl to save with calculated formula flag if supported,
+    # or write calculated values directly alongside formulas for summary cards:
+    wb.properties.fullCalcOnLoad = True
+    wb.calculation.fullCalcOnLoad = True
     wb.save(path)
 
 
