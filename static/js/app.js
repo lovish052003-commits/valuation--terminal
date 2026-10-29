@@ -543,6 +543,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Financial Forecasting Tab
         renderFinancialForecasting(data.forecast_data);
 
+        // Monte Carlo Stochastic Simulation Tab
+        renderMonteCarloTab(data.monte_carlo, v.current_price);
+
         // Excel Download Button
         const tkr = (data.company && data.company.ticker) ? data.company.ticker : 'COMPANY';
         applyAltModel(data.alt_model);
@@ -1003,6 +1006,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data.forecast_data) {
                     renderFinancialForecasting(data.forecast_data);
                 }
+
+                // Update Monte Carlo Tab synchronized with recalculation
+                if (data.monte_carlo) {
+                    renderMonteCarloTab(data.monte_carlo, v.current_price);
+                }
             }
         } catch (err) {
             console.error("Recalculation error:", err);
@@ -1026,6 +1034,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (targetId === 'tabForecasting' && window.Plotly && document.getElementById('forecastPlotlyChart')) {
                 setTimeout(() => {
                     Plotly.Plots.resize('forecastPlotlyChart');
+                }, 60);
+            }
+            if (targetId === 'tabMonteCarlo' && window.Plotly) {
+                setTimeout(() => {
+                    if (document.getElementById('mcDistributionPlot')) Plotly.Plots.resize('mcDistributionPlot');
+                    if (document.getElementById('mcTornadoPlot')) Plotly.Plots.resize('mcTornadoPlot');
                 }, 60);
             }
         });
@@ -2228,4 +2242,331 @@ document.addEventListener('DOMContentLoaded', () => {
             tableContainer.innerHTML = html;
         }
     }
+
+    // --- 9. Monte Carlo Stochastic Simulation Terminal ---
+    window.__lastMonteCarlo = null;
+    function renderMonteCarloTab(mc, cmp) {
+        if (!mc) return;
+        window.__lastMonteCarlo = mc;
+        const stats = mc.statistics || {};
+        const pcts = mc.percentiles || {};
+        const probs = mc.probabilities || {};
+        const scen = mc.scenarios || {};
+        const currentPrice = Number(cmp || mc.current_price || (activeCompany ? activeCompany.current_price : 0));
+
+        // Header KPI Badges
+        safeSetText('mcBadgeProbUndervalued', `${probs.prob_undervalued || 0}%`);
+        safeSetText('mcBadgeMeanIv', `₹${Number(stats.mean || 0).toFixed(1)}`);
+        safeSetText('mcBadgeMedianIv', `₹${Number(stats.median || 0).toFixed(1)}`);
+        safeSetText('mcBadgeVar', `₹${Number(probs.var_95_rs || 0).toFixed(1)} (${probs.var_95_pct || 0}%)`);
+
+        // Verdict Pill
+        const verdictEl = document.getElementById('mcTableVerdict');
+        if (verdictEl) {
+            verdictEl.textContent = probs.verdict || 'CALCULATED';
+            verdictEl.className = `mc-verdict-pill ${probs.verdict_class || 'hold'}`;
+        }
+
+        // Percentiles Table
+        const tbody = document.getElementById('mcPercentilesTableBody');
+        if (tbody) {
+            const rows = [
+                { label: 'P5 (Extreme Stress / Worst 5%)', val: pcts.p5, desc: '95% Value at Risk floor' },
+                { label: 'P10 (Bearish Scenario)', val: pcts.p10, desc: 'Pessimistic macro / sector slowdown' },
+                { label: 'P25 (Conservative)', val: pcts.p25, desc: 'Lower quartile expectation' },
+                { label: 'P50 (Median Baseline)', val: pcts.p50, desc: 'Central distribution estimate', isMedian: true },
+                { label: 'P75 (Optimistic)', val: pcts.p75, desc: 'Upper quartile operating efficiency' },
+                { label: 'P90 (Bullish Scenario)', val: pcts.p90, desc: 'High market share & margin expansion' },
+                { label: 'P95 (Super Bull)', val: pcts.p95, desc: 'Top 5% optimal execution outcome' }
+            ];
+
+            let html = '';
+            rows.forEach(r => {
+                const price = Number(r.val || 0);
+                const upside = currentPrice > 0 ? ((price - currentPrice) / currentPrice) * 100 : 0;
+                const sign = upside > 0 ? '+' : '';
+                const colorClass = upside >= 0 ? 'text-emerald' : 'text-rose';
+                const rowClass = r.isMedian ? 'row-median' : '';
+
+                html += `<tr class="${rowClass}">
+                    <td><strong>${escapeHtml(r.label)}</strong></td>
+                    <td class="font-mono">₹${price.toFixed(2)}</td>
+                    <td class="font-mono ${colorClass}"><strong>${sign}${upside.toFixed(1)}%</strong></td>
+                    <td class="text-muted" style="font-size: 0.78rem;">${escapeHtml(r.desc)}</td>
+                </tr>`;
+            });
+            tbody.innerHTML = html;
+        }
+
+        // Scenario Bar & Risk Metrics
+        const bull = Number(scen.bull_pct || 0);
+        const fair = Number(scen.fair_pct || 0);
+        const bear = Number(scen.bear_pct || 0);
+
+        const segBull = document.getElementById('mcSegBull');
+        const segFair = document.getElementById('mcSegFair');
+        const segBear = document.getElementById('mcSegBear');
+        if (segBull) { segBull.style.width = `${Math.max(5, bull)}%`; segBull.textContent = `Bull: ${bull.toFixed(0)}%`; }
+        if (segFair) { segFair.style.width = `${Math.max(5, fair)}%`; segFair.textContent = `Fair: ${fair.toFixed(0)}%`; }
+        if (segBear) { segBear.style.width = `${Math.max(5, bear)}%`; segBear.textContent = `Bear: ${bear.toFixed(0)}%`; }
+
+        safeSetText('mcValBullPct', `${bull.toFixed(1)}% probability`);
+        safeSetText('mcValFairPct', `${fair.toFixed(1)}% probability`);
+        safeSetText('mcValBearPct', `${bear.toFixed(1)}% probability`);
+        safeSetText('mcValRiskReward', `${probs.risk_reward_ratio || 1.0}x`);
+
+        // Plotly 1: Distribution Histogram + CDF
+        const plotEl = document.getElementById('mcDistributionPlot');
+        if (plotEl && window.Plotly && mc.histogram) {
+            const hist = mc.histogram;
+            const x = hist.bin_midpoints || [];
+            const y = hist.frequencies || [];
+            const colors = hist.bar_colors || '#38bdf8';
+            const cdf = hist.cdf || [];
+
+            const traces = [
+                {
+                    name: 'Probability Density (%)',
+                    x: x,
+                    y: y,
+                    type: 'bar',
+                    marker: {
+                        color: colors,
+                        opacity: 0.82,
+                        line: { color: 'rgba(255,255,255,0.1)', width: 1 }
+                    },
+                    hovertemplate: '<b>IV: ₹%{x:,.1f}</b><br>Probability: %{y:.2f}%<extra></extra>'
+                },
+                {
+                    name: 'Cumulative Prob (CDF)',
+                    x: x,
+                    y: cdf,
+                    type: 'scatter',
+                    mode: 'lines',
+                    yaxis: 'y2',
+                    line: {
+                        color: '#a855f7',
+                        width: 2.5,
+                        dash: 'solid'
+                    },
+                    hovertemplate: '<b>Cumulative Prob: %{y:.1f}%</b><extra></extra>'
+                }
+            ];
+
+            const shapes = [];
+            const annotations = [];
+
+            // Add CMP Line
+            if (currentPrice > 0) {
+                shapes.push({
+                    type: 'line',
+                    x0: currentPrice,
+                    x1: currentPrice,
+                    y0: 0,
+                    y1: 1,
+                    yref: 'paper',
+                    line: { color: '#f59e0b', width: 2.5, dash: 'dash' }
+                });
+                annotations.push({
+                    x: currentPrice,
+                    y: 1,
+                    yref: 'paper',
+                    text: `CMP: ₹${currentPrice.toFixed(1)}`,
+                    showarrow: true,
+                    arrowhead: 2,
+                    arrowcolor: '#f59e0b',
+                    font: { color: '#f59e0b', size: 10, weight: 'bold' },
+                    bgcolor: 'rgba(0,0,0,0.7)',
+                    bordercolor: '#f59e0b',
+                    borderwidth: 1,
+                    borderpad: 3
+                });
+            }
+
+            // Add Median Line
+            if (stats.median > 0) {
+                shapes.push({
+                    type: 'line',
+                    x0: stats.median,
+                    x1: stats.median,
+                    y0: 0,
+                    y1: 0.9,
+                    yref: 'paper',
+                    line: { color: '#38bdf8', width: 2.5, dash: 'dot' }
+                });
+                annotations.push({
+                    x: stats.median,
+                    y: 0.9,
+                    yref: 'paper',
+                    text: `Median: ₹${stats.median.toFixed(1)}`,
+                    showarrow: true,
+                    arrowhead: 2,
+                    arrowcolor: '#38bdf8',
+                    font: { color: '#38bdf8', size: 10, weight: 'bold' },
+                    bgcolor: 'rgba(0,0,0,0.7)',
+                    bordercolor: '#38bdf8',
+                    borderwidth: 1,
+                    borderpad: 3
+                });
+            }
+
+            const layout = {
+                paper_bgcolor: 'transparent',
+                plot_bgcolor: 'transparent',
+                font: { family: 'inherit', color: '#94a3b8' },
+                xaxis: {
+                    title: 'Implied Share Price (₹ / Share)',
+                    gridcolor: 'rgba(255, 255, 255, 0.05)',
+                    tickfont: { color: '#94a3b8', size: 11 }
+                },
+                yaxis: {
+                    title: 'Frequency (%)',
+                    gridcolor: 'rgba(255, 255, 255, 0.05)',
+                    tickfont: { color: '#94a3b8', size: 11 }
+                },
+                yaxis2: {
+                    title: 'Cumulative Probability (%)',
+                    overlaying: 'y',
+                    side: 'right',
+                    range: [0, 105],
+                    showgrid: false,
+                    tickfont: { color: '#a855f7', size: 10 }
+                },
+                shapes: shapes,
+                annotations: annotations,
+                legend: {
+                    orientation: 'h',
+                    y: -0.22,
+                    x: 0.5,
+                    xanchor: 'center',
+                    font: { color: '#e2e8f0', size: 11 }
+                },
+                margin: { t: 30, r: 45, l: 55, b: 65 },
+                hovermode: 'closest'
+            };
+
+            const config = { responsive: true, displayModeBar: false };
+            Plotly.newPlot(plotEl, traces, layout, config);
+        }
+
+        // Plotly 2: Tornado Sensitivity Drivers
+        const tornadoEl = document.getElementById('mcTornadoPlot');
+        if (tornadoEl && window.Plotly && mc.tornado_drivers) {
+            const drivers = Object.entries(mc.tornado_drivers).sort((a, b) => Math.abs(a[1]) - Math.abs(b[1]));
+            const yLabels = drivers.map(d => d[0]);
+            const xCorrs = drivers.map(d => d[1]);
+            const barColors = xCorrs.map(c => c >= 0 ? '#10b981' : '#f43f5e');
+
+            const tornadoTrace = [{
+                type: 'bar',
+                orientation: 'h',
+                x: xCorrs,
+                y: yLabels,
+                marker: {
+                    color: barColors,
+                    opacity: 0.85,
+                    line: { color: 'rgba(255,255,255,0.1)', width: 1 }
+                },
+                hovertemplate: '<b>%{y}</b><br>Correlation to IV: %{x:+.3f}<extra></extra>'
+            }];
+
+            const tornadoLayout = {
+                paper_bgcolor: 'transparent',
+                plot_bgcolor: 'transparent',
+                font: { family: 'inherit', color: '#94a3b8' },
+                xaxis: {
+                    title: 'Pearson Correlation (r)',
+                    range: [-1.0, 1.0],
+                    gridcolor: 'rgba(255, 255, 255, 0.05)',
+                    zerolinecolor: 'rgba(255, 255, 255, 0.25)',
+                    zerolinewidth: 1.5,
+                    tickfont: { color: '#94a3b8', size: 11 }
+                },
+                yaxis: {
+                    automargin: true,
+                    tickfont: { color: '#e2e8f0', size: 11 }
+                },
+                margin: { t: 25, r: 25, l: 140, b: 50 },
+                hovermode: 'closest'
+            };
+
+            const tornadoConfig = { responsive: true, displayModeBar: false };
+            Plotly.newPlot(tornadoEl, tornadoTrace, tornadoLayout, tornadoConfig);
+        }
+    }
+
+    function setupMonteCarloControls() {
+        const sliderGrowthVol = document.getElementById('mcSliderGrowthVol');
+        const badgeGrowthVol = document.getElementById('mcBadgeGrowthVol');
+        if (sliderGrowthVol && badgeGrowthVol) {
+            sliderGrowthVol.addEventListener('input', () => {
+                badgeGrowthVol.textContent = `${Number(sliderGrowthVol.value).toFixed(1)}%`;
+            });
+        }
+
+        const sliderWaccVol = document.getElementById('mcSliderWaccVol');
+        const badgeWaccVol = document.getElementById('mcBadgeWaccVol');
+        if (sliderWaccVol && badgeWaccVol) {
+            sliderWaccVol.addEventListener('input', () => {
+                badgeWaccVol.textContent = `${Number(sliderWaccVol.value).toFixed(1)}%`;
+            });
+        }
+
+        const sliderMarginVol = document.getElementById('mcSliderMarginVol');
+        const badgeMarginVol = document.getElementById('mcBadgeMarginVol');
+        if (sliderMarginVol && badgeMarginVol) {
+            sliderMarginVol.addEventListener('input', () => {
+                badgeMarginVol.textContent = `${Number(sliderMarginVol.value).toFixed(1)}%`;
+            });
+        }
+
+        const btnRun = document.getElementById('btnRunMonteCarlo');
+        if (btnRun) {
+            btnRun.addEventListener('click', async () => {
+                const ticker = (activeCompany && activeCompany.ticker) ? activeCompany.ticker : '';
+                const iterSelect = document.getElementById('mcSelectIterations');
+                const iterations = iterSelect ? (parseInt(iterSelect.value) || 2500) : 2500;
+                const growthVol = sliderGrowthVol ? (parseFloat(sliderGrowthVol.value) / 100.0) : 0.035;
+                const waccVol = sliderWaccVol ? (parseFloat(sliderWaccVol.value) / 100.0) : 0.012;
+                const marginVol = sliderMarginVol ? (parseFloat(sliderMarginVol.value) / 100.0) : 0.05;
+
+                const textSpan = document.getElementById('mcRunBtnText');
+                const spinner = document.getElementById('mcRunSpinner');
+                btnRun.disabled = true;
+                if (textSpan) textSpan.textContent = 'Simulating...';
+                if (spinner) spinner.style.display = 'inline-block';
+
+                try {
+                    const resp = await fetch('/api/monte-carlo', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            ticker: ticker,
+                            iterations: iterations,
+                            growthVolatility: growthVol,
+                            waccVolatility: waccVol,
+                            marginVolatility: marginVol
+                        })
+                    });
+                    const res = await resp.json();
+                    if (res.success && res.monte_carlo) {
+                        const cmp = (activeCompany && activeCompany.current_price) ? activeCompany.current_price : 0;
+                        renderMonteCarloTab(res.monte_carlo, cmp);
+                        showToast(`Monte Carlo simulation completed with ${iterations.toLocaleString()} iterations!`);
+                    } else if (res.error) {
+                        showToast(`Notice: ${res.error}`);
+                    }
+                } catch (e) {
+                    console.error("Monte Carlo run failed:", e);
+                    showToast('Simulation failed. Please try again.');
+                } finally {
+                    btnRun.disabled = false;
+                    if (textSpan) textSpan.textContent = '⚡ Run Simulation';
+                    if (spinner) spinner.style.display = 'none';
+                }
+            });
+        }
+    }
+
+    setupMonteCarloControls();
 });

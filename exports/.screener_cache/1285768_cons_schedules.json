@@ -1,0 +1,286 @@
+{
+  "Fixed Assets": {
+    "Land": {
+      "Mar 2025": "2,425",
+      "Mar 2026": "2,450",
+      "Sep 2026": ""
+    },
+    "Building": {
+      "Mar 2025": "4,038",
+      "Mar 2026": "4,280",
+      "Sep 2026": ""
+    },
+    "Plant Machinery": {
+      "Mar 2025": "21,360",
+      "Mar 2026": "22,220",
+      "Sep 2026": ""
+    },
+    "Computers": {
+      "Mar 2025": "696",
+      "Mar 2026": "707",
+      "Sep 2026": ""
+    },
+    "Furniture n fittings": {
+      "Mar 2025": "219",
+      "Mar 2026": "239",
+      "Sep 2026": ""
+    },
+    "Vehicles": {
+      "Mar 2025": "638",
+      "Mar 2026": "556",
+      "Sep 2026": ""
+    },
+    "Intangible Assets": {
+      "Mar 2025": "446",
+      "Mar 2026": "446",
+      "Sep 2026": "3,844"
+    },
+    "Other fixed assets": {
+      "Mar 2025": "6,741",
+      "Mar 2026": "7,602",
+      "Sep 2026": ""
+    },
+    "Gross Block": {
+      "Mar 2025": "36,563",
+      "Mar 2026": "38,500",
+      "Sep 2026": "",
+      "setAttributes": {
+        "class": "strong"
+      }
+    },
+    "Accumulated Depreciation": {
+      "Mar 2025": "22,899",
+      "Mar 2026": "24,538",
+      "Sep 2026": ""
+    }
+  },
+  "Other Assets": {
+    "Inventories": {
+      "Mar 2025": "4,625",
+      "Mar 2026": "5,448",
+      "Sep 2026": "8,217"
+    },
+    "Trade receivables": {
+      "Mar 2025": "3,064",
+      "Mar 2026": "2,721",
+      "Sep 2026": "3,620",
+      "isExpandable": "Company.showSchedule(\"Trade receivables\", \"balance-sheet\", this)"
+    },
+    "Cash Equivalents": {
+      "Mar 2025": "2,266",
+      "Mar 2026": "7,776",
+      "Sep 2026": "7,964"
+    },
+    "Loans n Advances": {
+      "Mar 2025": "492",
+      "Mar 2026": "541",
+      "Sep 2026": "4,347"
+    },
+    "Other asset items": {
+      "Mar 2025": "15,583",
+      "Mar 2026": "6,552",
+      "Sep 2026": "4,198"
+    }
+  },
+  "Borrowings": {
+    "Long term Borrowings": {
+      "Mar 2025": "4,540",
+      "Mar 2026": "1,344",
+      "Sep 2026": "915"
+    },
+    "Short term Borrowings": {
+      "Mar 2025": "4,616",
+      "Mar 2026": "3,473",
+      "Sep 2026": "2,027"
+    },
+    "Lease Liabilities": {
+      "Mar 2025": "769",
+      "Mar 2026": "798",
+      "Sep 2026": "838"
+    }
+  },
+  "Other Liabilities": {
+    "Non controlling int": {
+      "Mar 2025": "0",
+      "Mar 2026": "0",
+      "Sep 2026": "75"
+    },
+    "Trade Payables": {
+      "Mar 2025": "14,376",
+      "Mar 2026": "15,704",
+      "Sep 2026": "17,544"
+    },
+    "Other liability items": {
+      "Mar 2025": "12,017",
+      "Mar 2026": "18,256",
+      "Sep 2026": "20,766"
+    }
+  },
+  "Cash from Operating Activity": {
+    "Profit from operations": {
+      "Mar 2025": "6,729",
+      "Mar 2026": "9,266",
+      "setAttributes": {
+        "class": "strong"
+      }
+    },
+    "Receivables": {
+      "Mar 2025": "-533",
+      "Mar 2026": "325"
+    },
+    "Inventory": {
+      "Mar 2025": "2,295",
+      "Mar 2026": "-782"
+    },
+    "Payables": {
+      "Mar 2025": "-556",
+      "Mar 2026": "1,237"
+    },
+    "Other WC items": {
+      "Mar 2025": "632",
+      "Mar 2026": "5,877"
+    },
+    "Working capital changes": {
+      "Mar 2025": "1,838",
+      "Mar 2026": "6,657",
+      "setAttributes": {
+        "class": "strong"
+      }
+    },
+    "Direct taxes": {
+      "Mar 2025": "-20",
+      "Mar 2026": "-942"
+    }
+  },
+  "Cash from Investing Activity": {
+    "Fixed assets purchased": {
+      "Mar 2025": "-1,663",
+      "Mar 2026": "-2,248"
+    },
+    "Fixed assets sold": {
+      "Mar 2025": "121",
+      "Mar 2026": "145"
+    },
+    "Investments purchased": {
+      "Mar 2025": "-2,376",
+      "Mar 2026": "-2,797"
+    },
+    "Investments sold": {
+      "Mar 2025": "35",
+      "Mar 2026": "594"
+    },
+    "Interest received": {
+      "Mar 2025": "411",
+      "Mar 2026": "506"
+    },
+    "Dividends received": {
+      "Mar 2025": "50",
+      "Mar 2026": "104"
+    },
+    "Invest in subsidiaries": {
+      "Mar 2025": "-1,121",
+      "Mar 2026": "-5,938"
+    },
+    "Loans to subsidiaries": {
+      "Mar 2025": "-168",
+      "Mar 2026": "-11"
+    },
+    "Investment in group cos": {
+      "Mar 2025": "-127",
+      "Mar 2026": "-138"
+    },
+    "Redemp n Canc of Shares": {
+      "Mar 2025": "0",
+      "Mar 2026": "20"
+    },
+    "Other investing items": {
+      "Mar 2025": "4,005",
+      "Mar 2026": "-78"
+    }
+  },
+  "Cash from Financing Activity": {
+    "Proceeds from borrowings": {
+      "Mar 2025": "2,470",
+      "Mar 2026": "341"
+    },
+    "Repayment of borrowings": {
+      "Mar 2025": "-9,231",
+      "Mar 2026": "-4,454"
+    },
+    "Interest paid fin": {
+      "Mar 2025": "-1,006",
+      "Mar 2026": "-884"
+    },
+    "Financial liabilities": {
+      "Mar 2025": "-203",
+      "Mar 2026": "-226"
+    }
+  },
+  "Expenses": {
+    "Material Cost %": {
+      "Mar 2025": "67%",
+      "Mar 2026": "68%",
+      "isExpandable": "Company.showSchedule(\"Material Cost %\", \"profit-loss\", this)"
+    },
+    "Manufacturing Cost %": {
+      "Mar 2025": "4%",
+      "Mar 2026": "4%"
+    },
+    "Employee Cost %": {
+      "Mar 2025": "7%",
+      "Mar 2026": "7%"
+    },
+    "Other Cost %": {
+      "Mar 2025": "10%",
+      "Mar 2026": "12%"
+    }
+  },
+  "Material Cost %": {
+    "Raw material cost": {
+      "Mar 2025": "37,181",
+      "Mar 2026": "57,024"
+    },
+    "Change in inventory": {
+      "Mar 2025": "2,015",
+      "Mar 2026": "-292"
+    }
+  },
+  "Sales": {
+    "Sales Growth %": {
+      "Mar 2025": "",
+      "Mar 2026": "47.27%"
+    }
+  },
+  "Other Income": {
+    "Exceptional items": {
+      "Mar 2025": "-285",
+      "Mar 2026": "-3,700"
+    },
+    "Other income normal": {
+      "Mar 2025": "679",
+      "Mar 2026": "1,035"
+    }
+  },
+  "Net Profit": {
+    "Exceptional items AT": {
+      "Mar 2025": "-229",
+      "Mar 2026": "-2,497"
+    },
+    "Profit excl Excep": {
+      "Mar 2025": "3,708",
+      "Mar 2026": "5,859"
+    },
+    "Profit for PE": {
+      "Mar 2025": "3,708",
+      "Mar 2026": "5,859"
+    },
+    "Profit for EPS": {
+      "Mar 2025": "3,479",
+      "Mar 2026": "3,362"
+    },
+    "Profit Growth %": {
+      "Mar 2025": "",
+      "Mar 2026": "58%"
+    }
+  }
+}

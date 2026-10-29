@@ -15,6 +15,7 @@ import screener_client
 import valuation_engine
 import llm_client
 import excel_exporter
+import monte_carlo_engine
 
 def print_banner():
     print("=" * 75)
@@ -62,7 +63,7 @@ def run_valuation_cli(args):
 
     # 3. Export Excel Model (All 22 Sheets Populated with 0.0% Leftover Template Data)
     export_path = None
-    if args.export_excel:
+    if args.export_excel and not getattr(args, 'skip_excel', False):
         print(f"\n[3/4] Generating institutional 22-sheet Excel financial model for '{screener_data['company_name']}'...")
         export_path = excel_exporter.export_valuation_model(screener_data, val)
         print(f" -> Excel Model generated & saved to: {export_path}")
@@ -147,6 +148,18 @@ def run_valuation_cli(args):
     if export_path:
         print(f"\n[+] All 22 sheets verified & populated with {val['company_name']} financials in: {export_path}")
 
+    # Display Monte Carlo Simulation Terminal
+    if not getattr(args, 'no_monte_carlo', False):
+        try:
+            mc_sim = monte_carlo_engine.run_monte_carlo_simulation(
+                valuation_result=val,
+                screener_data=screener_data,
+                config={'iterations': getattr(args, 'mc_iterations', 2500)}
+            )
+            print("\n" + monte_carlo_engine.format_cli_monte_carlo(mc_sim))
+        except Exception as e_mc:
+            print(f"\nNotice: Monte Carlo Simulation Error: {e_mc}")
+
 
     # 4. Generate AI Equity Research Report
     provider = args.provider
@@ -205,7 +218,10 @@ def main():
     parser.add_argument("--terminal-growth", type=float, default=4.0, help="Terminal Growth percentage (default: 4.0)")
     parser.add_argument("--tax-rate", type=float, default=25.17, help="Tax Rate percentage (default: 25.17)")
     parser.add_argument("--export-excel", action="store_true", default=True, help="Export .xlsx model")
+    parser.add_argument("--skip-excel", action="store_true", help="Skip generating 22-sheet Excel model for faster run")
     parser.add_argument("--no-ai", action="store_true", help="Skip AI report generation")
+    parser.add_argument("--no-monte-carlo", action="store_true", help="Skip Monte Carlo stochastic simulation")
+    parser.add_argument("--mc-iterations", type=int, default=2500, help="Number of Monte Carlo iterations (default: 2500)")
 
     args = parser.parse_args()
     run_valuation_cli(args)

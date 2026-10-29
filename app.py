@@ -24,6 +24,7 @@ import company_logo_manager
 import news_service
 import events_engine
 import forecasting_engine
+import monte_carlo_engine
 
 app = Flask(__name__)
 
@@ -356,6 +357,10 @@ def analyze():
         dcf_growth_rate = val_result.get('growth_rate', 10.0)
         forecast_data = forecasting_engine.generate_financial_forecast(screener_data, dcf_growth_rate)
 
+        # 4e. Run Vectorized Monte Carlo Simulation (2,500 iterations)
+        monte_carlo_data = monte_carlo_engine.run_monte_carlo_simulation(val_result, screener_data)
+        cached_payload['monte_carlo'] = monte_carlo_data
+
         return jsonify(sanitize_for_json({
             'success': True,
             'run_id': run_id,
@@ -364,6 +369,7 @@ def analyze():
             'data_as_of': screener_data.get('data_as_of'),
             'dataAsOf': screener_data.get('data_as_of'),
             'last_updated': screener_data.get('last_updated'),
+            'monte_carlo': monte_carlo_data,
             'company': {
                 'id': canonical.get('id', screener_data.get('company_id')),
                 'name': c_name,
@@ -544,6 +550,10 @@ def recalculate():
     dcf_growth_rate = val_result.get('growth_rate', 10.0)
     forecast_data = forecasting_engine.generate_financial_forecast(cached['screener_data'], dcf_growth_rate)
 
+    # Recalculate Monte Carlo simulation synchronized with updated parameters
+    monte_carlo_data = monte_carlo_engine.run_monte_carlo_simulation(val_result, cached['screener_data'])
+    cached['monte_carlo'] = monte_carlo_data
+
     t = cached['screener_data'].get('ticker', 'COMPANY').upper()
     excel_filename = f"{t}_Valuation_Model.xlsx"
 
@@ -551,8 +561,41 @@ def recalculate():
         'success': True,
         'valuation': val_result,
         'forecast_data': forecast_data,
+        'monte_carlo': monte_carlo_data,
         'excel_filename': excel_filename
     }))
+
+@app.route('/api/monte-carlo', methods=['POST'])
+def run_custom_monte_carlo():
+    """Executes a custom Monte Carlo simulation with client-provided volatility and iterations."""
+    data = request.get_json(force=True) or {}
+    ticker = (data.get('ticker') or '').strip().upper()
+    cached = ANALYSIS_CACHE.get(ticker) if ticker else ANALYSIS_CACHE.get('latest')
+    if not cached or not cached.get('valuation_result'):
+        return jsonify({'error': 'No active company valuation in session. Please run an analysis first.'}), 400
+
+    config = {
+        'iterations': data.get('iterations', 2500),
+        'growth_volatility': data.get('growthVolatility', 0.035),
+        'wacc_volatility': data.get('waccVolatility', 0.012),
+        'margin_volatility': data.get('marginVolatility', 0.05),
+        'terminal_growth_min': data.get('terminalGrowthMin', 0.02),
+        'terminal_growth_max': data.get('terminalGrowthMax', 0.055)
+    }
+
+    try:
+        mc_res = monte_carlo_engine.run_monte_carlo_simulation(
+            valuation_result=cached['valuation_result'],
+            screener_data=cached.get('screener_data'),
+            config=config
+        )
+        cached['monte_carlo'] = mc_res
+        return jsonify(sanitize_for_json({
+            'success': True,
+            'monte_carlo': mc_res
+        }))
+    except Exception as e:
+        return jsonify({'error': f"Simulation error: {str(e)}"}), 500
 
 @app.route('/api/export-status/<ticker>')
 def export_status(ticker):

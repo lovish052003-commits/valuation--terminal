@@ -270,6 +270,7 @@
                 <button class="tab-btn" data-tab="tabNews">📰 Market News & Sentiment</button>
                 <button class="tab-btn" data-tab="tabEvents">📅 Corporate Events</button>
                 <button class="tab-btn" data-tab="tabForecasting">📈 Financial Forecasting</button>
+                <button class="tab-btn" data-tab="tabMonteCarlo">🎲 Monte Carlo Terminal</button>
             </div>
 
             <!-- TAB: 4 VALUATION PILLARS (EXECUTIVE DASHBOARD) -->
@@ -1153,6 +1154,172 @@
                     </div>
                     <div class="table-responsive forecast-table-responsive" id="forecastTableContainer">
                         <!-- Populated dynamically via app.js -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: Monte Carlo Stochastic Simulation Terminal -->
+            <div id="tabMonteCarlo" class="tab-panel">
+                <!-- Header Banner -->
+                <div class="glass-panel mc-header-banner">
+                    <div class="mc-header-content">
+                        <div class="mc-header-left">
+                            <h3 class="mc-title">🎲 Monte Carlo Stochastic Valuation Terminal</h3>
+                            <p class="mc-subtitle">
+                                Executes thousands of randomized DCF &amp; excess return iterations to quantify valuation uncertainty, margin of safety, and downside Value-at-Risk (VaR).
+                            </p>
+                        </div>
+                        <div class="mc-header-badges">
+                            <div class="mc-kpi-chip">
+                                <span class="chip-label">Probability Undervalued</span>
+                                <span class="chip-val text-emerald" id="mcBadgeProbUndervalued">—</span>
+                            </div>
+                            <div class="mc-kpi-chip">
+                                <span class="chip-label">Expected Value (Mean)</span>
+                                <span class="chip-val text-cyan" id="mcBadgeMeanIv">—</span>
+                            </div>
+                            <div class="mc-kpi-chip">
+                                <span class="chip-label">Median Value (P50)</span>
+                                <span class="chip-val text-amber" id="mcBadgeMedianIv">—</span>
+                            </div>
+                            <div class="mc-kpi-chip">
+                                <span class="chip-label">95% Value-at-Risk (VaR)</span>
+                                <span class="chip-val text-rose" id="mcBadgeVar">—</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive Simulation Controls Toolbar -->
+                <div class="glass-panel mc-controls-toolbar">
+                    <div class="mc-controls-grid">
+                        <div class="mc-ctrl-item">
+                            <label class="mc-ctrl-label" for="mcSelectIterations">Iterations</label>
+                            <select id="mcSelectIterations" class="mc-select">
+                                <option value="1000">1,000 Iterations (Fast)</option>
+                                <option value="2500" selected>2,500 Iterations (Recommended)</option>
+                                <option value="5000">5,000 Iterations (High Precision)</option>
+                                <option value="10000">10,000 Iterations (Institutional)</option>
+                            </select>
+                        </div>
+                        <div class="mc-ctrl-item">
+                            <div class="mc-slider-header">
+                                <label class="mc-ctrl-label" for="mcSliderGrowthVol">Growth Volatility (σ)</label>
+                                <span class="mc-val-badge" id="mcBadgeGrowthVol">3.5%</span>
+                            </div>
+                            <input type="range" id="mcSliderGrowthVol" class="range-slider" min="1.0" max="10.0" step="0.5" value="3.5">
+                        </div>
+                        <div class="mc-ctrl-item">
+                            <div class="mc-slider-header">
+                                <label class="mc-ctrl-label" for="mcSliderWaccVol">WACC Volatility (σ)</label>
+                                <span class="mc-val-badge" id="mcBadgeWaccVol">1.2%</span>
+                            </div>
+                            <input type="range" id="mcSliderWaccVol" class="range-slider" min="0.5" max="3.0" step="0.1" value="1.2">
+                        </div>
+                        <div class="mc-ctrl-item">
+                            <div class="mc-slider-header">
+                                <label class="mc-ctrl-label" for="mcSliderMarginVol">Reinvest / Margin Vol (σ)</label>
+                                <span class="mc-val-badge" id="mcBadgeMarginVol">5.0%</span>
+                            </div>
+                            <input type="range" id="mcSliderMarginVol" class="range-slider" min="1.0" max="12.0" step="0.5" value="5.0">
+                        </div>
+                        <div class="mc-ctrl-item mc-btn-cell">
+                            <button id="btnRunMonteCarlo" type="button" class="btn-mc-run">
+                                <span id="mcRunBtnText">⚡ Run Simulation</span>
+                                <div id="mcRunSpinner" class="loader-spinner-sm" style="display: none;"></div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simulation Visualizations Grid -->
+                <div class="mc-visuals-grid">
+                    <!-- Left: Histogram & CDF Distribution Chart -->
+                    <div class="glass-panel mc-chart-card">
+                        <div class="mc-chart-header">
+                            <div>
+                                <h4 class="mc-section-title">📊 Probabilistic Intrinsic Value Distribution</h4>
+                                <p class="mc-section-desc">Binned simulation outcomes with overlay of Current Market Price (CMP), Median, and Confidence Bounds.</p>
+                            </div>
+                            <div class="mc-chart-legend">
+                                <span class="legend-item"><span class="legend-dot dot-undervalued"></span> Undervalued Zone (&gt; CMP)</span>
+                                <span class="legend-item"><span class="legend-dot dot-overvalued"></span> Overvalued Zone (&lt; CMP)</span>
+                                <span class="legend-item"><span class="legend-line line-cmp"></span> CMP</span>
+                                <span class="legend-item"><span class="legend-line line-median"></span> Median</span>
+                            </div>
+                        </div>
+                        <div id="mcDistributionPlot" style="width: 100%; min-height: 420px;"></div>
+                    </div>
+
+                    <!-- Right: Sensitivity Drivers (Tornado Chart) -->
+                    <div class="glass-panel mc-tornado-card">
+                        <div class="mc-chart-header">
+                            <div>
+                                <h4 class="mc-section-title">🌪️ Valuation Sensitivity Drivers (Tornado Correlation)</h4>
+                                <p class="mc-section-desc">Ranks inputs by their statistical Pearson correlation to Intrinsic Value.</p>
+                            </div>
+                        </div>
+                        <div id="mcTornadoPlot" style="width: 100%; min-height: 420px;"></div>
+                    </div>
+                </div>
+
+                <!-- Bottom Institutional Summary Grid -->
+                <div class="mc-tables-grid">
+                    <!-- Percentiles Table -->
+                    <div class="glass-panel mc-panel-card">
+                        <div class="mc-panel-header">
+                            <h4 class="mc-section-title">📋 Simulation Percentile Distribution</h4>
+                            <span class="mc-verdict-pill" id="mcTableVerdict">CALCULATING</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="mc-table">
+                                <thead>
+                                    <tr>
+                                        <th>Scenario / Percentile</th>
+                                        <th>Implied Price (Rs.)</th>
+                                        <th>Upside / (Downside) vs CMP</th>
+                                        <th>Risk Profile</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="mcPercentilesTableBody">
+                                    <!-- Populated dynamically via app.js -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Scenarios & Risk Metrics Card -->
+                    <div class="glass-panel mc-panel-card">
+                        <div class="mc-panel-header">
+                            <h4 class="mc-section-title">🛡️ Probabilistic Scenario Breakdown</h4>
+                        </div>
+                        <div class="mc-scenarios-container">
+                            <div class="mc-scenario-bar-wrap">
+                                <div class="mc-scenario-bar">
+                                    <div class="mc-bar-segment seg-bull" id="mcSegBull" style="width: 33%;">Bull: 33%</div>
+                                    <div class="mc-bar-segment seg-fair" id="mcSegFair" style="width: 34%;">Fair: 34%</div>
+                                    <div class="mc-bar-segment seg-bear" id="mcSegBear" style="width: 33%;">Bear: 33%</div>
+                                </div>
+                            </div>
+                            <div class="mc-risk-grid">
+                                <div class="mc-risk-item">
+                                    <span class="mc-risk-label">Bull Scenario (&gt; +20% Upside)</span>
+                                    <span class="mc-risk-val text-emerald" id="mcValBullPct">—</span>
+                                </div>
+                                <div class="mc-risk-item">
+                                    <span class="mc-risk-label">Fair Value Band (±15% Range)</span>
+                                    <span class="mc-risk-val text-amber" id="mcValFairPct">—</span>
+                                </div>
+                                <div class="mc-risk-item">
+                                    <span class="mc-risk-label">Downside / Bear Scenario</span>
+                                    <span class="mc-risk-val text-rose" id="mcValBearPct">—</span>
+                                </div>
+                                <div class="mc-risk-item">
+                                    <span class="mc-risk-label">Risk-to-Reward Ratio (P90 / P10)</span>
+                                    <span class="mc-risk-val text-cyan" id="mcValRiskReward">—</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
